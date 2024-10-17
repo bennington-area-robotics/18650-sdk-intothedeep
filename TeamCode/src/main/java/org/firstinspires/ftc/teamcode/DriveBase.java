@@ -8,8 +8,9 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 
 public class DriveBase {
+    //todo this class needs some work, rewrite this from scratch
 
-    private DcMotor 
+    private final DcMotor
         LFront,
         RFront,
         LRear,
@@ -66,20 +67,20 @@ public class DriveBase {
     }
 
 
-    /**
-     * only Carl knows what this does. he's been gone since 2020.
-     * since we only used the right joystick 2023-2024, this only ever returned 1.
-     */
-    private double Get_Denominator(float lStickX, float lStickY, float rStickX) {
-        double sum = Math.abs(lStickY)
-                + Math.abs(lStickX)
-                + Math.abs(rStickX);
-        if (sum > 1) {
-            return sum;
-        } else {
-            return 1;
-        }
-    }
+//    /**
+//     * only Carl knows what this does. he's been gone since 2020.
+//     * since we only used the right joystick 2023-2024, this only ever returned 1.
+//     */
+//    private double Get_Denominator(float lStickX, float lStickY, float rStickX) {
+//        double sum = Math.abs(lStickY)
+//                + Math.abs(lStickX)
+//                + Math.abs(rStickX);
+//        if (sum > 1) {
+//            return sum;
+//        } else {
+//            return 1;
+//        }
+//    }
 
     /**
      * Sets the power values for the different motors.
