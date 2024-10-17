@@ -15,6 +15,7 @@ public class PIDTest extends LinearOpMode {
     PID pid = new PID();
     private final ElapsedTime runtime = new ElapsedTime();
     int target = 300;
+    double power = 0;
 
 
     @Override
@@ -27,11 +28,16 @@ public class PIDTest extends LinearOpMode {
 
         waitForStart();
         runtime.reset();
-        if(opModeIsActive()){
-            pid.getPowerLvl(target, driveBase.getPosition());
-            driveBase.setPower(0.5,0.5,0.5,0.5);
-            sleep(500);
-            driveBase.stopMotors();
+        if (opModeIsActive()) {
+            driveBase.setTargets(target, target, target, target);
+            while (opModeIsActive()) {
+                if(runtime.seconds() > 5){
+                    driveBase.stopMotors();
+                } else {
+                    power = pid.getPowerLvl(target, driveBase.getPosition());
+                    driveBase.setPower(power, power, power ,power);
+                }
+            }
         }
 
     }
