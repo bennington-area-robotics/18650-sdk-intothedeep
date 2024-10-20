@@ -14,7 +14,7 @@ public class PID {
      * Creates a new PID function using default PIDF variables
      */
     public PID(){
-        this(0.5, 0.01, 0.01, 0.1);
+        this(0.01, 0, 0, 0);
     }
 
     /**
@@ -30,6 +30,8 @@ public class PID {
         this.d = d;
         this.f = f;
     }
+
+    public void setP (double p){this.p = p;}
 
 
     /**
