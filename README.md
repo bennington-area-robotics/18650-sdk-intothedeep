@@ -1117,7 +1117,7 @@ Changes with verion 3.3 include:
     - Update to latest Google Blockly release.
     - Sample OpModes can be selected as a template when creating new OpMode.
     - Fixed bug where the blocks would disappear temporarily when mouse button is held down.
-    - Added blocks for Range.clip and Range.scale.
+    - Added blocks for org.firstinspires.ftc.teamcode.hardware.Range.clip and org.firstinspires.ftc.teamcode.hardware.Range.scale.
     - User can now disable/enable Block OpModes.
     - Fix to prevent occasional Blocks deadlock.
  * OnBot Java
@@ -1355,7 +1355,7 @@ Changes include:
 
 ## Version 2.20 (released on 16.09.08)
   * Support for Modern Robotics Compass Sensor.
-  * Support for Modern Robotics Range Sensor.
+  * Support for Modern Robotics org.firstinspires.ftc.teamcode.hardware.Range Sensor.
   * Revise device names for Pushbot templates to match the names used in Pushbot guide.
   * Fixed bug so that IrSeekerSensorV3 device is accessible as IrSeekerSensor in hardwareMap.
   * Modified computer vision code to require an individual Vuforia license (per legal requirement from PTC).
@@ -1397,7 +1397,7 @@ Changes include:
  * setChannelMode and getChannelMode were REMOVED from the DcMotorController class.  This is important - we no longer set the motor modes through the motor controller.
  * setMode and getMode were added to the DcMotor class.
  * ContinuousRotationServo class has been added to the FTC SDK.
- * Range.clip() method has been overloaded so it can support this operation for int, short and byte integers.
+ * org.firstinspires.ftc.teamcode.hardware.Range.clip() method has been overloaded so it can support this operation for int, short and byte integers.
  * Some changes have been made (new methods added) on how a user can access items from the hardware map.
  * Users can now set the zero power behavior for a DC motor so that the motor will brake or float when power is zero.
  * Prototype Blockly Programming Mode has been added to FTC Robot Controller.  Users can place the Robot Controller into this mode, and then use a device (such as a laptop) that has a Javascript enabled browser to write Blockly-based OpModes directly onto the Robot Controller.
