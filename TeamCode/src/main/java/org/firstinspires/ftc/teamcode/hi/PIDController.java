@@ -25,6 +25,16 @@ public class PIDController {
     public void setkP(double p){this.kP = p;}
     public void setkD(double d){this.kD = d;}
     public void setkI(double i){this.kI = i;}
+    public void setK(double value, int index){
+        switch(index){
+            case 0: kP = value;
+            break;
+            case 1: kD = value;
+            break;
+            case 2: kI = value;
+            break;
+        }
+    }
 
     public double calculate(double currentPosition, double currentTime) {
 
@@ -56,8 +66,6 @@ public class PIDController {
         // Total output (motor power)
         double output = proportional + integralTerm + derivativeTerm;
 
-        // Clamp output to motor power range [-1, 1]
-        output = Math.max(Math.min(output, 1), -1);
 
         return output;
     }
