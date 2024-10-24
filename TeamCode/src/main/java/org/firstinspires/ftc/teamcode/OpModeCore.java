@@ -25,9 +25,18 @@ public class OpModeCore extends LinearOpMode {
         //initialize hardware
         collector = new Collector(hardwareMap, "colorSensor", "wristServo", "gripServo");
 
+        configureTelemetry();
+
         //save the current gamepad states to compare against to avoid errors
         previousGamepad1.copy(gamepad1);
         previousGamepad2.copy(gamepad2);
+    }
+
+    private void configureTelemetry(){
+        telemetry.setAutoClear(false); //disable clearing telemetry after update() is called
+
+        //use suppliers to allow updating values without clearing and re-adding
+        telemetry.addData("Detected Color", collector.colorSensor::getColorName);
     }
 
     @Override
@@ -41,7 +50,7 @@ public class OpModeCore extends LinearOpMode {
 
     public void tick(){
         checkGamepad();
-        telemetry.addData("Detected Color", collector.colorSensor.getColorName());
+
         telemetry.update();
     }
 

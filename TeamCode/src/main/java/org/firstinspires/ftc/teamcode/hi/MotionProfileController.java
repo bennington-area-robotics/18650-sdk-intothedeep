@@ -12,6 +12,7 @@ public class MotionProfileController {
         this.maxAcceleration = maxAcceleration;
         this.targetPosition = targetPosition;
     }
+
     public void setTargetPosition(double newTargetPosition) {
         this.targetPosition = newTargetPosition;
         this.currentSpeed = 0;  // Reset speed when setting a new target
