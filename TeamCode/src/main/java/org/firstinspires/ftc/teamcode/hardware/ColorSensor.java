@@ -50,11 +50,11 @@ public class ColorSensor {
     private static final float THRESHOLD = 20.0f;
 
     /**
-     * Reads the currently detected color and returns either a name of a scoring element color or None to specify no scoring element color was detected.
+     * Reads the currently detected color and returns a scoring element color or null if no scoring element color was detected.
      *
-     * @return the name of the approximate color detected by the sensor. Either 'Blue', 'Red', 'Yellow', or 'None'
+     * @return the approximate color detected by the sensor. If no scoring element color is detected returns null.
      */
-    public String getColorName() {
+    public ScoringElementColor getColorName() {
         float[] hsv = getHSV();
 
         final float h = hsv[0];
@@ -70,7 +70,7 @@ public class ColorSensor {
 
         // Ensure valid saturation and value
         if (s < 0.2 || v < 0.4) {
-            return "None"; // Very low saturation or brightness, return None
+            return null; // Very low saturation or brightness, return None
         }
 
         // Normalize hue
@@ -79,13 +79,13 @@ public class ColorSensor {
 
         // Check closeness to each color
         if (isWithinThreshold(v, RED_HUE) || isWithinThreshold(v, 360.0f)) {
-            return "Red";
+            return ScoringElementColor.RED;
         } else if (isWithinThreshold(v, YELLOW_HUE)) {
-            return "Yellow";
+            return ScoringElementColor.YELLOW;
         } else if (isWithinThreshold(v, BLUE_HUE)) {
-            return "Blue";
+            return ScoringElementColor.BLUE;
         } else {
-            return "None";
+            return null;
         }
     }
 

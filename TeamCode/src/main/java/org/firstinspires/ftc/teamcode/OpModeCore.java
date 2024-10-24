@@ -11,6 +11,7 @@ import org.firstinspires.ftc.teamcode.hardware.Collector;
 public class OpModeCore extends LinearOpMode {
     private static OpModeCore instance;
     private static Collector collector;
+    private static DriveBase driveBase;
 
     private final Gamepad previousGamepad1 = new Gamepad();
     private final Gamepad previousGamepad2 = new Gamepad();
@@ -24,6 +25,7 @@ public class OpModeCore extends LinearOpMode {
 
         //initialize hardware
         collector = new Collector(hardwareMap, "colorSensor", "wristServo", "gripServo");
+        driveBase = new DriveBase(hardwareMap);
 
         configureTelemetry();
 
@@ -50,7 +52,6 @@ public class OpModeCore extends LinearOpMode {
 
     public void tick(){
         checkGamepad();
-
         telemetry.update();
     }
 

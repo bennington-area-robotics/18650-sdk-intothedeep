@@ -39,6 +39,8 @@ public class MotionProfileController {
         // Return the current speed to set as motor power
         return currentSpeed;
     }
+
+
     private double calculateTargetSpeed(double distanceToTarget) {
         double brakingDistance = (maxSpeed * maxSpeed) / (maxAcceleration);
 
