@@ -7,7 +7,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 
 public class Collector {
-    final ColorSensor colorSensor;
+    public final ColorSensor colorSensor;
     final Servo gripServo, wristServo;
     public static final float openPosition = 1, closedPosition = 0;
 

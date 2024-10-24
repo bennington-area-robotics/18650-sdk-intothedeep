@@ -41,6 +41,8 @@ public class OpModeCore extends LinearOpMode {
 
     public void tick(){
         checkGamepad();
+        telemetry.addData("Detected Color", collector.colorSensor.getColorName());
+        telemetry.update();
     }
 
 
