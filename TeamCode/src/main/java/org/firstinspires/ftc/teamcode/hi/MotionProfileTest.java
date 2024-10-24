@@ -9,6 +9,7 @@ public class MotionProfileTest extends LinearOpMode {
 
     private DriveBase driveBase;
     private double maxAcc = 0;
+    private double decelFactor = 2;
     private int target = 1000;
     private MotionProfileController motionProfile = new MotionProfileController(0.7, maxAcc, target);
     private final ElapsedTime runtime = new ElapsedTime();
@@ -33,9 +34,9 @@ public class MotionProfileTest extends LinearOpMode {
                     sleep(300);
                 }
                 if (gamepad1.a) {
-                    motionProfile.setTarget(target);
+                    motionProfile.setTargetPosition(target);
                     while (true) {
-                        power = motionProfile.calculate(driveBase.getPosition(), driveBase.getPower());
+                        power = motionProfile.calculate(driveBase.getPosition());
                         driveBase.setPower(power);
                         if (gamepad1.b) {
                             driveBase.stopMotors();
@@ -49,18 +50,28 @@ public class MotionProfileTest extends LinearOpMode {
                     }
                 }
                 if (gamepad1.dpad_up){
-                    maxAcc +=0.01;
+                    maxAcc +=0.001;
                     motionProfile.setAcceleration(maxAcc);
 
                     sleep(300);
                 }
                 if (gamepad1.dpad_down){
-                    maxAcc-=0.01;
+                    maxAcc-=0.001;
                     motionProfile.setAcceleration(maxAcc);
-
+                    sleep(300);
+                }
+                if (gamepad1.dpad_left){
+                    decelFactor-= 0.01;
+                    motionProfile.setDecelFactor(decelFactor);
+                    sleep(300);
+                }
+                if(gamepad1.dpad_right){
+                    decelFactor +=0.01;
+                    motionProfile.setDecelFactor(decelFactor);
                     sleep(300);
                 }
                 telemetry.addData("Target: ", target);
+                telemetry.addData("deceleration factor: ", decelFactor);
                 telemetry.addData("Max acceleration: ", maxAcc);
                 telemetry.update();
 
