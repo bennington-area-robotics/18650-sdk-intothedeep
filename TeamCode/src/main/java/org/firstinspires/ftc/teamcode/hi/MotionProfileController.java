@@ -39,7 +39,7 @@ public class MotionProfileController {
         return currentSpeed;
     }
     private double calculateTargetSpeed(double distanceToTarget) {
-        double brakingDistance = (maxSpeed * maxSpeed) / (2 * maxAcceleration);
+        double brakingDistance = (maxSpeed * maxSpeed) / (maxAcceleration);
 
         // If we're far away, we can go at max speed
         if (distanceToTarget > brakingDistance) {
