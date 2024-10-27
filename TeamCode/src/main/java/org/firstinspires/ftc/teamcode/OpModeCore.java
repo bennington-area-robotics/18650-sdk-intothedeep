@@ -4,6 +4,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Gamepad;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.hardware.Collector;
 
 /** @noinspection SpellCheckingInspection*/
@@ -18,6 +19,18 @@ public class OpModeCore extends LinearOpMode {
 
     public static OpModeCore getInstance(){
         return instance;
+    }
+
+    public static Telemetry getTelemetry(){
+        return instance.telemetry;
+    }
+
+    public static Collector getCollector(){
+        return collector;
+    }
+
+    public static DriveBase getDriveBase(){
+        return driveBase;
     }
 
     public void initialize(){
@@ -38,7 +51,7 @@ public class OpModeCore extends LinearOpMode {
         telemetry.setAutoClear(false); //disable clearing telemetry after update() is called
 
         //use suppliers to allow updating values without clearing and re-adding
-        telemetry.addData("Detected Color", collector.colorSensor::getColorName);
+        telemetry.addData("Detected Color", collector.colorSensor::getScoringElementColor);
     }
 
     @Override

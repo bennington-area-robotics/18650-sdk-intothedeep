@@ -1,7 +1,12 @@
 package org.firstinspires.ftc.teamcode.hardware;
 
+import android.annotation.SuppressLint;
+
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
+
+import org.firstinspires.ftc.teamcode.OpModeCore;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -13,10 +18,22 @@ public class Collector {
 
     public static final float upPosition = 1, downPosition = 0;
 
+    @SuppressLint("DefaultLocale")
     public Collector(HardwareMap hardwareMap, String colorSensorName, String wristServoName, String gripServoName){
         this.colorSensor = new ColorSensor(hardwareMap, colorSensorName);
         this.gripServo = hardwareMap.get(Servo.class, gripServoName);
         this.wristServo = hardwareMap.get(Servo.class, wristServoName);
+        OpModeCore.getTelemetry().addLine("Grip")
+                .addData("Position", gripServo::getPosition)
+                .addData("Open?", this::isGripOpen)
+                .addData("Closed?", this::isGripClosed);
+        OpModeCore.getTelemetry().addLine("Wrist")
+                .addData("Position", wristServo::getPosition)
+                .addData("Up?", this::isWristUp)
+                .addData("Down?", this::isWristDown);
+        OpModeCore.getTelemetry().addLine("Color Sensor")
+                .addData("HSV", "Hue: %1$.3f Saturation: %2$.3f Value: %3$.3f", colorSensor::getHSV)
+                .addData("Scoring Color", colorSensor::getScoringElementColor);
     }
 
 
@@ -54,7 +71,6 @@ public class Collector {
             return false;
         }
     }
-
 
     //wrist
 

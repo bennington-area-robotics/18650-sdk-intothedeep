@@ -54,7 +54,7 @@ public class ColorSensor {
      *
      * @return the approximate color detected by the sensor. If no scoring element color is detected returns null.
      */
-    public ScoringElementColor getColorName() {
+    public ScoringElementColor getScoringElementColor() {
         float[] hsv = getHSV();
 
         final float h = hsv[0];
