@@ -4,6 +4,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Gamepad;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.hardware.Collector;
 
 /** @noinspection SpellCheckingInspection*/
@@ -11,6 +12,7 @@ import org.firstinspires.ftc.teamcode.hardware.Collector;
 public class OpModeCore extends LinearOpMode {
     private static OpModeCore instance;
     private static Collector collector;
+    private static DriveBase driveBase;
 
     private final Gamepad previousGamepad1 = new Gamepad();
     private final Gamepad previousGamepad2 = new Gamepad();
@@ -19,15 +21,37 @@ public class OpModeCore extends LinearOpMode {
         return instance;
     }
 
+    public static Telemetry getTelemetry(){
+        return instance.telemetry;
+    }
+
+    public static Collector getCollector(){
+        return collector;
+    }
+
+    public static DriveBase getDriveBase(){
+        return driveBase;
+    }
+
     public void initialize(){
         instance = this;
 
         //initialize hardware
         collector = new Collector(hardwareMap, "colorSensor", "wristServo", "gripServo");
+        driveBase = new DriveBase(hardwareMap);
+
+        configureTelemetry();
 
         //save the current gamepad states to compare against to avoid errors
         previousGamepad1.copy(gamepad1);
         previousGamepad2.copy(gamepad2);
+    }
+
+    private void configureTelemetry(){
+        telemetry.setAutoClear(false); //disable clearing telemetry after update() is called
+
+        //use suppliers to allow updating values without clearing and re-adding
+        telemetry.addData("Detected Color", collector.colorSensor::getScoringElementColor);
     }
 
     @Override
@@ -41,7 +65,6 @@ public class OpModeCore extends LinearOpMode {
 
     public void tick(){
         checkGamepad();
-        telemetry.addData("Detected Color", collector.colorSensor.getColorName());
         telemetry.update();
     }
 
