@@ -36,7 +36,9 @@ public class MotionProfileTest extends LinearOpMode {
                     sleep(300);
                 }
                 if (gamepad1.a) {
+                    int cycles = 0;
                     motionProfile.setTargetPosition(target);
+                    runtime.reset();
                     while (true) {
                         power = motionProfile.calculate(driveBase.getPosition());
                         driveBase.setPower(power);
@@ -45,10 +47,14 @@ public class MotionProfileTest extends LinearOpMode {
                             driveBase.reset();
                             break;
                         }
+
+                        telemetry.addData("cycles: ", cycles);
+                        telemetry.addData("cycles/sec: ", cycles/runtime.seconds());
                         telemetry.addData("currently at: ", driveBase.getPosition());
                         telemetry.addData("power: ", driveBase.getPower());
                         telemetry.addData("Max acceleration: ", maxAcc);
                         telemetry.update();
+                        cycles++;
                     }
 
 

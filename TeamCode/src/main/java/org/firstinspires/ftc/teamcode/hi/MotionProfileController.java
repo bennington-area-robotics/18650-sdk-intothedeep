@@ -25,7 +25,7 @@ public class MotionProfileController {
 
     public double calculate(double currentPosition) {
         double distanceToTarget = targetPosition - currentPosition;
-        double brakingDistance = (maxSpeed * maxSpeed) / (2* maxAcceleration);
+        double brakingDistance = 2* (maxSpeed * maxSpeed) / (2* maxAcceleration);
         double targetSpeed = maxSpeed;
         if (distanceToTarget <= brakingDistance){
             targetSpeed = 0;
@@ -35,7 +35,7 @@ public class MotionProfileController {
         if (currentSpeed < targetSpeed) {
             currentSpeed = Math.min(currentSpeed + maxAcceleration, targetSpeed);
         } else if (currentSpeed > targetSpeed) {
-            currentSpeed = Math.max(currentSpeed - maxAcceleration, targetSpeed);
+            currentSpeed = Math.max(currentSpeed - 2 * maxAcceleration, targetSpeed);
         }
 
         // Return the current speed to set as motor power

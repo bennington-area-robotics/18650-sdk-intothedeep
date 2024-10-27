@@ -38,7 +38,7 @@ public class OpModeCore extends LinearOpMode {
 
         //initialize hardware
         collector = new Collector(hardwareMap, "colorSensor", "wristServo", "gripServo");
-        driveBase = new DriveBase(hardwareMap);
+        //driveBase = new DriveBase(hardwareMap);
 
         configureTelemetry();
 
