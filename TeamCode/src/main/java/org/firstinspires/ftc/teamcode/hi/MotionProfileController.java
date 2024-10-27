@@ -25,8 +25,11 @@ public class MotionProfileController {
 
     public double calculate(double currentPosition) {
         double distanceToTarget = targetPosition - currentPosition;
-
-        double targetSpeed = calculateTargetSpeed(distanceToTarget);
+        double brakingDistance = (maxSpeed * maxSpeed) / (2* maxAcceleration);
+        double targetSpeed = maxSpeed;
+        if (distanceToTarget <= brakingDistance){
+            targetSpeed = 0;
+        }
 
         // Adjust current speed to approach target speed gradually (smooth acceleration/deceleration)
         if (currentSpeed < targetSpeed) {
@@ -38,16 +41,6 @@ public class MotionProfileController {
         // Return the current speed to set as motor power
         return currentSpeed;
     }
-    private double calculateTargetSpeed(double distanceToTarget) {
-        double brakingDistance = (maxSpeed * maxSpeed) / (maxAcceleration);
 
-        // If we're far away, we can go at max speed
-        if (distanceToTarget > brakingDistance) {
-            return maxSpeed;
-        } else {
-            // Slow down as we approach the target (linear deceleration)
-            return decelFactor * maxAcceleration;
-        }
-    }
 
 }

@@ -24,6 +24,7 @@ public class DriveBase {
         RRear = hardwareMap.get(DcMotor.class, "RRear");
 
         LFront.setDirection(DcMotor.Direction.REVERSE);
+
         LRear.setDirection(DcMotorSimple.Direction.FORWARD);
         RFront.setDirection(DcMotorSimple.Direction.FORWARD);
         RRear.setDirection(DcMotorSimple.Direction.REVERSE);

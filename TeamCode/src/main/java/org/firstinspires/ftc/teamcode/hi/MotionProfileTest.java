@@ -1,4 +1,5 @@
 package org.firstinspires.ftc.teamcode.hi;
+
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -25,6 +26,7 @@ public class MotionProfileTest extends LinearOpMode {
         telemetry.update();
 
 
+
         waitForStart();
         runtime.reset();
         if (opModeIsActive()) {
@@ -48,14 +50,18 @@ public class MotionProfileTest extends LinearOpMode {
                         telemetry.addData("Max acceleration: ", maxAcc);
                         telemetry.update();
                     }
+
+
                 }
                 if (gamepad1.dpad_up){
+
                     maxAcc +=0.001;
                     motionProfile.setAcceleration(maxAcc);
 
                     sleep(300);
                 }
                 if (gamepad1.dpad_down){
+
                     maxAcc-=0.001;
                     motionProfile.setAcceleration(maxAcc);
                     sleep(300);
@@ -73,6 +79,7 @@ public class MotionProfileTest extends LinearOpMode {
                 telemetry.addData("Target: ", target);
                 telemetry.addData("deceleration factor: ", decelFactor);
                 telemetry.addData("Max acceleration: ", maxAcc);
+                telemetry.addData("Power: ", power);
                 telemetry.update();
 
 
