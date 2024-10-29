@@ -1,10 +1,9 @@
-package org.firstinspires.ftc.teamcode.hi;
+package org.firstinspires.ftc.teamcode.hardware.controllers;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.teamcode.DriveBase;
 @TeleOp(name= "MotionProfileTest",  group = "Robot")
 public class MotionProfileTest extends LinearOpMode {
 

@@ -1,12 +1,11 @@
-package org.firstinspires.ftc.teamcode.hi;
+package org.firstinspires.ftc.teamcode.hardware.controllers;
 
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.teamcode.DriveBase;
-import org.firstinspires.ftc.teamcode.PID;
+import org.firstinspires.ftc.teamcode.hardware.DriveBase;
 
 @TeleOp(name= "PIDTest",  group = "Robot")
 public class PIDTest extends LinearOpMode {
@@ -42,16 +41,16 @@ public class PIDTest extends LinearOpMode {
                     pid.setSetPoint(target);
                     runtime.reset();
                     while(true) {
-                        power = pid.calculate(driveBase.getPosition(), runtime.milliseconds());
+                        power = pid.calculate(driveBase.leftFront.getCurrentPosition(), runtime.milliseconds());
                         driveBase.setPower(0.5*power);
                         if (gamepad1.b){
-                            driveBase.stopMotors();
+                            driveBase.stop();
                             driveBase.reset();
                             pid.reset();
                             break;
                         }
-                        telemetry.addData("currently at: ", driveBase.getPosition());
-                        telemetry.addData("power: ", driveBase.getPower());
+                        telemetry.addData("currently at: ", driveBase.leftFront.getCurrentPosition());
+                        telemetry.addData("power: ", driveBase.leftFront.getPower());
                         telemetry.addData("kP: ", kValues[0]);
                         telemetry.addData("kD: ", kValues[1]);
                         telemetry.addData("kI: ", kValues[2]);

@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.hi;
+package org.firstinspires.ftc.teamcode.hardware.controllers;
 
 public class MotionProfileController {
     private double maxSpeed;
