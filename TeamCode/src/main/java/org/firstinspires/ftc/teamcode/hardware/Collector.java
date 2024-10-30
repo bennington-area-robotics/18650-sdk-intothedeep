@@ -32,7 +32,7 @@ public class Collector {
                 .addData("Up?", this::isWristUp)
                 .addData("Down?", this::isWristDown);
         OpModeCore.getTelemetry().addLine("Color Sensor")
-                .addData("HSV", "Hue: %1$.3 Saturation: %2$.3 Value: %3$.3", colorSensor::getHSV)
+                .addData("HSV", "Hue: %1$f Saturation: %2$f Value: %3$f", colorSensor::getHSV)
                 .addData("Scoring Color", colorSensor::getScoringElementColor);
     }
 
