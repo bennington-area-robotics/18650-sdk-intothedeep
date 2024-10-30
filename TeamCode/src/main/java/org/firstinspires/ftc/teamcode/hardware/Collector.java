@@ -23,6 +23,7 @@ public class Collector {
         this.colorSensor = new ColorSensor(hardwareMap, colorSensorName);
         this.gripServo = hardwareMap.get(Servo.class, gripServoName);
         this.wristServo = hardwareMap.get(Servo.class, wristServoName);
+
         OpModeCore.getTelemetry().addLine("Grip")
                 .addData("Position", gripServo::getPosition)
                 .addData("Open?", this::isGripOpen)
@@ -32,7 +33,10 @@ public class Collector {
                 .addData("Up?", this::isWristUp)
                 .addData("Down?", this::isWristDown);
         OpModeCore.getTelemetry().addLine("Color Sensor")
-                .addData("HSV", "Hue: %1$f Saturation: %2$f Value: %3$f", colorSensor::getHSV)
+                .addData("HSV", () -> {
+                    float[] hsvValues = colorSensor.getHSV(); // get and store hsv values so we are using the same sample for each value
+                    return String.format("Hue: %.3f Saturation: %.3f Value: %.3f", hsvValues[0], hsvValues[1], hsvValues[2]);
+                })
                 .addData("Scoring Color", colorSensor::getScoringElementColor);
     }
 

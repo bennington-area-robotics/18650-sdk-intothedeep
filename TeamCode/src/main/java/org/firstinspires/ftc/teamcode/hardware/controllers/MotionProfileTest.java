@@ -1,10 +1,11 @@
-package org.firstinspires.ftc.teamcode.hi;
+package org.firstinspires.ftc.teamcode.hardware.controllers;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.teamcode.DriveBase;
+import org.firstinspires.ftc.teamcode.hardware.DriveBase;
+
 @TeleOp(name= "MotionProfileTest",  group = "Robot")
 public class MotionProfileTest extends LinearOpMode {
 
@@ -12,7 +13,7 @@ public class MotionProfileTest extends LinearOpMode {
     private double maxAcc = 0;
     private double decelFactor = 2;
     private int target = 1000;
-    private MotionProfileController motionProfile = new MotionProfileController(0.7, maxAcc, target);
+    private final MotionProfileController motionProfile = new MotionProfileController(0.7, maxAcc, target);
     private final ElapsedTime runtime = new ElapsedTime();
 
     private double power = 0;
@@ -40,18 +41,18 @@ public class MotionProfileTest extends LinearOpMode {
                     motionProfile.setTargetPosition(target);
                     runtime.reset();
                     while (true) {
-                        power = motionProfile.calculate(driveBase.getPosition());
+                        power = motionProfile.calculate(driveBase.rightFront.getCurrentPosition());
                         driveBase.setPower(power);
                         if (gamepad1.b) {
-                            driveBase.stopMotors();
+                            driveBase.stop();
                             driveBase.reset();
                             break;
                         }
 
                         telemetry.addData("cycles: ", cycles);
                         telemetry.addData("cycles/sec: ", cycles/runtime.seconds());
-                        telemetry.addData("currently at: ", driveBase.getPosition());
-                        telemetry.addData("power: ", driveBase.getPower());
+                        telemetry.addData("currently at: ", driveBase.rightRear.getCurrentPosition());
+                        telemetry.addData("power: ", driveBase.rightFront.getCurrentPosition());
                         telemetry.addData("Max acceleration: ", maxAcc);
                         telemetry.update();
                         cycles++;

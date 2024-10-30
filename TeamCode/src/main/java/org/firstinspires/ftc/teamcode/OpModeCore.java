@@ -6,6 +6,7 @@ import com.qualcomm.robotcore.hardware.Gamepad;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.hardware.Collector;
+import org.firstinspires.ftc.teamcode.hardware.DriveBase;
 
 /** @noinspection SpellCheckingInspection*/
 @TeleOp(name="Main TeleOp", group ="Into The Deep")
@@ -38,7 +39,7 @@ public class OpModeCore extends LinearOpMode {
 
         //initialize hardware
         collector = new Collector(hardwareMap, "colorSensor", "wristServo", "gripServo");
-        //driveBase = new DriveBase(hardwareMap);
+        //driveBase = new DriveBase(hardwareMap); //todo NON SOFTWARE - ATTACH COLLECTOR TO DRIVEBASE
 
         configureTelemetry();
 
@@ -49,9 +50,10 @@ public class OpModeCore extends LinearOpMode {
 
     private void configureTelemetry(){
         telemetry.setAutoClear(false); //disable clearing telemetry after update() is called
+        telemetry.log().setCapacity(10);
 
         //use suppliers to allow updating values without clearing and re-adding
-        telemetry.addData("Detected Color", collector.colorSensor::getScoringElementColor);
+        //such as: telemetry.addData("Detected Color", collector.colorSensor::getScoringElementColor); DO NOT UNCOMMENT
     }
 
     @Override
