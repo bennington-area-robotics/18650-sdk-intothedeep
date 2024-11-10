@@ -18,6 +18,8 @@ public class OpModeCore extends LinearOpMode {
     private final Gamepad previousGamepad1 = new Gamepad();
     private final Gamepad previousGamepad2 = new Gamepad();
 
+    private boolean collectorArmed;
+
     public static OpModeCore getInstance(){
         return instance;
     }
@@ -54,6 +56,8 @@ public class OpModeCore extends LinearOpMode {
 
         //use suppliers to allow updating values without clearing and re-adding
         //such as: telemetry.addData("Detected Color", collector.colorSensor::getScoringElementColor); DO NOT UNCOMMENT
+
+        telemetry.addData("Collector Armed? ", () -> collectorArmed);
     }
 
     @Override
@@ -67,7 +71,16 @@ public class OpModeCore extends LinearOpMode {
 
     public void tick(){
         checkGamepad();
+        checkForScoringElement();
         telemetry.update();
+    }
+
+    public void checkForScoringElement(){
+        if(collectorArmed){
+            if(collector.colorSensor.getScoringElementColor() != null){
+                collector.closeGrip();
+            }
+        }
     }
 
 
@@ -83,6 +96,10 @@ public class OpModeCore extends LinearOpMode {
         if(gamepad1.b && !previousGamepad1.b){
             if(!collector.toggleWrist())
                 collector.wristUp();
+        }
+
+        if(gamepad1.y && !previousGamepad1.y){
+            collectorArmed = !collectorArmed;
         }
 
         //save the gamepad state to compare again later..
