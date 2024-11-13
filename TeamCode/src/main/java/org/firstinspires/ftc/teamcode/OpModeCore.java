@@ -18,7 +18,7 @@ public class OpModeCore extends LinearOpMode {
     private final Gamepad previousGamepad1 = new Gamepad();
     private final Gamepad previousGamepad2 = new Gamepad();
 
-    private boolean collectorArmed;
+    private boolean collectorArmed = false;
 
     public static OpModeCore getInstance(){
         return instance;
@@ -41,7 +41,7 @@ public class OpModeCore extends LinearOpMode {
 
         //initialize hardware
         collector = new Collector(hardwareMap, "colorSensor", "wristServo", "gripServo");
-        //driveBase = new DriveBase(hardwareMap); //todo NON SOFTWARE - ATTACH COLLECTOR TO DRIVEBASE
+        driveBase = new DriveBase(hardwareMap); //todo NON SOFTWARE - ATTACH COLLECTOR TO DRIVEBASE
 
         configureTelemetry();
 
