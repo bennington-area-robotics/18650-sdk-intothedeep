@@ -15,7 +15,7 @@ import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
 @Autonomous(group = "drive")
 public class TrajectoryTester extends LinearOpMode {
 
-    public static double startX = -12.5;
+    public static double startX = -11.5;
     public static double startY = 63;
     public static double startAng = -90;
     @Override
@@ -29,15 +29,15 @@ public class TrajectoryTester extends LinearOpMode {
         if (isStopRequested()) return;
 
         Trajectory trajToBars = drive.trajectoryBuilder(startPose)
-                .splineToConstantHeading(new Vector2d(0, 31.25), 0)
+                .splineToConstantHeading(new Vector2d(0, 28), 0)
                 .build();
 
         Trajectory midTraj = drive.trajectoryBuilder(trajToBars.end(), true)
-                .splineToConstantHeading(new Vector2d(-36.5, 48), 0  )
+                .splineToConstantHeading(new Vector2d(-35.5, 48), 0  )
                 .build();
 
         Trajectory midTraj2 = drive.trajectoryBuilder(midTraj.end())
-                .splineTo(new Vector2d(-36.5, 0), Math.toRadians(180))
+                .splineTo(new Vector2d(-35.5, 0), Math.toRadians(180))
                 .build();
         /*Trajectory midTraj3 = drive.trajectoryBuilder(midTraj2.end())
                 .lineToSplineHeading(new Pose2d(30,0))
