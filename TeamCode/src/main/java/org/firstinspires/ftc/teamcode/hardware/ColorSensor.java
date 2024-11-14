@@ -52,7 +52,7 @@ public class ColorSensor {
     /**
      * Reads the currently detected color and returns a scoring element color or null if no scoring element color was detected.
      *
-     * @return the approximate color detected by the sensor. If no scoring element color is detected returns null.
+     * @return the approximate color detected by the sensor. If no scoring element color is detected returns ScoringElementColor.NONE.
      */
     public ScoringElementColor getScoringElementColor() {
         float[] hsv = getHSV();
@@ -85,7 +85,7 @@ public class ColorSensor {
         } else if (isWithinThreshold(v, BLUE_HUE)) {
             return ScoringElementColor.BLUE;
         } else {
-            return null;
+            return ScoringElementColor.NONE;
         }
     }
 
