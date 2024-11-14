@@ -3,7 +3,7 @@ package org.firstinspires.ftc.teamcode.hardware;
 import androidx.annotation.NonNull;
 
 public enum ScoringElementColor {
-    RED, YELLOW, BLUE;
+    RED, YELLOW, BLUE, NONE;
 
     @NonNull
     @Override

@@ -23,7 +23,7 @@ public class Collector {
         this.colorSensor = new ColorSensor(hardwareMap, colorSensorName);
         this.gripServo = hardwareMap.get(Servo.class, gripServoName);
         this.wristServo = hardwareMap.get(Servo.class, wristServoName);
-        /*
+
         OpModeCore.getTelemetry().addLine("Grip")
                 .addData("Position", gripServo::getPosition)
                 .addData("Open?", this::isGripOpen)
@@ -38,8 +38,6 @@ public class Collector {
                     return String.format("Hue: %.3f Saturation: %.3f Value: %.3f", hsvValues[0], hsvValues[1], hsvValues[2]);
                 })
                 .addData("Scoring Color", colorSensor::getScoringElementColor);
-
-         */
     }
 
 

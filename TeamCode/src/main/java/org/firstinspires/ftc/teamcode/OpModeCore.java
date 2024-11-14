@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.hardware.Gamepad;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.hardware.Collector;
 import org.firstinspires.ftc.teamcode.hardware.DriveBase;
+import org.firstinspires.ftc.teamcode.hardware.ScoringElementColor;
 
 /** @noinspection SpellCheckingInspection*/
 @TeleOp(name="Main TeleOp", group ="Into The Deep")
@@ -41,7 +42,7 @@ public class OpModeCore extends LinearOpMode {
 
         //initialize hardware
         collector = new Collector(hardwareMap, "colorSensor", "wristServo", "gripServo");
-        driveBase = new DriveBase(hardwareMap); //todo NON SOFTWARE - ATTACH COLLECTOR TO DRIVEBASE
+        driveBase = new DriveBase(hardwareMap);
 
         configureTelemetry();
 
@@ -77,7 +78,7 @@ public class OpModeCore extends LinearOpMode {
 
     public void checkForScoringElement(){
         if(collectorArmed){
-            if(collector.colorSensor.getScoringElementColor() != null){
+            if(collector.colorSensor.getScoringElementColor() != ScoringElementColor.NONE){
                 collector.closeGrip();
             }
         }
