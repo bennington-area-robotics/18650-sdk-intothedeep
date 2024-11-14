@@ -28,9 +28,11 @@ public class ColorSensor {
      * Reads the current color and returns it as HSV values.
      * @return array containing the Hue, Saturation and Value floats in that order.
      */
-    public float[] getHSV(){
+    public float[] getHSV() {
         float[] hsv = new float[3];
         Color.colorToHSV(colorSensor.getNormalizedColors().toColor(), hsv);
+        if(hsv[0] == 0 && hsv[1] == 0 && hsv[2] == 0)
+            throw new RuntimeException("HSV values failed to read from ColorSensor");
         return hsv;
     }
 
