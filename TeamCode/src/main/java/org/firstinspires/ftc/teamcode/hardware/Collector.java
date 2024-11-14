@@ -36,8 +36,8 @@ public class Collector {
                 .addData("HSV", () -> {
                     float[] hsvValues = colorSensor.getHSV(); // get and store hsv values so we are using the same sample for each value
                     return String.format("Hue: %.3f Saturation: %.3f Value: %.3f", hsvValues[0], hsvValues[1], hsvValues[2]);
-                });
-                //.addData("Scoring Color", colorSensor::getScoringElementColor);
+                })
+                .addData("Scoring Color", colorSensor::getScoringElementColor);
 
     }
 
