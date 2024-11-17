@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.jetbrains.annotations.NotNull;
 
 public class ColorSensor {
     NormalizedColorSensor colorSensor;
@@ -59,11 +60,9 @@ public class ColorSensor {
     public ScoringElementColor getScoringElementColor() {
         float[] hsv = getHSV();
 
-        final float h = hsv[0];
-        final float s = hsv[1];
-        float v = hsv[2];
-
-
+        float hue = hsv[0];
+        final float saturation = hsv[1];
+        final float value = hsv[2];
 
         // Target hues for colors
         final float RED_HUE = 0.0f;
@@ -71,20 +70,20 @@ public class ColorSensor {
         final float BLUE_HUE = 240.0f;
 
         // Ensure valid saturation and value
-        if (s < 0.2 || v < 0.4) {
-            return null; // Very low saturation or brightness, return None
+        if (saturation < 0.2 || value < 0.4) {
+            return ScoringElementColor.NONE; // Very low saturation or brightness, return None
         }
 
         // Normalize hue
-        v = v % 360;
-        if (v < 0) v += 360;
+        hue = hue % 360;
+        if (hue < 0) hue += 360;
 
         // Check closeness to each color
-        if (isWithinThreshold(v, RED_HUE) || isWithinThreshold(v, 360.0f)) {
+        if (isWithinThreshold(hue, RED_HUE) || isWithinThreshold(value, 360.0f)) {
             return ScoringElementColor.RED;
-        } else if (isWithinThreshold(v, YELLOW_HUE)) {
+        } else if (isWithinThreshold(hue, YELLOW_HUE)) {
             return ScoringElementColor.YELLOW;
-        } else if (isWithinThreshold(v, BLUE_HUE)) {
+        } else if (isWithinThreshold(hue, BLUE_HUE)) {
             return ScoringElementColor.BLUE;
         } else {
             return ScoringElementColor.NONE;
