@@ -2,13 +2,14 @@ package org.firstinspires.ftc.teamcode.hardware;
 
 import android.graphics.Color;
 
+import androidx.annotation.NonNull;
+
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.jetbrains.annotations.NotNull;
 
 public class ColorSensor {
     NormalizedColorSensor colorSensor;
@@ -40,6 +41,7 @@ public class ColorSensor {
     /**
      * @param distanceUnit The unit the distance should be returned in
      * @return distance to the closest obstruction directly in front of the color sensor
+     * @throws IllegalStateException if this color sensor does not support distance sensing. You can check this programmatically by calling hasDistanceSensing().
      */
     public double getDistance(DistanceUnit distanceUnit){
         if (colorSensor instanceof DistanceSensor) {
@@ -47,6 +49,14 @@ public class ColorSensor {
         }else {
             throw new IllegalStateException("Color sensor is not an instance of DistanceSensor, this color sensor likely doesn't support distance sensing.");
         }
+    }
+
+    /**
+     * @apiNote if this method returns false on a color sensor object, then calling getDistance() on that object will throw an IllegalStateException
+     * @return whether this color sensor supports distance sensing.
+     */
+    public boolean hasDistanceSensing(){
+        return colorSensor instanceof DistanceSensor;
     }
 
     // Threshold for hue matching
@@ -57,7 +67,7 @@ public class ColorSensor {
      *
      * @return the approximate color detected by the sensor. If no scoring element color is detected returns ScoringElementColor.NONE.
      */
-    public ScoringElementColor getScoringElementColor() {
+    public @NonNull ScoringElementColor getScoringElementColor() {
         float[] hsv = getHSV();
 
         float hue = hsv[0];
@@ -96,6 +106,9 @@ public class ColorSensor {
 
 
     public void setGain(float gain){
+        if(gain <= 0)
+            throw new IllegalArgumentException("Gain must be positive");
+
         colorSensor.setGain(gain);
     }
 
