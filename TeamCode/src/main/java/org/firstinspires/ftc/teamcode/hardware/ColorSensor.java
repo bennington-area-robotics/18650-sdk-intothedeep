@@ -52,7 +52,7 @@ public class ColorSensor {
     }
 
     /**
-     * @apiNote if this method returns false on a color sensor object, then calling getDistance() on that object will throw an IllegalStateException
+     * @implNote if this method returns false on a color sensor object, then calling getDistance() on that object will throw an IllegalStateException
      * @return whether this color sensor supports distance sensing.
      */
     public boolean hasDistanceSensing(){
@@ -89,7 +89,7 @@ public class ColorSensor {
         if (hue < 0) hue += 360;
 
         // Check closeness to each color
-        if (isWithinThreshold(hue, RED_HUE) || isWithinThreshold(value, 360.0f)) {
+        if (isWithinThreshold(hue, RED_HUE) || isWithinThreshold(hue, 360.0f)) {
             return ScoringElementColor.RED;
         } else if (isWithinThreshold(hue, YELLOW_HUE)) {
             return ScoringElementColor.YELLOW;
