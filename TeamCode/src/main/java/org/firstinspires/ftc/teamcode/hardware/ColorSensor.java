@@ -33,8 +33,8 @@ public class ColorSensor {
     public float[] getHSV() {
         float[] hsv = new float[3];
         Color.colorToHSV(colorSensor.getNormalizedColors().toColor(), hsv);
-        if(hsv[0] == 0 && hsv[1] == 0 && hsv[2] == 0)
-            throw new RuntimeException("HSV values failed to read from ColorSensor");
+        //if(hsv[0] == 0 && hsv[1] == 0 && hsv[2] == 0)
+        //    throw new RuntimeException("HSV values failed to read from ColorSensor");
         return hsv;
     }
 

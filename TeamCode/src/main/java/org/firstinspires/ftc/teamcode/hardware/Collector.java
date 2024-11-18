@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.OpModeCore;
@@ -21,6 +22,7 @@ public class Collector {
     @SuppressLint("DefaultLocale")
     public Collector(HardwareMap hardwareMap, String colorSensorName, String wristServoName, String gripServoName){
         this.colorSensor = new ColorSensor(hardwareMap, colorSensorName);
+        colorSensor.setGain(250);
         this.gripServo = hardwareMap.get(Servo.class, gripServoName);
         this.wristServo = hardwareMap.get(Servo.class, wristServoName);
 
@@ -33,9 +35,9 @@ public class Collector {
                 .addData("Up?", this::isWristUp)
                 .addData("Down?", this::isWristDown);
         OpModeCore.getTelemetry().addLine("Color Sensor")
-                .addData("HSV", () -> {
-                    float[] hsvValues = colorSensor.getHSV(); // get and store hsv values so we are using the same sample for each value
-                    return String.format("Hue: %.3f Saturation: %.3f Value: %.3f", hsvValues[0], hsvValues[1], hsvValues[2]);
+                .addData("RGB", () -> {
+                    NormalizedRGBA rgba = colorSensor.getRGBA(); // get and store hsv values so we are using the same sample for each value
+                    return String.format("Red: %.3f Green: %.3f Blue: %.3f", rgba.red, rgba.green, rgba.blue);
                 })
                 .addData("Scoring Color", colorSensor::getScoringElementColor);
 
