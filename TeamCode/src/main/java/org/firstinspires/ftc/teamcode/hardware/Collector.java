@@ -2,7 +2,7 @@ package org.firstinspires.ftc.teamcode.hardware;
 
 import android.annotation.SuppressLint;
 
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -12,6 +12,7 @@ import org.firstinspires.ftc.teamcode.OpModeCore;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
+@Config
 public class Collector {
     public final ColorSensor colorSensor;
     final Servo gripServo, wristServo;
@@ -19,10 +20,12 @@ public class Collector {
 
     public static final float upPosition = 1, downPosition = 0;
 
+    public static int gain = 150;
+
     @SuppressLint("DefaultLocale")
     public Collector(HardwareMap hardwareMap, String colorSensorName, String wristServoName, String gripServoName){
         this.colorSensor = new ColorSensor(hardwareMap, colorSensorName);
-        colorSensor.setGain(250);
+        colorSensor.setGain(gain);
         this.gripServo = hardwareMap.get(Servo.class, gripServoName);
         this.wristServo = hardwareMap.get(Servo.class, wristServoName);
 
@@ -35,8 +38,12 @@ public class Collector {
                 .addData("Up?", this::isWristUp)
                 .addData("Down?", this::isWristDown);
         OpModeCore.getTelemetry().addLine("Color Sensor")
+                .addData("HSV", () -> {
+                    float[] hsv = colorSensor.getHSV();
+                    return String.format("Hue: %.3f Saturation: %.3f Value: %.3f", hsv[0], hsv[1], hsv[2]);
+                })
                 .addData("RGB", () -> {
-                    NormalizedRGBA rgba = colorSensor.getRGBA(); // get and store hsv values so we are using the same sample for each value
+                    NormalizedRGBA rgba = colorSensor.getRGBA();
                     return String.format("Red: %.3f Green: %.3f Blue: %.3f", rgba.red, rgba.green, rgba.blue);
                 })
                 .addData("Scoring Color", colorSensor::getScoringElementColor);

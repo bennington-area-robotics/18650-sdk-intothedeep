@@ -1,5 +1,10 @@
 package org.firstinspires.ftc.teamcode.hardware;
 
+import static org.firstinspires.ftc.teamcode.Configuration.BLUE_HUE;
+import static org.firstinspires.ftc.teamcode.Configuration.HUE_THRESHOLD;
+import static org.firstinspires.ftc.teamcode.Configuration.RED_HUE;
+import static org.firstinspires.ftc.teamcode.Configuration.YELLOW_HUE;
+
 import android.graphics.Color;
 
 import androidx.annotation.NonNull;
@@ -59,9 +64,6 @@ public class ColorSensor {
         return colorSensor instanceof DistanceSensor;
     }
 
-    // Threshold for hue matching
-    private static final float THRESHOLD = 20.0f;
-
     /**
      * Reads the currently detected color and returns a scoring element color or null if no scoring element color was detected.
      *
@@ -74,13 +76,8 @@ public class ColorSensor {
         final float saturation = hsv[1];
         final float value = hsv[2];
 
-        // Target hues for colors
-        final float RED_HUE = 0.0f;
-        final float YELLOW_HUE = 60.0f;
-        final float BLUE_HUE = 240.0f;
-
         // Ensure valid saturation and value
-        if (saturation < 0.2 || value < 0.4) {
+        if (saturation < 0.2 || value < 0.2) {
             return ScoringElementColor.NONE; // Very low saturation or brightness, return None
         }
 
@@ -89,7 +86,7 @@ public class ColorSensor {
         if (hue < 0) hue += 360;
 
         // Check closeness to each color
-        if (isWithinThreshold(hue, RED_HUE) || isWithinThreshold(hue, 360.0f)) {
+        if (isWithinThreshold(hue, RED_HUE)) {
             return ScoringElementColor.RED;
         } else if (isWithinThreshold(hue, YELLOW_HUE)) {
             return ScoringElementColor.YELLOW;
@@ -101,7 +98,7 @@ public class ColorSensor {
     }
 
     private static boolean isWithinThreshold(float hue, float targetHue) {
-        return Math.abs(hue - targetHue) <= THRESHOLD;
+        return Math.abs(hue - targetHue) <= HUE_THRESHOLD;
     }
 
 
