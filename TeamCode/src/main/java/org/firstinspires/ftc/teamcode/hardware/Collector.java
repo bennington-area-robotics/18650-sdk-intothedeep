@@ -1,31 +1,31 @@
 package org.firstinspires.ftc.teamcode.hardware;
 
+import static org.firstinspires.ftc.teamcode.Configuration.CLOSED_POSITION;
+import static org.firstinspires.ftc.teamcode.Configuration.DOWN_POSITION;
+import static org.firstinspires.ftc.teamcode.Configuration.GAIN;
+import static org.firstinspires.ftc.teamcode.Configuration.OPEN_POSITION;
+import static org.firstinspires.ftc.teamcode.Configuration.UP_POSITION;
+
 import android.annotation.SuppressLint;
 
-import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import org.firstinspires.ftc.teamcode.Configuration;
 import org.firstinspires.ftc.teamcode.OpModeCore;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
-@Config
 public class Collector {
     public final ColorSensor colorSensor;
     final Servo gripServo, wristServo;
-    public static final float openPosition = 1, closedPosition = 0;
-
-    public static final float upPosition = 1, downPosition = 0;
-
-    public static int gain = 150;
 
     @SuppressLint("DefaultLocale")
     public Collector(HardwareMap hardwareMap, String colorSensorName, String wristServoName, String gripServoName){
         this.colorSensor = new ColorSensor(hardwareMap, colorSensorName);
-        colorSensor.setGain(gain);
+        colorSensor.setGain(GAIN);
         this.gripServo = hardwareMap.get(Servo.class, gripServoName);
         this.wristServo = hardwareMap.get(Servo.class, wristServoName);
 
@@ -54,19 +54,19 @@ public class Collector {
     //grip
 
     public void openGrip(){
-        gripServo.setPosition(openPosition);
+        gripServo.setPosition(OPEN_POSITION);
     }
 
     public void closeGrip(){
-        gripServo.setPosition(closedPosition);
+        gripServo.setPosition(CLOSED_POSITION);
     }
 
     public boolean isGripOpen(){
-        return Helper.round(gripServo.getPosition(), 1) == openPosition;
+        return Helper.round(gripServo.getPosition(), 1) == OPEN_POSITION;
     }
 
     public boolean isGripClosed(){
-        return Helper.round(gripServo.getPosition(), 1) == closedPosition;
+        return Helper.round(gripServo.getPosition(), 1) == CLOSED_POSITION;
     }
 
     /**
@@ -89,19 +89,19 @@ public class Collector {
     //wrist
 
     public void wristUp(){
-        wristServo.setPosition(upPosition);
+        wristServo.setPosition(UP_POSITION);
     }
 
     public void wristDown(){
-        wristServo.setPosition(downPosition);
+        wristServo.setPosition(DOWN_POSITION);
     }
 
     public boolean isWristUp(){
-        return Helper.round(wristServo.getPosition(), 1) == upPosition;
+        return Helper.round(wristServo.getPosition(), 1) == UP_POSITION;
     }
 
     public boolean isWristDown(){
-        return Helper.round(wristServo.getPosition(), 1) == downPosition;
+        return Helper.round(wristServo.getPosition(), 1) == DOWN_POSITION;
     }
 
     /**
