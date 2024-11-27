@@ -15,8 +15,8 @@ import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
 @Autonomous(group = "drive")
 public class TrajectoryTester extends LinearOpMode {
 
-    public static double startX = -11.5;
-    public static double startY = 63;
+    public static double startX = -48;
+    public static double startY = 48;
     public static double startAng = -90;
     @Override
     public void runOpMode() throws InterruptedException {
@@ -28,25 +28,54 @@ public class TrajectoryTester extends LinearOpMode {
 
         if (isStopRequested()) return;
 
-        Trajectory trajToBars = drive.trajectoryBuilder(startPose)
-                .splineToConstantHeading(new Vector2d(0, 28), 0)
+        Trajectory traj1 = drive.trajectoryBuilder(startPose)
+                //.lineToConstantHeading(new Vector2d(-48, -3.744))
+                .forward(48*0.92)
                 .build();
-
+        Trajectory traj2 = drive.trajectoryBuilder(traj1.end())
+                //.lineToConstantHeading(new Vector2d(-48, -3.744))
+                .back(48*0.92)
+                .build();
+        Trajectory traj3 = drive.trajectoryBuilder(traj2.end())
+                //.lineToConstantHeading(new Vector2d(-48, -3.744))
+                .strafeLeft(10)
+                .build();
+        Trajectory traj4 = drive.trajectoryBuilder(traj3.end())
+                //.lineToConstantHeading(new Vector2d(-48, -3.744))
+                .forward(48*0.92)
+                .build();
+        Trajectory traj5 = drive.trajectoryBuilder(traj4.end())
+                //.lineToConstantHeading(new Vector2d(-48, -3.744))
+                .back(48*0.92)
+                .build();
+        Trajectory traj6 = drive.trajectoryBuilder(traj5.end())
+                //.lineToConstantHeading(new Vector2d(-48, -3.744))
+                .strafeLeft(10)
+                .build();
+        Trajectory traj7 = drive.trajectoryBuilder(traj6.end())
+                //.lineToConstantHeading(new Vector2d(-48, -3.744))
+                .forward(48*0.92)
+                .build();
+        /*
         Trajectory midTraj = drive.trajectoryBuilder(trajToBars.end(), true)
                 .splineToConstantHeading(new Vector2d(-35.5, 48), 0  )
                 .build();
 
         Trajectory midTraj2 = drive.trajectoryBuilder(midTraj.end())
-                .splineTo(new Vector2d(-35.5, 0), Math.toRadians(180))
+                .lineToLinearHeading(new Pose2d(-48, 0, Math.toRadians(180)))
                 .build();
-        /*Trajectory midTraj3 = drive.trajectoryBuilder(midTraj2.end())
+        Trajectory midTraj3 = drive.trajectoryBuilder(midTraj2.end())
                 .lineToSplineHeading(new Pose2d(30,0))
                 .build();
-*/
+        */
 
-        drive.followTrajectory(trajToBars);
-        drive.followTrajectory(midTraj);
-        drive.followTrajectory(midTraj2);
-        //drive.followTrajectory(midTraj3);
+        drive.followTrajectory(traj1);
+        drive.followTrajectory(traj2);
+        drive.followTrajectory(traj3);
+        drive.followTrajectory(traj4);
+        drive.followTrajectory(traj5);
+        drive.followTrajectory(traj6);
+        drive.followTrajectory(traj7);
+
     }
 }
