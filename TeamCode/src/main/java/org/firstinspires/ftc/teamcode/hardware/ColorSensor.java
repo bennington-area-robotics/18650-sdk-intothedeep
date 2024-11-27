@@ -1,6 +1,13 @@
 package org.firstinspires.ftc.teamcode.hardware;
 
+import static org.firstinspires.ftc.teamcode.Configuration.BLUE_HUE;
+import static org.firstinspires.ftc.teamcode.Configuration.HUE_THRESHOLD;
+import static org.firstinspires.ftc.teamcode.Configuration.RED_HUE;
+import static org.firstinspires.ftc.teamcode.Configuration.YELLOW_HUE;
+
 import android.graphics.Color;
+
+import androidx.annotation.NonNull;
 
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -28,15 +35,18 @@ public class ColorSensor {
      * Reads the current color and returns it as HSV values.
      * @return array containing the Hue, Saturation and Value floats in that order.
      */
-    public float[] getHSV(){
+    public float[] getHSV() {
         float[] hsv = new float[3];
         Color.colorToHSV(colorSensor.getNormalizedColors().toColor(), hsv);
+        //if(hsv[0] == 0 && hsv[1] == 0 && hsv[2] == 0)
+        //    throw new RuntimeException("HSV values failed to read from ColorSensor");
         return hsv;
     }
 
     /**
      * @param distanceUnit The unit the distance should be returned in
      * @return distance to the closest obstruction directly in front of the color sensor
+     * @throws IllegalStateException if this color sensor does not support distance sensing. You can check this programmatically by calling hasDistanceSensing().
      */
     public double getDistance(DistanceUnit distanceUnit){
         if (colorSensor instanceof DistanceSensor) {
@@ -46,43 +56,41 @@ public class ColorSensor {
         }
     }
 
-    // Threshold for hue matching
-    private static final float THRESHOLD = 20.0f;
+    /**
+     * @implNote if this method returns false on a color sensor object, then calling getDistance() on that object will throw an IllegalStateException
+     * @return whether this color sensor supports distance sensing.
+     */
+    public boolean hasDistanceSensing(){
+        return colorSensor instanceof DistanceSensor;
+    }
 
     /**
      * Reads the currently detected color and returns a scoring element color or null if no scoring element color was detected.
      *
      * @return the approximate color detected by the sensor. If no scoring element color is detected returns ScoringElementColor.NONE.
      */
-    public ScoringElementColor getScoringElementColor() {
+    public @NonNull ScoringElementColor getScoringElementColor() {
         float[] hsv = getHSV();
 
-        final float h = hsv[0];
-        final float s = hsv[1];
-        float v = hsv[2];
-
-
-
-        // Target hues for colors
-        final float RED_HUE = 0.0f;
-        final float YELLOW_HUE = 60.0f;
-        final float BLUE_HUE = 240.0f;
+        float hue = hsv[0];
+        final float saturation = hsv[1];
+        final float value = hsv[2];
 
         // Ensure valid saturation and value
-        if (s < 0.2 || v < 0.4) {
-            return null; // Very low saturation or brightness, return None
+        if (saturation < 0.2 || value < 0.2) {
+            return ScoringElementColor.NONE; // Very low saturation or brightness, return None
         }
 
         // Normalize hue
-        v = v % 360;
-        if (v < 0) v += 360;
+        hue = hue % 360;
+        if (hue < 0) hue += 360;
 
         // Check closeness to each color
-        if (isWithinThreshold(v, RED_HUE) || isWithinThreshold(v, 360.0f)) {
+        if (isWithinThreshold(hue, RED_HUE)) {
             return ScoringElementColor.RED;
-        } else if (isWithinThreshold(v, YELLOW_HUE)) {
+        } else if (isWithinThreshold(hue, YELLOW_HUE)) {
             return ScoringElementColor.YELLOW;
-        } else if (isWithinThreshold(v, BLUE_HUE)) {
+        } else if (isWithinThreshold(hue, BLUE_HUE)) {
             return ScoringElementColor.BLUE;
         } else {
             return ScoringElementColor.NONE;
@@ -90,11 +98,14 @@ public class ColorSensor {
     }
 
     private static boolean isWithinThreshold(float hue, float targetHue) {
-        return Math.abs(hue - targetHue) <= THRESHOLD;
+        return Math.abs(hue - targetHue) <= HUE_THRESHOLD;
     }
 
 
     public void setGain(float gain){
+        if(gain <= 0)
+            throw new IllegalArgumentException("Gain must be positive");
+
         colorSensor.setGain(gain);
     }
 

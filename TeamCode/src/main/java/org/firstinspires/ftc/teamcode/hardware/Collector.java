@@ -1,11 +1,18 @@
 package org.firstinspires.ftc.teamcode.hardware;
 
+import static org.firstinspires.ftc.teamcode.Configuration.CLOSED_POSITION;
+import static org.firstinspires.ftc.teamcode.Configuration.DOWN_POSITION;
+import static org.firstinspires.ftc.teamcode.Configuration.GAIN;
+import static org.firstinspires.ftc.teamcode.Configuration.OPEN_POSITION;
+import static org.firstinspires.ftc.teamcode.Configuration.UP_POSITION;
+
 import android.annotation.SuppressLint;
 
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import org.firstinspires.ftc.teamcode.Configuration;
 import org.firstinspires.ftc.teamcode.OpModeCore;
 
 import java.math.BigDecimal;
@@ -14,13 +21,11 @@ import java.math.RoundingMode;
 public class Collector {
     public final ColorSensor colorSensor;
     final Servo gripServo, wristServo;
-    public static final float openPosition = 1, closedPosition = 0;
-
-    public static final float upPosition = 1, downPosition = 0;
 
     @SuppressLint("DefaultLocale")
     public Collector(HardwareMap hardwareMap, String colorSensorName, String wristServoName, String gripServoName){
         this.colorSensor = new ColorSensor(hardwareMap, colorSensorName);
+        colorSensor.setGain(GAIN);
         this.gripServo = hardwareMap.get(Servo.class, gripServoName);
         this.wristServo = hardwareMap.get(Servo.class, wristServoName);
 
@@ -34,29 +39,34 @@ public class Collector {
                 .addData("Down?", this::isWristDown);
         OpModeCore.getTelemetry().addLine("Color Sensor")
                 .addData("HSV", () -> {
-                    float[] hsvValues = colorSensor.getHSV(); // get and store hsv values so we are using the same sample for each value
-                    return String.format("Hue: %.3f Saturation: %.3f Value: %.3f", hsvValues[0], hsvValues[1], hsvValues[2]);
+                    float[] hsv = colorSensor.getHSV();
+                    return String.format("Hue: %.3f Saturation: %.3f Value: %.3f", hsv[0], hsv[1], hsv[2]);
+                })
+                .addData("RGB", () -> {
+                    NormalizedRGBA rgba = colorSensor.getRGBA();
+                    return String.format("Red: %.3f Green: %.3f Blue: %.3f", rgba.red, rgba.green, rgba.blue);
                 })
                 .addData("Scoring Color", colorSensor::getScoringElementColor);
+
     }
 
 
     //grip
 
     public void openGrip(){
-        gripServo.setPosition(openPosition);
+        gripServo.setPosition(OPEN_POSITION);
     }
 
     public void closeGrip(){
-        gripServo.setPosition(closedPosition);
+        gripServo.setPosition(CLOSED_POSITION);
     }
 
     public boolean isGripOpen(){
-        return Helper.round(gripServo.getPosition(), 1) == openPosition;
+        return Helper.round(gripServo.getPosition(), 1) == OPEN_POSITION;
     }
 
     public boolean isGripClosed(){
-        return Helper.round(gripServo.getPosition(), 1) == closedPosition;
+        return Helper.round(gripServo.getPosition(), 1) == CLOSED_POSITION;
     }
 
     /**
@@ -79,19 +89,19 @@ public class Collector {
     //wrist
 
     public void wristUp(){
-        wristServo.setPosition(upPosition);
+        wristServo.setPosition(UP_POSITION);
     }
 
     public void wristDown(){
-        wristServo.setPosition(downPosition);
+        wristServo.setPosition(DOWN_POSITION);
     }
 
     public boolean isWristUp(){
-        return Helper.round(wristServo.getPosition(), 1) == upPosition;
+        return Helper.round(wristServo.getPosition(), 1) == UP_POSITION;
     }
 
     public boolean isWristDown(){
-        return Helper.round(wristServo.getPosition(), 1) == downPosition;
+        return Helper.round(wristServo.getPosition(), 1) == DOWN_POSITION;
     }
 
     /**
