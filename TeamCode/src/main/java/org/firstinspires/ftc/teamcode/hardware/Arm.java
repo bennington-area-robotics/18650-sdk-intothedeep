@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.hardware;
 
 import static org.firstinspires.ftc.teamcode.Configuration.ARM_TICKS_PER_DEGREE;
+import static org.firstinspires.ftc.teamcode.Configuration.ARM_TICKS_PER_INCH;
 import static org.firstinspires.ftc.teamcode.Configuration.MAX_ARM_EXTENSION;
 
 import androidx.annotation.FloatRange;
@@ -14,11 +15,12 @@ public class Arm {
     /**
      * Target extension of the arm in inches past the minimum extension (not extended at all)
      */
-    private double extensionTarget;
+    private double targetExtension;
+
     /**
      * Target angle of the arm in degrees relative to the base. 0 is horizontal, while 90 is vertical.
      */
-    private double angleTarget;
+    private double targetAngle;
 
     public Arm(HardwareMap hardwareMap, String tiltMotorName, String extensionMotorName) {
         this.tiltMotor = hardwareMap.get(DcMotor.class, tiltMotorName);
@@ -27,13 +29,31 @@ public class Arm {
 
     /**
      * Get the current angle of the arm. This is relative to the base, at 0 the arm is horizontal, and at 90 the arm is vertical.
-     * Implementations should be able to handle angles past 90 degrees, since the motor will not always land at exactly 90.
+     * Uses should be able to handle angles past 90 degrees, since the motor will not always land at exactly 90.
      *
      * @apiNote This method is relatively costly due to reading motor positions, avoid calling more than necessary.
      * @return the angle of the arm relative to the base.
      */
     public double getAngle(){
         return tiltMotor.getCurrentPosition() * ARM_TICKS_PER_DEGREE;
+    }
+
+    /**
+     * Get the current extension of the end of the arm past the minimum extension (fully retracted).
+     *
+     * @apiNote This method is relatively costly due to reading motor positions, avoid calling more than necessary.
+     * @return the extension of the end of the arm.
+     */
+    public double getExtension(){
+        return extensionMotor.getCurrentPosition() * ARM_TICKS_PER_INCH;
+    }
+
+    public double getTargetExtension(){
+        return targetExtension;
+    }
+
+    public double getTargetAngle() {
+        return targetAngle;
     }
 
     /**
@@ -49,10 +69,10 @@ public class Arm {
             return false;
 
         //do not set the target to a degree that will cause the arm to move outside the extension bounds.
-        if(extensionTarget * Math.cos(Math.toRadians(degrees)) > MAX_ARM_EXTENSION)
+        if(targetExtension * Math.cos(Math.toRadians(degrees)) > MAX_ARM_EXTENSION)
             return false;
 
-        angleTarget = degrees;
+        targetAngle = degrees;
         return true;
     }
 
@@ -64,10 +84,10 @@ public class Arm {
      * @return whether the operation was successful (whether it passed the checks).
      */
     public boolean setTargetExtension(Double inches){
-        if(inches * Math.cos(Math.toRadians(angleTarget)) > MAX_ARM_EXTENSION)
+        if(inches * Math.cos(Math.toRadians(targetAngle)) > MAX_ARM_EXTENSION)
             return false;
 
-        extensionTarget = inches;
+        targetExtension = inches;
         return true;
     }
 
