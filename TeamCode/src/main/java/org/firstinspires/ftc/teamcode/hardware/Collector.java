@@ -87,6 +87,10 @@ public class Collector {
 
     //wrist
 
+    public void wrist(double position){
+        wristServo.setPosition(position);
+    }
+
     public void wristUp(){
         wristServo.setPosition(UP_POSITION);
     }

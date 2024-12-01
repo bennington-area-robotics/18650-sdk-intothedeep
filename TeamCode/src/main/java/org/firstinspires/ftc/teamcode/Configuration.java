@@ -9,7 +9,7 @@ public class Configuration {
 
     //Collector
     public static final float OPEN_POSITION = 1, CLOSED_POSITION = 0; //grip
-    public static final float UP_POSITION = 1, DOWN_POSITION = 0; //wrist
+    public static final float UP_POSITION = 0, DOWN_POSITION = 0.46f; //wrist
 
     //Color sensor
     public static float HUE_THRESHOLD = 20.0f;
