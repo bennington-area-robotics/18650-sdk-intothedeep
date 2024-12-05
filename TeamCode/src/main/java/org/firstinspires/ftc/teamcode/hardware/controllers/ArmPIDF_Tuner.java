@@ -22,7 +22,7 @@ public class ArmPIDF_Tuner extends OpMode{
 
     public static int target = 0;
 
-    public static double ticks_in_degree = 288/360; //206/87
+    public static double ticks_in_degree = 206.0/87.0; //206/87, 288/360
     private DcMotorEx arm_motor;
 
     @Override
@@ -44,7 +44,9 @@ public class ArmPIDF_Tuner extends OpMode{
         double ff = Math.cos(Math.toRadians(target/ticks_in_degree)) * f;
 
         double power = pid + ff;
-
+        if (armPos > target){
+            power*=0.5;
+        }
         arm_motor.setPower(power);
 
         telemetry.addData("pos", armPos);

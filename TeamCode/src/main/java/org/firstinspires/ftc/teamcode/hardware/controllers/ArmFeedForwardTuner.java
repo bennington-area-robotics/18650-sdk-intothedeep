@@ -22,12 +22,16 @@ public class ArmFeedForwardTuner extends OpMode{
     private ArmFeedforward feedforward;
     public static double kS = 0, kCos = 0, kV = 0, kA = 0;
 
+
+    private PIDController controller;
+    public static double p =0, i = 0, d = 0;
+
     private double armPos;
     private double prevPos;
     double prevVelocity;
-    public static double velocity = 0;
-    public static double acceleration = 0;
-    public static double target = 0;
+    public static double velocity = 0.0;
+    public static double acceleration = 0.0;
+    public static double target = 0.0;
 
     ElapsedTime loopTimer = new ElapsedTime();
     private final double fixedInterval = 0.02;
@@ -40,6 +44,8 @@ public class ArmFeedForwardTuner extends OpMode{
     @Override
     public void init(){
         feedforward = new ArmFeedforward(kS, kCos, kV, kA);
+        controller = new PIDController(p, i, d);
+
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
         arm_motor = hardwareMap.get(DcMotorEx.class, "arm_motor");
@@ -62,18 +68,23 @@ public class ArmFeedForwardTuner extends OpMode{
 
     @Override
     public void loop(){
+        controller.setPID(p, i, d);
         feedforward = new ArmFeedforward(kS, kCos, kV, kA);
         if (loopTimer.seconds() >= fixedInterval) {
             armPos = posInRadians();
 
-            //velocity = (armPos - prevPos) / fixedInterval;
-           //acceleration = (velocity - prevVelocity)/ fixedInterval;
+            velocity = (armPos - prevPos) / fixedInterval;
+            acceleration = (velocity - prevVelocity)/ fixedInterval;
 
-            double power = feedforward.calculate(target, velocity, acceleration);
+            double ff = feedforward.calculate(target/ticks_in_radians, velocity, acceleration);
+
+            double pid = controller.calculate(arm_motor.getCurrentPosition(), target);
+            double power = pid+ff;
+
             arm_motor.setPower(power);
 
-            //prevPos = armPos;
-            //prevVelocity = velocity;
+            prevPos = armPos;
+            prevVelocity = velocity;
 
             telemetry.addData("pos", arm_motor.getCurrentPosition());
             telemetry.addData("pos (radians)", armPos);
