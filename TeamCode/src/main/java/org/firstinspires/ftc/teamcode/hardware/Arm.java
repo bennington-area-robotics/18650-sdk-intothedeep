@@ -6,11 +6,13 @@ import static org.firstinspires.ftc.teamcode.Configuration.MAX_ARM_EXTENSION;
 
 import androidx.annotation.FloatRange;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
+@Config
 public class Arm {
-    DcMotor tiltMotor, extensionMotor;
+    DcMotor angleMotor, extensionMotor;
 
     /**
      * Target extension of the arm in inches past the minimum extension (not extended at all)
@@ -22,8 +24,15 @@ public class Arm {
      */
     private double targetAngle;
 
+    //todo these need actual trained values
+    public static double angleKP, angleKI, angleKD, angleMaxI;
+    public static double extensionKP, extensionKI, extensionKD, extensionMaxI;
+
+    private final PID anglePID = new PID(angleKP, angleKI, angleKD, angleMaxI);
+    private final PID extensionPID = new PID(extensionKP, extensionKI, extensionKD, extensionMaxI);
+
     public Arm(HardwareMap hardwareMap, String tiltMotorName, String extensionMotorName) {
-        this.tiltMotor = hardwareMap.get(DcMotor.class, tiltMotorName);
+        this.angleMotor = hardwareMap.get(DcMotor.class, tiltMotorName);
         this.extensionMotor = hardwareMap.get(DcMotor.class, extensionMotorName);
     }
 
@@ -35,7 +44,7 @@ public class Arm {
      * @return the angle of the arm relative to the base.
      */
     public double getAngle(){
-        return tiltMotor.getCurrentPosition() * ARM_TICKS_PER_DEGREE;
+        return angleMotor.getCurrentPosition() * ARM_TICKS_PER_DEGREE;
     }
 
     /**
@@ -91,12 +100,18 @@ public class Arm {
         return true;
     }
 
+
+    /*todo if this method is not performant enough it could be made better:
+        make it automatically detect once it is close enough to its target (simply tolerance),
+        then only sample the motors one in every so many calls. every other call should just maintain the old powers.
+     */
     /**
      * Runs a cycle on the PIDF control loop for the arm.
      * This method should be called once per OpMode cycle to maintain the arm's position when at target,
      * or adjust the arm's position when not at target. This controls both extension and retraction
      */
     public void tickPIDF(){
-        //todo implement this method
+        angleMotor.setPower(anglePID.tick(targetAngle - getAngle()));
+        extensionMotor.setPower(extensionPID.tick(targetAngle - getAngle()));
     }
 }
