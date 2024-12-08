@@ -32,7 +32,7 @@ public class ArmFeedForwardTuner extends OpMode{
     public static double acceleration = 0.0;
 
     public static double target = 0.0;
-    private static double targetChecker = -1;
+    private static double targetChecker = 0.0;
     private static boolean isWaitingForMovement = true;
 
     ElapsedTime loopTimer = new ElapsedTime();
@@ -77,7 +77,7 @@ public class ArmFeedForwardTuner extends OpMode{
     public void loop(){
         controller.setPID(p, i, d);
         feedforward = new ArmFeedforward(kS, kCos, kV, kA);
-        if (targetChecker != target){
+        if (Math.abs(targetChecker - target) > 1 ){
             profileTimer.reset();
             motionProfile.setNewTarget(
                     arm_motor.getCurrentPosition(),
