@@ -91,8 +91,8 @@ public class ArmFeedForwardTuner extends OpMode{
             isWaitingForMovement = true;
         }
 
-        if (loopTimer.seconds() >= fixedInterval) {
-            double actualInterval = loopTimer.seconds();
+        double actualInterval = loopTimer.seconds();    
+        if (actualInterval >= fixedInterval) {
             loopTimer.reset();
 
             armPosTicks = arm_motor.getCurrentPosition();
@@ -101,7 +101,7 @@ public class ArmFeedForwardTuner extends OpMode{
             double maxVelocity = 2.0;
 
             velocity = (armPos - prevPos) / actualInterval;
-            acceleration = (velocity - prevVelocity)/ actualInterval;
+            acceleration = (velocity - prevVelocity) / actualInterval;
 
             if (isWaitingForMovement && Math.abs(velocity) > 0.25) {  // Adjust threshold as needed
                 profileTimer.reset();  // Now we start the timer
@@ -110,12 +110,13 @@ public class ArmFeedForwardTuner extends OpMode{
 
             double profiledPosition;
 
+            double profileTime = profileTimer.seconds();
             if (isWaitingForMovement) {
                 // While waiting, use the starting position as the target
                 profiledPosition = armPosTicks;
             } else {
                 // Once moving, follow the profile
-                profiledPosition = motionProfile.calculate(profileTimer.seconds());
+                profiledPosition = motionProfile.calculate(profileTime);
             }
 
             double ff = feedforward.calculate(profiledPosition/ticks_in_radians, velocity, acceleration);
@@ -137,10 +138,11 @@ public class ArmFeedForwardTuner extends OpMode{
             telemetry.addData("target ", target);
             telemetry.addData("target (radians)", target/ticks_in_radians);
             telemetry.addData("velocity", velocity);
+            telemetry.addData("actualInterval", actualInterval);
             telemetry.addData("time", loopTimer);
             telemetry.addData("Current Pos", armPosTicks);
             telemetry.addData("Profiled Target", profiledPosition);
-            telemetry.addData("Profile Time", profileTimer.seconds());
+            telemetry.addData("Profile Time", profileTime);
             telemetry.addData("Acceleration", acceleration);
             telemetry.addData("Raw FF Output", ff);
             telemetry.addData("Raw PID Output", pid);
