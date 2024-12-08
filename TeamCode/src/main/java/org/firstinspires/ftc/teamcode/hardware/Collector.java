@@ -12,7 +12,6 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 import com.qualcomm.robotcore.hardware.Servo;
 
-import org.firstinspires.ftc.teamcode.Configuration;
 import org.firstinspires.ftc.teamcode.OpModeCore;
 
 import java.math.BigDecimal;
@@ -87,6 +86,10 @@ public class Collector {
     }
 
     //wrist
+
+    public void wrist(double position){
+        wristServo.setPosition(position);
+    }
 
     public void wristUp(){
         wristServo.setPosition(UP_POSITION);

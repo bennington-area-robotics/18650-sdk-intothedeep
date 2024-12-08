@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Gamepad;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.hardware.Collector;
@@ -20,6 +21,7 @@ public class OpModeCore extends LinearOpMode {
     private final Gamepad previousGamepad2 = new Gamepad();
 
     private boolean collectorArmed = false;
+    ElapsedTime tickTimer;
 
     public static OpModeCore getInstance(){
         return instance;
@@ -44,21 +46,28 @@ public class OpModeCore extends LinearOpMode {
         collector = new Collector(hardwareMap, "colorSensor", "wristServo", "gripServo");
         driveBase = new DriveBase(hardwareMap);
 
+
         configureTelemetry();
 
         //save the current gamepad states to compare against to avoid errors
         previousGamepad1.copy(gamepad1);
         previousGamepad2.copy(gamepad2);
+
+        tickTimer = new ElapsedTime();
     }
 
     private void configureTelemetry(){
         telemetry.setAutoClear(false); //disable clearing telemetry after update() is called
-        telemetry.log().setCapacity(10);
+        telemetry.log().setCapacity(100);
+        telemetry.log().setDisplayOrder(Telemetry.Log.DisplayOrder.NEWEST_FIRST);
 
         //use suppliers to allow updating values without clearing and re-adding
         //such as: telemetry.addData("Detected Color", collector.colorSensor::getScoringElementColor); DO NOT UNCOMMENT
 
         telemetry.addData("Collector Armed? ", () -> collectorArmed);
+        telemetry.addData("Tick Time ", () -> Math.round(tickTimer.milliseconds()));
+        telemetry.addData("A", () -> gamepad1.a);
+        telemetry.addData("Old A", () -> previousGamepad1.a);
     }
 
     @Override
@@ -74,6 +83,7 @@ public class OpModeCore extends LinearOpMode {
         checkGamepad();
         checkForScoringElement();
         telemetry.update();
+        tickTimer.reset();
     }
 
     public void checkForScoringElement(){
@@ -84,13 +94,22 @@ public class OpModeCore extends LinearOpMode {
         }
     }
 
-
     //this might be moved to a seperate class
     public void checkGamepad(){
+        //store the current gamepads since this state can change while in a check cycle
+        Gamepad gamepad1 = new Gamepad();
+        gamepad1.copy(this.gamepad1);
+        Gamepad gamepad2 = new Gamepad();
+        gamepad2.copy(this.gamepad2);
+
+
         //toggle grip on pressing a, if failed to detect if open or closed, default to close.
-        if(gamepad1.a && !previousGamepad1.a){
-            if(!collector.toggleGrip())
-                collector.closeGrip();
+        if(gamepad1.a){
+            if(!previousGamepad1.a) {
+                if (!collector.toggleGrip()) {
+                    collector.closeGrip();
+                }
+            }
         }
 
         //toggle wrist on pressing b, if failed to detect if up or down, default to up.
@@ -103,7 +122,9 @@ public class OpModeCore extends LinearOpMode {
             collectorArmed = !collectorArmed;
         }
 
-        //save the gamepad state to compare again later..
+        driveBase.move(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x);
+
+        //save the last gamepad state to compare again later
         previousGamepad1.copy(gamepad1);
         previousGamepad2.copy(gamepad2);
     }
