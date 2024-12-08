@@ -67,4 +67,11 @@ public class PID {
 
         return time.milliseconds();
     }
+
+    public void setConstants(double kP, double kI, double kD, double maxI){
+        this.kP = kP;
+        this.kI = kI;
+        this.kD = kD;
+        this.maxI = maxI;
+    }
 }
