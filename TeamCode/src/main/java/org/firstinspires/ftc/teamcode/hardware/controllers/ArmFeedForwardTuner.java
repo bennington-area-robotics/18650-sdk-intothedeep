@@ -20,18 +20,20 @@ public class ArmFeedForwardTuner extends OpMode{
 
 
     private ArmFeedforward feedforward;
-    public static double kS = 0, kCos = 0, kV = 0, kA = 0;
-
+    public static double kS = 0, kCos = 0.002, kV = 0, kA = 0;
 
     private PIDController controller;
-    public static double p =0, i = 0, d = 0;
+    public static double p =0.001, i = 0, d = 0.00005;
 
     private double armPos;
     private double prevPos;
     double prevVelocity;
     public static double velocity = 0.0;
     public static double acceleration = 0.0;
+
     public static double target = 0.0;
+    private static double targetChecker = -1;
+    private static boolean isWaitingForMovement = true;
 
     ElapsedTime loopTimer = new ElapsedTime();
     private final double fixedInterval = 0.02;
@@ -41,10 +43,16 @@ public class ArmFeedForwardTuner extends OpMode{
 
     private DcMotorEx arm_motor;
 
+    private TrapezoidalProfile motionProfile;
+    private ElapsedTime profileTimer;
+
     @Override
     public void init(){
         feedforward = new ArmFeedforward(kS, kCos, kV, kA);
         controller = new PIDController(p, i, d);
+
+        motionProfile = new TrapezoidalProfile(4.0, 2.0);  // maxVel = 2 rad/s, maxAccel = 1 rad/s^2
+        profileTimer = new ElapsedTime();
 
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
@@ -55,10 +63,9 @@ public class ArmFeedForwardTuner extends OpMode{
         armPos = prevPos = posInRadians();
         prevVelocity = 0;
 
-
-        telemetry.addData("pos ", armPos);
-        telemetry.addData("target", target);
         telemetry.update();
+        profileTimer.reset();
+        loopTimer.reset();
 
 
     }
@@ -70,16 +77,47 @@ public class ArmFeedForwardTuner extends OpMode{
     public void loop(){
         controller.setPID(p, i, d);
         feedforward = new ArmFeedforward(kS, kCos, kV, kA);
+        if (targetChecker != target){
+            profileTimer.reset();
+            motionProfile.setNewTarget(
+                    arm_motor.getCurrentPosition(),
+                    target,
+                    0.0
+            );
+            isWaitingForMovement = true;
+        }
         if (loopTimer.seconds() >= fixedInterval) {
+            loopTimer.reset();
             armPos = posInRadians();
+
+            double maxVelocity = 2.0;
 
             velocity = (armPos - prevPos) / fixedInterval;
             acceleration = (velocity - prevVelocity)/ fixedInterval;
 
-            double ff = feedforward.calculate(target/ticks_in_radians, velocity, acceleration);
+            if (isWaitingForMovement && Math.abs(velocity) > 0.25) {  // Adjust threshold as needed
+                profileTimer.reset();  // Now we start the timer
+                isWaitingForMovement = false;
+            }
 
-            double pid = controller.calculate(arm_motor.getCurrentPosition(), target);
+            double profiledPosition;
+
+            if (isWaitingForMovement) {
+                // While waiting, use the starting position as the target
+                profiledPosition = arm_motor.getCurrentPosition();
+            } else {
+                // Once moving, follow the profile
+                profiledPosition = motionProfile.calculate(profileTimer.seconds());
+            }
+
+            double ff = feedforward.calculate(profiledPosition/ticks_in_radians, velocity, acceleration);
+
+            double pid = controller.calculate(arm_motor.getCurrentPosition(), profiledPosition);
             double power = pid+ff;
+
+            if (Math.abs(velocity) > maxVelocity) {
+                power *= maxVelocity / Math.abs(velocity);
+            }
 
             arm_motor.setPower(power);
 
@@ -88,12 +126,22 @@ public class ArmFeedForwardTuner extends OpMode{
 
             telemetry.addData("pos", arm_motor.getCurrentPosition());
             telemetry.addData("pos (radians)", armPos);
-            telemetry.addData("target (radians)", target);
-            telemetry.addData("power", power);
+            telemetry.addData("target ", target);
+            telemetry.addData("target (radians)", target/ticks_in_radians);
+            telemetry.addData("velocity", velocity);
             telemetry.addData("time", loopTimer);
+            telemetry.addData("Current Pos", arm_motor.getCurrentPosition());
+            telemetry.addData("Profiled Target", profiledPosition);
+            telemetry.addData("Profile Time", profileTimer.seconds());
+            telemetry.addData("Acceleration", acceleration);
+            telemetry.addData("Raw FF Output", ff);
+            telemetry.addData("Raw PID Output", pid);
+            telemetry.addData("Final Power", power);
+            telemetry.addData("waiting for movement", isWaitingForMovement);
             telemetry.update();
-            loopTimer.reset();
+
         }
+        targetChecker = target;
 
 
 
