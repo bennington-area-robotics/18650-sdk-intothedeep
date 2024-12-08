@@ -12,7 +12,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 @Config
 public class Arm {
-    DcMotor angleMotor, extensionMotor;
+    private final DcMotor angleMotor, extensionMotor;
 
     /**
      * Target extension of the arm in inches past the minimum extension (not extended at all)
@@ -111,6 +111,9 @@ public class Arm {
      * or adjust the arm's position when not at target. This controls both extension and retraction
      */
     public void tickPIDF(){
+        anglePID.setConstants(angleKP, angleKI, angleKD, angleMaxI);
+        extensionPID.setConstants(extensionKP, extensionKI, extensionKD, extensionMaxI);
+
         angleMotor.setPower(anglePID.tick(targetAngle - getAngle()));
         extensionMotor.setPower(extensionPID.tick(targetAngle - getAngle()));
     }
