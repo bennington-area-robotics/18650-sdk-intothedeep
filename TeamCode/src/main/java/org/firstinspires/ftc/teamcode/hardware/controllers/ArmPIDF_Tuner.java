@@ -30,7 +30,7 @@ public class ArmPIDF_Tuner extends OpMode{
         controller = new PIDController(p, i, d);
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
-        arm_motor = hardwareMap.get(DcMotorEx.class, "arm_motor");
+        arm_motor = hardwareMap.get(DcMotorEx.class, "tiltMotor");
         arm_motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         arm_motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
