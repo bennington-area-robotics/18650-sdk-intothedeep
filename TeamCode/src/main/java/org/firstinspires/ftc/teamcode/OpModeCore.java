@@ -66,8 +66,6 @@ public class OpModeCore extends LinearOpMode {
 
         telemetry.addData("Collector Armed? ", () -> collectorArmed);
         telemetry.addData("Tick Time ", () -> Math.round(tickTimer.milliseconds()));
-        telemetry.addData("A", () -> gamepad1.a);
-        telemetry.addData("Old A", () -> previousGamepad1.a);
     }
 
     @Override
@@ -121,6 +119,9 @@ public class OpModeCore extends LinearOpMode {
         if(gamepad1.y && !previousGamepad1.y){
             collectorArmed = !collectorArmed;
         }
+
+        if(gamepad1.x && !previousGamepad1.x)
+            driveBase.move();
 
         driveBase.move(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x);
 

@@ -10,6 +10,7 @@ public class Configuration {
     //Collector
     public static final float OPEN_POSITION = 1, CLOSED_POSITION = 0; //grip
     public static final float UP_POSITION = 0, DOWN_POSITION = 0.46f; //wrist
+    public static float COLLECTOR_LENGTH = 5f;
 
     //Color sensor
     public static float HUE_THRESHOLD = 20.0f;
@@ -30,5 +31,7 @@ public class Configuration {
     public static float ARM_TICKS_PER_DEGREE = ARM_GEAR_RATIO * ARM_TICKS_PER_DEGREE_AT_MOTOR_OUTPUT;
 
     public static float ARM_TICKS_PER_INCH = 88; //TODO change this to a real number
-    public static float MAX_ARM_EXTENSION = 20f;
+    public static float MAX_ARM_EXTENSION = 38f;
+
+    public static float MAX_HORIZONTAL_EXTENSION = 38f;
 }
