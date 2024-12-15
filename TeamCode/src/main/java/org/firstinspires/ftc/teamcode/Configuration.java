@@ -34,4 +34,7 @@ public class Configuration {
     public static float MAX_ARM_EXTENSION = 38f;
 
     public static float MAX_HORIZONTAL_EXTENSION = 38f;
+
+    public static float LOW_POWER_MODIFIER = 0.25f;
+    public static float HIGH_POWER_MODIFIER = 0.75f;
 }

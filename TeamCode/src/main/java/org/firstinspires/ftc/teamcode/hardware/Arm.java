@@ -144,6 +144,6 @@ public class Arm {
         extensionPID.setConstants(extensionKP, extensionKI, extensionKD, extensionMaxI);
 
         angleMotor.setPower(anglePID.tick(targetAngle - getAngle()));
-        //extensionMotor.setPower(extensionPID.tick(targetAngle - getAngle()));
+        extensionMotor.setPower(extensionPID.tick(targetExtension - getExtension()));
     }
 }

@@ -6,6 +6,7 @@ import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.teamcode.hardware.Arm;
 import org.firstinspires.ftc.teamcode.hardware.Collector;
 import org.firstinspires.ftc.teamcode.hardware.DriveBase;
 import org.firstinspires.ftc.teamcode.hardware.ScoringElementColor;
@@ -16,6 +17,7 @@ public class OpModeCore extends LinearOpMode {
     private static OpModeCore instance;
     private static Collector collector;
     private static DriveBase driveBase;
+    private static Arm arm;
 
     private final Gamepad previousGamepad1 = new Gamepad();
     private final Gamepad previousGamepad2 = new Gamepad();
@@ -39,13 +41,17 @@ public class OpModeCore extends LinearOpMode {
         return driveBase;
     }
 
+    public static Arm getArm(){
+        return arm;
+    }
+
     public void initialize(){
         instance = this;
 
         //initialize hardware
         collector = new Collector(hardwareMap, "colorSensor", "wristServo", "gripServo");
         driveBase = new DriveBase(hardwareMap);
-
+        arm = new Arm(hardwareMap, "tiltMotor", "extensionMotor");
 
         configureTelemetry();
 
@@ -66,6 +72,9 @@ public class OpModeCore extends LinearOpMode {
 
         telemetry.addData("Collector Armed? ", () -> collectorArmed);
         telemetry.addData("Tick Time ", () -> Math.round(tickTimer.milliseconds()));
+
+        telemetry.addData("Arm Angle", arm::getAngle);
+        telemetry.addData("Arm Extension", arm::getExtension);
     }
 
     @Override
@@ -93,6 +102,7 @@ public class OpModeCore extends LinearOpMode {
     }
 
     //this might be moved to a seperate class
+    private boolean isHighPower = false;
     public void checkGamepad(){
         //store the current gamepads since this state can change while in a check cycle
         Gamepad gamepad1 = new Gamepad();
@@ -120,8 +130,21 @@ public class OpModeCore extends LinearOpMode {
             collectorArmed = !collectorArmed;
         }
 
-        if(gamepad1.x && !previousGamepad1.x)
-            driveBase.move();
+        if(gamepad1.x && !previousGamepad1.x) {
+            if (isHighPower) {
+                isHighPower = false;
+                driveBase.setPowerFactor(Configuration.LOW_POWER_MODIFIER);
+            } else {
+                isHighPower = true;
+                driveBase.setPowerFactor(Configuration.HIGH_POWER_MODIFIER);
+            }
+        }
+
+        if(!arm.setTargetAngle(arm.getTargetAngle() + 2))
+            gamepad1.rumble(1, 1, 100);
+        if(!arm.setTargetExtension(arm.getTargetExtension() + 1))
+            gamepad1.rumble(1, 1, 100);
+
 
         driveBase.move(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x);
 
