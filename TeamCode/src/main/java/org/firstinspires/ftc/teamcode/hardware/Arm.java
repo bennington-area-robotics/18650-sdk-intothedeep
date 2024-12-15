@@ -29,7 +29,7 @@ public class Arm {
     private double targetAngle;
 
     //todo these need actual trained values
-    public static double angleKP, angleKI, angleKD, angleMaxI;
+    public static double angleKP = 0.1, angleKI, angleKD, angleMaxI;
     public static double extensionKP, extensionKI, extensionKD, extensionMaxI;
 
     private final PID anglePID = new PID(angleKP, angleKI, angleKD, angleMaxI);
@@ -99,7 +99,7 @@ public class Arm {
      * @return whether the operation was successful (whether it passed the checks).
      */
     public boolean setTargetExtension(double inches){
-        if(inches * Math.cos(Math.toRadians(targetAngle)) > MAX_HORIZONTAL_EXTENSION)
+        if(inches * Math.cos(Math.toRadians(targetAngle)) > MAX_HORIZONTAL_EXTENSION || inches > MAX_ARM_EXTENSION)
             return false;
 
         targetExtension = inches;

@@ -145,7 +145,6 @@ public class OpModeCore extends LinearOpMode {
         if(!arm.setTargetExtension(arm.getTargetExtension() + 1))
             gamepad1.rumble(1, 1, 100);
 
-
         driveBase.move(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x);
 
         //save the last gamepad state to compare again later

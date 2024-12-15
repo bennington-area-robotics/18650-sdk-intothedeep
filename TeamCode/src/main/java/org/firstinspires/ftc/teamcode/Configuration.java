@@ -30,7 +30,7 @@ public class Configuration {
 
     public static float ARM_TICKS_PER_DEGREE = ARM_GEAR_RATIO * ARM_TICKS_PER_DEGREE_AT_MOTOR_OUTPUT;
 
-    public static float ARM_TICKS_PER_INCH = 88; //TODO change this to a real number
+    public static float ARM_TICKS_PER_INCH = 411.6f; //TODO change this to a real number
     public static float MAX_ARM_EXTENSION = 38f;
 
     public static float MAX_HORIZONTAL_EXTENSION = 38f;
