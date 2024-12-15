@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 public class DriveBase {
     public final DcMotor leftFront, leftRear, rightFront, rightRear;
     private final DcMotor[] motors;
+    private static double powerFactor = 1;
 
     public DriveBase(HardwareMap hardwareMap){
         this.leftFront = hardwareMap.get(DcMotor.class, "LFront");
@@ -85,7 +86,7 @@ public class DriveBase {
         double rightFront = (y - x) / denominator;
         double rightRear = (y + x) / denominator;
 
-        setPower(leftFront, leftRear, rightFront, rightRear);
+        setPower(leftFront * powerFactor, leftRear * powerFactor, rightFront * powerFactor, rightRear * powerFactor);
     }
 
     /**
@@ -107,6 +108,10 @@ public class DriveBase {
         this.leftRear.setPower(leftRear);
         this.rightFront.setPower(rightFront);
         this.rightRear.setPower(rightRear);
+    }
+    public void setPowerFactor(double factor){
+
+        powerFactor = factor;
     }
 
     /**

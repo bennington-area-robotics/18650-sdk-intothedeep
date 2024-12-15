@@ -15,8 +15,8 @@ import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
 @Autonomous(group = "drive")
 public class TrajectoryTester extends LinearOpMode {
 
-    public static double startX = -48;
-    public static double startY = 48;
+    public static double startX = -11.5;
+    public static double startY = 63;
     public static double startAng = -90;
     @Override
     public void runOpMode() throws InterruptedException {
@@ -27,8 +27,17 @@ public class TrajectoryTester extends LinearOpMode {
         waitForStart();
 
         if (isStopRequested()) return;
+        Trajectory moveToSamples = drive.trajectoryBuilder(startPose)
+                .splineTo(new Vector2d(-36, 48), Math.toRadians(180))
+                .build();
+        Trajectory moveToSamples2 = drive.trajectoryBuilder(moveToSamples.end())
+                .lineToLinearHeading(new Pose2d(-36, 12,Math.toRadians(90)))
+                .build();
+        Trajectory moveToSamples3 = drive.trajectoryBuilder(moveToSamples2.end())
+                .strafeLeft(12)
+                .build();
 
-        Trajectory traj1 = drive.trajectoryBuilder(startPose)
+        Trajectory traj1 = drive.trajectoryBuilder(moveToSamples3.end())
                 //.lineToConstantHeading(new Vector2d(-48, -3.744))
                 .forward(48*0.92)
                 .build();
@@ -50,7 +59,7 @@ public class TrajectoryTester extends LinearOpMode {
                 .build();
         Trajectory traj6 = drive.trajectoryBuilder(traj5.end())
                 //.lineToConstantHeading(new Vector2d(-48, -3.744))
-                .strafeLeft(10)
+                .strafeLeft(8)
                 .build();
         Trajectory traj7 = drive.trajectoryBuilder(traj6.end())
                 //.lineToConstantHeading(new Vector2d(-48, -3.744))
@@ -68,7 +77,9 @@ public class TrajectoryTester extends LinearOpMode {
                 .lineToSplineHeading(new Pose2d(30,0))
                 .build();
         */
-
+        drive.followTrajectory(moveToSamples);
+        drive.followTrajectory(moveToSamples2);
+        drive.followTrajectory(moveToSamples3);
         drive.followTrajectory(traj1);
         drive.followTrajectory(traj2);
         drive.followTrajectory(traj3);
