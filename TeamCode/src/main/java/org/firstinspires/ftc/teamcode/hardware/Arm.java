@@ -1,32 +1,38 @@
 package org.firstinspires.ftc.teamcode.hardware;
 
-import static org.firstinspires.ftc.teamcode.Configuration.ARM_TICKS_PER_DEGREE;
-import static org.firstinspires.ftc.teamcode.Configuration.ARM_TICKS_PER_INCH;
-import static org.firstinspires.ftc.teamcode.Configuration.MAX_ARM_EXTENSION;
-import static org.firstinspires.ftc.teamcode.Configuration.MAX_HORIZONTAL_EXTENSION;
-
 import androidx.annotation.FloatRange;
 
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
-import org.firstinspires.ftc.teamcode.Configuration;
 import org.firstinspires.ftc.teamcode.OpModeCore;
 
 @Config
 public class Arm {
+    //config
+        private static final float ARM_GEAR_RATIO = 86.0f / 28.0f;
+        private static final float ARM_TICKS_PER_DEGREE_AT_MOTOR_OUTPUT = 288.0f/360.0f;
+
+        public static float ARM_TICKS_PER_DEGREE = ARM_GEAR_RATIO * ARM_TICKS_PER_DEGREE_AT_MOTOR_OUTPUT;
+
+        public static float ARM_TICKS_PER_INCH = 411.6f; //TODO change this to a real number
+        public static float MAX_ARM_EXTENSION = 38f;
+
+        public static float MAX_HORIZONTAL_EXTENSION = 38f;
+    //config
+
     private final DcMotor angleMotor, extensionMotor;
 
     /**
      * Target extension of the arm in inches past the minimum extension (not extended at all)
      */
-    private double targetExtension;
+    private double targetExtension = 0;
 
     /**
      * Target angle of the arm in degrees relative to the base. 0 is horizontal, while 90 is vertical.
      */
-    private double targetAngle;
+    private double targetAngle = 0;
 
     //todo these need actual trained values
     public static double angleKP = 0.1, angleKI, angleKD, angleMaxI;
@@ -38,6 +44,10 @@ public class Arm {
     public Arm(HardwareMap hardwareMap, String tiltMotorName, String extensionMotorName) {
         this.angleMotor = hardwareMap.get(DcMotor.class, tiltMotorName);
         this.extensionMotor = hardwareMap.get(DcMotor.class, extensionMotorName);
+
+        resetAngle();
+        resetExtension();
+
         OpModeCore.getTelemetry().addData("Current Angle", this::getAngle);
         OpModeCore.getTelemetry().addData("Target Angle", this::getTargetAngle);
     }
@@ -106,6 +116,24 @@ public class Arm {
         return true;
     }
 
+    /**
+     * Sets the current angle as the target and zero position.
+     */
+    public void resetAngle(){
+        angleMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        targetAngle = 0;
+        angleMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+    }
+
+    /**
+     * Sets the current extension as the target and zero position.
+     */
+    public void resetExtension(){
+        extensionMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        targetExtension = 0;
+        extensionMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+    }
+
 //    /**
 //     * Sets the target extension to the desired amount if below the maximum extension, and modifies the target angle to allow for the desired extension.
 //     * @param inches the desired extension amount in inches.
@@ -125,7 +153,7 @@ public class Arm {
 
     private double getCollectorExtension(){
         if(OpModeCore.getCollector().isWristUp())
-            return Configuration.COLLECTOR_LENGTH;
+            return Collector.LENGTH;
         return 0;
     }
 

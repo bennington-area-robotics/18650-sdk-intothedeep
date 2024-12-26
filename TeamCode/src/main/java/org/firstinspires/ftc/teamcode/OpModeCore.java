@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Gamepad;
@@ -12,8 +13,13 @@ import org.firstinspires.ftc.teamcode.hardware.DriveBase;
 import org.firstinspires.ftc.teamcode.hardware.ScoringElementColor;
 
 /** @noinspection SpellCheckingInspection*/
+@Config
 @TeleOp(name="Main TeleOp", group ="Into The Deep")
 public class OpModeCore extends LinearOpMode {
+
+    public static float LOW_POWER_MODIFIER = 0.25f;
+    public static float HIGH_POWER_MODIFIER = 0.75f;
+
     private static OpModeCore instance;
     private static Collector collector;
     private static DriveBase driveBase;
@@ -49,7 +55,13 @@ public class OpModeCore extends LinearOpMode {
         instance = this;
 
         //initialize hardware
-        collector = new Collector(hardwareMap, "colorSensor", "wristServo", "gripServo");
+        collector = new Collector(
+                hardwareMap,
+                "colorSensor",
+                "wristServo",
+                "gripServo",
+                false
+        );
         driveBase = new DriveBase(hardwareMap);
         arm = new Arm(hardwareMap, "tiltMotor", "extensionMotor");
 
@@ -89,6 +101,7 @@ public class OpModeCore extends LinearOpMode {
     public void tick(){
         checkGamepad();
         checkForScoringElement();
+        arm.tickPIDF();
         telemetry.update();
         tickTimer.reset();
     }
@@ -133,17 +146,23 @@ public class OpModeCore extends LinearOpMode {
         if(gamepad1.x && !previousGamepad1.x) {
             if (isHighPower) {
                 isHighPower = false;
-                driveBase.setPowerFactor(Configuration.LOW_POWER_MODIFIER);
+                driveBase.setPowerFactor(LOW_POWER_MODIFIER);
             } else {
                 isHighPower = true;
-                driveBase.setPowerFactor(Configuration.HIGH_POWER_MODIFIER);
+                driveBase.setPowerFactor(HIGH_POWER_MODIFIER);
             }
         }
 
-        if(!arm.setTargetAngle(arm.getTargetAngle() + 2))
-            gamepad1.rumble(1, 1, 100);
-        if(!arm.setTargetExtension(arm.getTargetExtension() + 1))
-            gamepad1.rumble(1, 1, 100);
+        if(gamepad1.dpad_down){
+            if(!arm.setTargetAngle(arm.getTargetAngle() - 0.5))
+                gamepad1.rumbleBlips(1);
+        }else if(gamepad1.dpad_up){
+            if(!arm.setTargetAngle(arm.getTargetAngle() + 0.5))
+                gamepad1.rumbleBlips(1);
+        }
+
+
+        arm.setTargetExtension(arm.getTargetExtension() - gamepad1.right_stick_y);
 
         driveBase.move(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x);
 

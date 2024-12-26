@@ -1,13 +1,8 @@
 package org.firstinspires.ftc.teamcode.hardware;
 
-import static org.firstinspires.ftc.teamcode.Configuration.CLOSED_POSITION;
-import static org.firstinspires.ftc.teamcode.Configuration.DOWN_POSITION;
-import static org.firstinspires.ftc.teamcode.Configuration.GAIN;
-import static org.firstinspires.ftc.teamcode.Configuration.OPEN_POSITION;
-import static org.firstinspires.ftc.teamcode.Configuration.UP_POSITION;
-
 import android.annotation.SuppressLint;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -17,36 +12,42 @@ import org.firstinspires.ftc.teamcode.OpModeCore;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
+@Config
 public class Collector {
+    //config
+    public static final float OPEN_POSITION = 1, CLOSED_POSITION = 0; //grip
+    public static final float UP_POSITION = 0, DOWN_POSITION = 0.46f; //wrist
+    public static float LENGTH = 5f;
+
     public final ColorSensor colorSensor;
     final Servo gripServo, wristServo;
 
     @SuppressLint("DefaultLocale")
-    public Collector(HardwareMap hardwareMap, String colorSensorName, String wristServoName, String gripServoName){
+    public Collector(HardwareMap hardwareMap, String colorSensorName, String wristServoName, String gripServoName, boolean includeTelem){
         this.colorSensor = new ColorSensor(hardwareMap, colorSensorName);
-        colorSensor.setGain(GAIN);
         this.gripServo = hardwareMap.get(Servo.class, gripServoName);
         this.wristServo = hardwareMap.get(Servo.class, wristServoName);
 
-        OpModeCore.getTelemetry().addLine("Grip")
-                .addData("Position", gripServo::getPosition)
-                .addData("Open?", this::isGripOpen)
-                .addData("Closed?", this::isGripClosed);
-        OpModeCore.getTelemetry().addLine("Wrist")
-                .addData("Position", wristServo::getPosition)
-                .addData("Up?", this::isWristUp)
-                .addData("Down?", this::isWristDown);
-        OpModeCore.getTelemetry().addLine("Color Sensor")
-                .addData("HSV", () -> {
-                    float[] hsv = colorSensor.getHSV();
-                    return String.format("Hue: %.3f Saturation: %.3f Value: %.3f", hsv[0], hsv[1], hsv[2]);
-                })
-                .addData("RGB", () -> {
-                    NormalizedRGBA rgba = colorSensor.getRGBA();
-                    return String.format("Red: %.3f Green: %.3f Blue: %.3f", rgba.red, rgba.green, rgba.blue);
-                })
-                .addData("Scoring Color", colorSensor::getScoringElementColor);
-
+        if(includeTelem) {
+            OpModeCore.getTelemetry().addLine("Grip")
+                    .addData("Position", gripServo::getPosition)
+                    .addData("Open?", this::isGripOpen)
+                    .addData("Closed?", this::isGripClosed);
+            OpModeCore.getTelemetry().addLine("Wrist")
+                    .addData("Position", wristServo::getPosition)
+                    .addData("Up?", this::isWristUp)
+                    .addData("Down?", this::isWristDown);
+            OpModeCore.getTelemetry().addLine("Color Sensor")
+                    .addData("HSV", () -> {
+                        float[] hsv = colorSensor.getHSV();
+                        return String.format("Hue: %.3f Saturation: %.3f Value: %.3f", hsv[0], hsv[1], hsv[2]);
+                    })
+                    .addData("RGB", () -> {
+                        NormalizedRGBA rgba = colorSensor.getRGBA();
+                        return String.format("Red: %.3f Green: %.3f Blue: %.3f", rgba.red, rgba.green, rgba.blue);
+                    })
+                    .addData("Scoring Color", colorSensor::getScoringElementColor);
+        }
     }
 
 
