@@ -48,8 +48,8 @@ public class Arm {
         resetAngle();
         resetExtension();
 
-        OpModeCore.getTelemetry().addData("Current Angle", this::getAngle);
-        OpModeCore.getTelemetry().addData("Target Angle", this::getTargetAngle);
+        OpModeCore.getTelemetry().addData("Current Arm Angle", this::getAngle);
+        OpModeCore.getTelemetry().addData("Target Arm Angle", this::getTargetAngle);
     }
 
     /**

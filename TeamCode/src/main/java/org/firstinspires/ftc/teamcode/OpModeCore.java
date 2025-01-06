@@ -155,10 +155,10 @@ public class OpModeCore extends LinearOpMode {
 
         if(gamepad1.dpad_down){
             if(!arm.setTargetAngle(arm.getTargetAngle() - 0.5))
-                gamepad1.rumbleBlips(1);
+                this.gamepad1.rumble(100);
         }else if(gamepad1.dpad_up){
             if(!arm.setTargetAngle(arm.getTargetAngle() + 0.5))
-                gamepad1.rumbleBlips(1);
+                this.gamepad1.rumbleBlips(100);
         }
 
 
