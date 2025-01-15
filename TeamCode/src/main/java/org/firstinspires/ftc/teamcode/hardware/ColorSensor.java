@@ -1,26 +1,33 @@
 package org.firstinspires.ftc.teamcode.hardware;
 
-import static org.firstinspires.ftc.teamcode.Configuration.BLUE_HUE;
-import static org.firstinspires.ftc.teamcode.Configuration.HUE_THRESHOLD;
-import static org.firstinspires.ftc.teamcode.Configuration.RED_HUE;
-import static org.firstinspires.ftc.teamcode.Configuration.YELLOW_HUE;
-
 import android.graphics.Color;
 
 import androidx.annotation.NonNull;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-
+@Config
 public class ColorSensor {
+    //configuration
+    public static float HUE_THRESHOLD = 20.0f;
+    public static float RED_HUE = 25.0f;
+    public static float YELLOW_HUE = 75.0f;
+    public static float BLUE_HUE = 215.0f;
+    public static float MIN_VALUE = 0.2f;
+    public static float MIN_SATURATION = 0.2f;
+
+    public static int GAIN = 150;
+
     NormalizedColorSensor colorSensor;
 
     public ColorSensor(HardwareMap hardwareMap, String name) {
         this.colorSensor = hardwareMap.get(NormalizedColorSensor.class, name);
+        colorSensor.setGain(GAIN);
     }
 
     /**
@@ -75,7 +82,7 @@ public class ColorSensor {
         final float value = hsv[2];
 
         // Ensure valid saturation and value
-        if (saturation < 0.2 || value < 0.2) {
+        if (saturation < MIN_SATURATION || value < MIN_VALUE) {
             return ScoringElementColor.NONE; // Very low saturation or brightness, return None
         }
 
