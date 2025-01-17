@@ -10,9 +10,10 @@ public class PID {
     double kP, kI, kD, kF;
     double i, maxI;
     double lastError;
+    double tolerance;
 
     /**
-     * Creates a PID controller which can be used to easily implement a PID to most things.
+     * Creates a PID controller which can be used to easily apply to most things.
      *
      * @param kP the proportional coefficient. This controls how much the magnitude of the error affects the output.
      * @param kI the integral coefficient. This controls how much the overall change in error affects the output.
@@ -27,6 +28,15 @@ public class PID {
     }
 
     /**
+     * Creates a P controller which can be used to easily apply to most things.
+     *
+     * @param kP the proportional coefficient. This controls how much the magnitude of the error affects the output.
+     */
+    public PID(double kP){
+        this(kP, 0, 0, 0);
+    }
+
+    /**
      * Calculates the output of the PID based on the error from the target. Note that errors and outputs are directional.
      * This means that a negative error input will yield a negative (or approaching negative) output value.
      *
@@ -34,22 +44,26 @@ public class PID {
      * @return the directional output power of the PID.
      */
     public double tick(double currentError){
-        double timeChange = timer.milliseconds();
-        timer.reset();
+        if(Math.abs(currentError) > tolerance) {
+            double timeChange = timer.milliseconds();
+            timer.reset();
 
-        double p = kP * currentError;
+            double p = kP * currentError;
 
-        i += kI * (currentError * (timeChange));
+            i += kI * (currentError * (timeChange));
 
-        if(i > maxI)
-            i = maxI;
-        else if (i < -maxI)
-            i = -maxI;
+            if (i > maxI)
+                i = maxI;
+            else if (i < -maxI)
+                i = -maxI;
 
-        double d = kD * (currentError - lastError);
+            double d = kD * (currentError - lastError);
 
-        lastError = currentError;
-        return p + i + d;
+            lastError = currentError;
+            return p + i + d;
+        }else {
+            return 0;
+        }
     }
 
     /**
@@ -68,10 +82,21 @@ public class PID {
         return time.milliseconds();
     }
 
+    /**
+     * @param kP the proportional coefficient. This controls how much the magnitude of the error affects the output.
+     * @param kI the integral coefficient. This controls how much the overall change in error affects the output.
+     * @param kD the derivative coefficient. This controls how much the change in the error affects the output.
+     * @param maxI the maximum of the integral sum. This controls the maximum amount the integral calculation can affect the output.
+     */
     public void setConstants(double kP, double kI, double kD, double maxI){
         this.kP = kP;
         this.kI = kI;
         this.kD = kD;
         this.maxI = maxI;
+    }
+
+    public PID setTolerance(double tolerance){
+        this.tolerance = tolerance;
+        return this;
     }
 }

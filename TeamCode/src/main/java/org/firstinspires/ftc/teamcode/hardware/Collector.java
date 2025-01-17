@@ -15,8 +15,8 @@ import java.math.RoundingMode;
 @Config
 public class Collector {
     //config
-    public static final float OPEN_POSITION = 1, CLOSED_POSITION = 0; //grip
-    public static final float UP_POSITION = 0, DOWN_POSITION = 0.46f; //wrist
+    public static float OPEN_POSITION = 1, CLOSED_POSITION = 0; //grip
+    public static float UP_POSITION = 0, DOWN_POSITION = 0.46f; //wrist
     public static float LENGTH = 5f;
 
     public final ColorSensor colorSensor;
@@ -62,11 +62,11 @@ public class Collector {
     }
 
     public boolean isGripOpen(){
-        return Helper.round(gripServo.getPosition(), 1) == OPEN_POSITION;
+        return Helper.round(gripServo.getPosition(), 1) == Helper.round(OPEN_POSITION, 1);
     }
 
     public boolean isGripClosed(){
-        return Helper.round(gripServo.getPosition(), 1) == CLOSED_POSITION;
+        return Helper.round(gripServo.getPosition(), 1) == Helper.round(CLOSED_POSITION, 1);
     }
 
     /**
@@ -101,11 +101,11 @@ public class Collector {
     }
 
     public boolean isWristUp(){
-        return Helper.round(wristServo.getPosition(), 1) == UP_POSITION;
+        return Helper.round(wristServo.getPosition(), 1) == Helper.round(UP_POSITION, 1);
     }
 
     public boolean isWristDown(){
-        return Helper.round(wristServo.getPosition(), 1) == DOWN_POSITION;
+        return Helper.round(wristServo.getPosition(), 1) == Helper.round(DOWN_POSITION, 1);
     }
 
     /**

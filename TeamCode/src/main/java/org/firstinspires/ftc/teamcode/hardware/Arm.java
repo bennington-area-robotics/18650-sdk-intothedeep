@@ -4,6 +4,7 @@ import androidx.annotation.FloatRange;
 
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.teamcode.OpModeCore;
@@ -14,12 +15,12 @@ public class Arm {
         private static final float ARM_GEAR_RATIO = 86.0f / 28.0f;
         private static final float ARM_TICKS_PER_DEGREE_AT_MOTOR_OUTPUT = 288.0f/360.0f;
 
-        public static float ARM_TICKS_PER_DEGREE = ARM_GEAR_RATIO * ARM_TICKS_PER_DEGREE_AT_MOTOR_OUTPUT;
+        public static float ARM_TICKS_PER_DEGREE = 12.5f;
 
-        public static float ARM_TICKS_PER_INCH = 411.6f; //TODO change this to a real number
-        public static float MAX_ARM_EXTENSION = 38f;
+        public static float ARM_TICKS_PER_INCH = 190f; //TODO change this to a real number
+        public static double MAX_ARM_EXTENSION = 38.0;
 
-        public static float MAX_HORIZONTAL_EXTENSION = 38f;
+        public static double MAX_HORIZONTAL_EXTENSION = 38.0;
     //config
 
     private final DcMotor angleMotor, extensionMotor;
@@ -36,20 +37,23 @@ public class Arm {
 
     //todo these need actual trained values
     public static double angleKP = 0.1, angleKI, angleKD, angleMaxI;
-    public static double extensionKP, extensionKI, extensionKD, extensionMaxI;
+    public static double extensionKP = 0.1, extensionKI, extensionKD, extensionMaxI;
 
-    private final PID anglePID = new PID(angleKP, angleKI, angleKD, angleMaxI);
-    private final PID extensionPID = new PID(extensionKP, extensionKI, extensionKD, extensionMaxI);
+    private final PID anglePID = new PID(angleKP, angleKI, angleKD, angleMaxI).setTolerance(0.01);
+    private final PID extensionPID = new PID(extensionKP, extensionKI, extensionKD, extensionMaxI).setTolerance(0.01);
 
     public Arm(HardwareMap hardwareMap, String tiltMotorName, String extensionMotorName) {
         this.angleMotor = hardwareMap.get(DcMotor.class, tiltMotorName);
         this.extensionMotor = hardwareMap.get(DcMotor.class, extensionMotorName);
+        this.extensionMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
         resetAngle();
         resetExtension();
 
         OpModeCore.getTelemetry().addData("Current Arm Angle", this::getAngle);
         OpModeCore.getTelemetry().addData("Target Arm Angle", this::getTargetAngle);
+        OpModeCore.getTelemetry().addData("Current Arm Extension", this::getExtension);
+        OpModeCore.getTelemetry().addData("Target Arm Extension", this::getTargetExtension);
     }
 
     /**
@@ -60,7 +64,7 @@ public class Arm {
      * @return the angle of the arm relative to the base.
      */
     public double getAngle(){
-        return angleMotor.getCurrentPosition() * ARM_TICKS_PER_DEGREE;
+        return angleMotor.getCurrentPosition() / ARM_TICKS_PER_DEGREE;
     }
 
     /**
@@ -70,7 +74,7 @@ public class Arm {
      * @return the extension of the end of the arm.
      */
     public double getExtension(){
-        return extensionMotor.getCurrentPosition() * ARM_TICKS_PER_INCH;
+        return extensionMotor.getCurrentPosition() / ARM_TICKS_PER_INCH;
     }
 
     public double getTargetExtension(){
@@ -109,7 +113,7 @@ public class Arm {
      * @return whether the operation was successful (whether it passed the checks).
      */
     public boolean setTargetExtension(double inches){
-        if(inches * Math.cos(Math.toRadians(targetAngle)) > MAX_HORIZONTAL_EXTENSION || inches > MAX_ARM_EXTENSION)
+        if(inches * Math.cos(Math.toRadians(targetAngle)) > MAX_HORIZONTAL_EXTENSION || inches > MAX_ARM_EXTENSION || inches < 0)
             return false;
 
         targetExtension = inches;
