@@ -44,14 +44,17 @@ public class Arm {
     public static double angleKP = 0.1, angleKI, angleKD, angleMaxI;
     public static double extensionKP = 0.1, extensionKI, extensionKD, extensionMaxI;
 
+    public static double GRAVITY_COMPENSATION = 0.2;
+
     private final PID.FeedForwardFunction angleFFFunction = new PID.FeedForwardFunction() {
         @Override
         public Double apply(Double currentError, Double currentPosition) {
-            if(currentError >= 0)
-                return Math.sin(Math.toRadians(currentPosition)) * 0.2;
-            else{
-                return -Math.sin(Math.toRadians(currentPosition)) * 0.2;
-            }
+            // Calculate gravity compensation
+            // Maximum at horizontal (0°), minimum at vertical (90°)
+            double gravityCompensation = Math.cos(Math.toRadians(currentPosition)) * GRAVITY_COMPENSATION;
+            
+            // Always apply gravity compensation upward, regardless of direction of movement
+            return gravityCompensation;
         }
     };
 
