@@ -60,7 +60,7 @@ public class OpModeCore extends LinearOpMode {
                 "colorSensor",
                 "wristServo",
                 "gripServo",
-                false
+                true
         );
         driveBase = new DriveBase(hardwareMap);
         arm = new Arm(hardwareMap, "tiltMotor", "extensionMotor");
@@ -154,15 +154,17 @@ public class OpModeCore extends LinearOpMode {
         }
 
         if(gamepad1.dpad_down){
-            if(!arm.setTargetAngle(arm.getTargetAngle() - 0.5))
+            if(!arm.setTargetAngle(0))
                 this.gamepad1.rumble(100);
         }else if(gamepad1.dpad_up){
-            if(!arm.setTargetAngle(arm.getTargetAngle() + 0.5))
+            if(!arm.setTargetAngle(90))
+                this.gamepad1.rumbleBlips(100);
+        }else if(gamepad1.dpad_right){
+            if(!arm.setTargetAngle(45))
                 this.gamepad1.rumbleBlips(100);
         }
 
-
-        arm.setTargetExtension(arm.getTargetExtension() - gamepad1.right_stick_y);
+        arm.setTargetExtension(arm.getTargetExtension() + 0.11 * (-gamepad1.left_trigger + gamepad1.right_trigger));
 
         driveBase.move(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x);
 
