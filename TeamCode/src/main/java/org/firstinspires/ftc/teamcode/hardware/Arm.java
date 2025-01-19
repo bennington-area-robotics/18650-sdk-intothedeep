@@ -4,10 +4,12 @@ import androidx.annotation.FloatRange;
 
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.teamcode.OpModeCore;
+import org.firstinspires.ftc.teamcode.util.Encoder;
 
 @Config
 public class Arm {
@@ -23,7 +25,11 @@ public class Arm {
         public static double MAX_HORIZONTAL_EXTENSION = 38.0;
     //config
 
-    private final DcMotor angleMotorRight, angleMotorLeft, extensionMotor;
+    private final DcMotorEx angleMotorRight;
+    private final DcMotorEx angleMotorLeft;
+    private final DcMotorEx extensionMotor;
+
+    private final Encoder angleEncoder;
 
     /**
      * Target extension of the arm in inches past the minimum extension (not extended at all)
@@ -35,6 +41,8 @@ public class Arm {
      */
     private double targetAngle = 0;
 
+    private double tickOffsetToZero;
+
     //todo these need actual trained values
     public static double angleKP = 0.1, angleKI, angleKD, angleMaxI;
     public static double extensionKP = 0.1, extensionKI, extensionKD, extensionMaxI;
@@ -43,9 +51,10 @@ public class Arm {
     private final PID extensionPID = new PID(extensionKP, extensionKI, extensionKD, extensionMaxI).setTolerance(0.01);
 
     public Arm(HardwareMap hardwareMap, String tiltMotorLeftName, String tiltMotorRightName, String extensionMotorName) {
-        this.angleMotorRight = hardwareMap.get(DcMotor.class, tiltMotorRightName);
-        this.angleMotorLeft = hardwareMap.get(DcMotor.class, tiltMotorLeftName);
-        this.extensionMotor = hardwareMap.get(DcMotor.class, extensionMotorName);
+        this.angleMotorRight = hardwareMap.get(DcMotorEx.class, tiltMotorRightName);
+        this.angleMotorLeft = hardwareMap.get(DcMotorEx.class, tiltMotorLeftName);
+        this.extensionMotor = hardwareMap.get(DcMotorEx.class, extensionMotorName);
+        this.angleEncoder = new Encoder(angleMotorRight);
         this.extensionMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
         this.angleMotorLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -68,7 +77,7 @@ public class Arm {
      * @return the angle of the arm relative to the base.
      */
     public double getAngle(){
-        return angleMotorRight.getCurrentPosition() / ARM_TICKS_PER_DEGREE;
+        return ( angleEncoder.getCurrentPosition() - tickOffsetToZero) / ARM_TICKS_PER_INCH;
     }
 
     /**
@@ -128,9 +137,8 @@ public class Arm {
      * Sets the current angle as the target and zero position.
      */
     public void resetAngle(){
-        angleMotorRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        tickOffsetToZero = angleEncoder.getCurrentPosition();
         targetAngle = 0;
-        angleMotorRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
 
     /**
@@ -141,23 +149,6 @@ public class Arm {
         targetExtension = 0;
         extensionMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
-
-//    /**
-//     * Sets the target extension to the desired amount if below the maximum extension, and modifies the target angle to allow for the desired extension.
-//     * @param inches the desired extension amount in inches.
-//     * @return false if inches was past the possible extension, otherwise true;
-//     */
-//    public boolean setTargetExtensionDynamic(double inches){
-//        if(setTargetExtension(inches))
-//            return true;
-//        else{
-//
-//        }
-//    }
-
-//    public void setTargetAngleDynamic(double inches){
-//
-//    }
 
     private double getCollectorExtension(){
         if(OpModeCore.getCollector().isWristUp())
