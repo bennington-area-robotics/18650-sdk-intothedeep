@@ -41,7 +41,7 @@ public class Arm {
     private double tickOffsetToZero;
 
     //todo these need actual trained values
-    public static double angleKP = 0.1, angleKI, angleKD, angleMaxI;
+    public static double angleKP = 0.1, angleKI, angleKD = 0.01, angleMaxI;
     public static double extensionKP = 0.1, extensionKI, extensionKD, extensionMaxI;
 
     public static double GRAVITY_COMPENSATION = 0.2;
