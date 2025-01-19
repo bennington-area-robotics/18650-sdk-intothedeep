@@ -46,14 +46,31 @@ public class Arm {
 
     public static double GRAVITY_COMPENSATION = 0.2;
 
+    public static double MAX_UP_VELOCITY = 2.0;    // in degrees per second
+    public static double MAX_DOWN_VELOCITY = 1.0;   // in degrees per second, slower for safety
+
+    private double lastPos = 0;
+    private double deltaTime = 0;
+
     private final PID.FeedForwardFunction angleFFFunction = new PID.FeedForwardFunction() {
         @Override
         public Double apply(Double currentError, Double currentPosition) {
+            // Get current velocity (you'll need to implement this)
+            double currentVelocity = getCurrentVelocity();
+            
             // Calculate gravity compensation
-            // Maximum at horizontal (0°), minimum at vertical (90°)
             double gravityCompensation = Math.cos(Math.toRadians(currentPosition)) * GRAVITY_COMPENSATION;
             
-            // Always apply gravity compensation upward, regardless of direction of movement
+            // Apply velocity limiting
+            if (currentError > 0 && currentVelocity > MAX_UP_VELOCITY) {
+                // Moving up too fast - reduce power
+                return gravityCompensation * (MAX_UP_VELOCITY / currentVelocity);
+            } else if (currentError < 0 && currentVelocity < -MAX_DOWN_VELOCITY) {
+                // Moving down too fast - increase resistance
+                return gravityCompensation * (-MAX_DOWN_VELOCITY / currentVelocity);
+            }
+            
+            // Normal operation
             return gravityCompensation;
         }
     };
@@ -172,7 +189,6 @@ public class Arm {
         return 0;
     }
 
-
     /*todo if this method is not performant enough it could be made better:
         make it automatically detect once it is close enough to its target (simply tolerance),
         then only sample the motors one in every so many calls. every other call should just maintain the old powers.
@@ -192,5 +208,17 @@ public class Arm {
         angleMotorLeft.setPower(anglePower);
         extensionMotor.setPower(extensionPID.tick(targetExtension - getExtension()));
 
+    }
+
+    private double getCurrentVelocity() {
+        // Implementation depends on your hardware setup
+        // Option 1: Use motor's velocity reading if available
+        // return arm_motor.getVelocity() / TICKS_PER_DEGREE;
+        
+        // Option 2: Calculate from position changes
+        double currentPos = getAngle();
+        double velocity = (currentPos - lastPos) / deltaTime;
+        lastPos = currentPos;
+        return velocity;
     }
 }
