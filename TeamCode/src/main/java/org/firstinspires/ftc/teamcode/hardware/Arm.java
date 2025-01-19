@@ -41,22 +41,11 @@ public class Arm {
     private double tickOffsetToZero;
 
     //todo these need actual trained values
-    public static double angleKP = 0.1, angleKI, angleKD, angleMaxI;
+    public static double angleKP = 0.02, angleKI = 0.00001, angleKD = 0.2, angleMaxI = 0.09;
     public static double extensionKP = 0.1, extensionKI, extensionKD, extensionMaxI;
 
-    private final PID.FeedForwardFunction angleFFFunction = new PID.FeedForwardFunction() {
-        @Override
-        public Double apply(Double currentError, Double currentPosition) {
-            if(currentError >= 0)
-                return Math.sin(Math.toRadians(currentPosition)) * 0.2;
-            else{
-                return -Math.sin(Math.toRadians(currentPosition)) * 0.2;
-            }
-        }
-    };
-
-    private final PID anglePID = new PID(this::getAngle, angleKP, angleKI, angleKD, angleMaxI).setTolerance(0.01).addFeedForwardFunction(angleFFFunction);
-    private final PID extensionPID = new PID(this::getExtension, extensionKP, extensionKI, extensionKD, extensionMaxI).setTolerance(0.01);
+    private final PID anglePID = new PID(angleKP, angleKI, angleKD, angleMaxI).setTolerance(0.01);
+    private final PID extensionPID = new PID(extensionKP, extensionKI, extensionKD, extensionMaxI).setTolerance(0.01);
 
     public Arm(HardwareMap hardwareMap, String tiltMotorLeftName, String tiltMotorRightName, String extensionMotorName) {
         this.angleMotorRight = hardwareMap.get(DcMotorEx.class, tiltMotorRightName);
@@ -184,7 +173,9 @@ public class Arm {
         extensionPID.setConstants(extensionKP, extensionKI, extensionKD, extensionMaxI);
 
         double anglePower = anglePID.tick(targetAngle - getAngle());
-
+//        if(anglePower < 0){
+//            anglePower = Math.min()
+//        }
         angleMotorRight.setPower(anglePower);
         angleMotorLeft.setPower(anglePower);
         extensionMotor.setPower(extensionPID.tick(targetExtension - getExtension()));
