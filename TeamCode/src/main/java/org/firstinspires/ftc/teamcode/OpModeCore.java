@@ -63,7 +63,7 @@ public class OpModeCore extends LinearOpMode {
                 true
         );
         driveBase = new DriveBase(hardwareMap);
-        arm = new Arm(hardwareMap, "tiltMotor", "extensionMotor");
+        arm = new Arm(hardwareMap, "tiltMotorLeft", "tiltMotorRight", "extensionMotor");
 
         configureTelemetry();
 
