@@ -48,7 +48,7 @@ public class Arm {
         @Override
         public Double apply(Double currentError, Double currentPosition) {
             if(currentError >= 0)
-                return -Math.sin(Math.toRadians(currentPosition)) * 0.2;
+                return Math.sin(Math.toRadians(currentPosition)) * 0.2;
             else{
                 return -Math.sin(Math.toRadians(currentPosition)) * 0.2;
             }
