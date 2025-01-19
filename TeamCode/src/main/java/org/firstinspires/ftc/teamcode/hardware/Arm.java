@@ -23,7 +23,7 @@ public class Arm {
         public static double MAX_HORIZONTAL_EXTENSION = 38.0;
     //config
 
-    private final DcMotor angleMotor, extensionMotor;
+    private final DcMotor angleMotorRight, angleMotorLeft, extensionMotor;
 
     /**
      * Target extension of the arm in inches past the minimum extension (not extended at all)
@@ -42,10 +42,14 @@ public class Arm {
     private final PID anglePID = new PID(angleKP, angleKI, angleKD, angleMaxI).setTolerance(0.01);
     private final PID extensionPID = new PID(extensionKP, extensionKI, extensionKD, extensionMaxI).setTolerance(0.01);
 
-    public Arm(HardwareMap hardwareMap, String tiltMotorName, String extensionMotorName) {
-        this.angleMotor = hardwareMap.get(DcMotor.class, tiltMotorName);
+    public Arm(HardwareMap hardwareMap, String tiltMotorLeftName, String tiltMotorRightName, String extensionMotorName) {
+        this.angleMotorRight = hardwareMap.get(DcMotor.class, tiltMotorRightName);
+        this.angleMotorLeft = hardwareMap.get(DcMotor.class, tiltMotorLeftName);
         this.extensionMotor = hardwareMap.get(DcMotor.class, extensionMotorName);
         this.extensionMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+
+        this.angleMotorLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        this.angleMotorRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         resetAngle();
         resetExtension();
@@ -64,7 +68,7 @@ public class Arm {
      * @return the angle of the arm relative to the base.
      */
     public double getAngle(){
-        return angleMotor.getCurrentPosition() / ARM_TICKS_PER_DEGREE;
+        return angleMotorRight.getCurrentPosition() / ARM_TICKS_PER_DEGREE;
     }
 
     /**
@@ -124,9 +128,9 @@ public class Arm {
      * Sets the current angle as the target and zero position.
      */
     public void resetAngle(){
-        angleMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        angleMotorRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         targetAngle = 0;
-        angleMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        angleMotorRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
 
     /**
@@ -175,7 +179,10 @@ public class Arm {
         anglePID.setConstants(angleKP, angleKI, angleKD, angleMaxI);
         extensionPID.setConstants(extensionKP, extensionKI, extensionKD, extensionMaxI);
 
-        angleMotor.setPower(anglePID.tick(targetAngle - getAngle()));
+        double anglePower = anglePID.tick(targetAngle - getAngle());
+
+        angleMotorRight.setPower(anglePower);
+        angleMotorLeft.setPower(anglePower);
         extensionMotor.setPower(extensionPID.tick(targetExtension - getExtension()));
     }
 }
