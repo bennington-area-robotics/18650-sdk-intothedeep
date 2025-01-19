@@ -17,7 +17,7 @@ public class TrajectoryTester extends LinearOpMode {
 
     public static double startX = -11.5;
     public static double startY = 63;
-    public static double startAng = -90;
+    public static double startAng = 90;
     @Override
     public void runOpMode() throws InterruptedException {
         SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap);
@@ -27,13 +27,15 @@ public class TrajectoryTester extends LinearOpMode {
         waitForStart();
 
         if (isStopRequested()) return;
-        Trajectory moveToSamples = drive.trajectoryBuilder(startPose)
-                .splineTo(new Vector2d(-36, 48), Math.toRadians(180))
+        Trajectory moveToSamples = drive.trajectoryBuilder(startPose, true)
+                .splineTo(new Vector2d(-36, 48), Math.toRadians(-90))
+                .splineToSplineHeading(new Pose2d(-36,12, Math.toRadians(90)), Math.toRadians(-90))
                 .build();
-        Trajectory moveToSamples2 = drive.trajectoryBuilder(moveToSamples.end())
+
+        /*Trajectory moveToSamples2 = drive.trajectoryBuilder(moveToSamples.end(),true)
                 .lineToLinearHeading(new Pose2d(-36, 12,Math.toRadians(90)))
-                .build();
-        Trajectory moveToSamples3 = drive.trajectoryBuilder(moveToSamples2.end())
+                .build();*/
+        Trajectory moveToSamples3 = drive.trajectoryBuilder(moveToSamples.end())
                 .strafeLeft(12)
                 .build();
 
@@ -78,7 +80,7 @@ public class TrajectoryTester extends LinearOpMode {
                 .build();
         */
         drive.followTrajectory(moveToSamples);
-        drive.followTrajectory(moveToSamples2);
+        //drive.followTrajectory(moveToSamples2);
         drive.followTrajectory(moveToSamples3);
         drive.followTrajectory(traj1);
         drive.followTrajectory(traj2);
