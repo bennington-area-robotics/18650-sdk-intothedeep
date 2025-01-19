@@ -2,25 +2,31 @@ package org.firstinspires.ftc.teamcode.hardware;
 
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class PID {
     private final ElapsedTime timer = new ElapsedTime();
-    double kP, kI, kD, kF;
+    double kP, kI, kD;
     double i, maxI;
+    Supplier<Double> positionSupplier;
+    FeedForwardFunction feedForwardFunction;
     double lastError;
     double tolerance;
 
     /**
      * Creates a PID controller which can be used to easily apply to most things.
      *
+     * @param positionSupplier a supplier which provides the current position.
      * @param kP the proportional coefficient. This controls how much the magnitude of the error affects the output.
      * @param kI the integral coefficient. This controls how much the overall change in error affects the output.
      * @param kD the derivative coefficient. This controls how much the change in the error affects the output.
      * @param maxI the maximum of the integral sum. This controls the maximum amount the integral calculation can affect the output.
      */
-    public PID(double kP, double kI, double kD, double maxI){
+    public PID(Supplier<Double> positionSupplier, double kP, double kI, double kD, double maxI){
+        this.positionSupplier = positionSupplier;
         this.kP = kP;
         this.kI = kI;
         this.kD = kD;
@@ -29,11 +35,11 @@ public class PID {
 
     /**
      * Creates a P controller which can be used to easily apply to most things.
-     *
+     * @param positionSupplier a supplier which provides the current position.
      * @param kP the proportional coefficient. This controls how much the magnitude of the error affects the output.
      */
-    public PID(double kP){
-        this(kP, 0, 0, 0);
+    public PID(Supplier<Double> positionSupplier, double kP){
+        this(positionSupplier, kP, 0, 0, 0);
     }
 
     /**
@@ -60,7 +66,12 @@ public class PID {
             double d = kD * (currentError - lastError);
 
             lastError = currentError;
-            return p + i + d;
+            if(feedForwardFunction!=null){
+                double currentPosition = positionSupplier.get();
+                return p + i + d + feedForwardFunction.apply(currentError, currentPosition);
+            }else{
+                return p + i + d;
+            }
         }else {
             return 0;
         }
@@ -99,4 +110,11 @@ public class PID {
         this.tolerance = tolerance;
         return this;
     }
+
+    public PID addFeedForwardFunction(FeedForwardFunction feedForwardFunction){
+        this.feedForwardFunction = feedForwardFunction;
+        return this;
+    }
+
+    public abstract static class FeedForwardFunction implements BiFunction<Double, Double, Double> {}
 }
