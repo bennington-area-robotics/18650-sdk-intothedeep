@@ -60,7 +60,7 @@ public class OpModeCore extends LinearOpMode {
                 "colorSensor",
                 "wristServo",
                 "gripServo",
-                true
+                false
         );
         driveBase = new DriveBase(hardwareMap);
         arm = new Arm(hardwareMap, "tiltMotorLeft", "tiltMotorRight", "extensionMotor");
@@ -85,7 +85,6 @@ public class OpModeCore extends LinearOpMode {
         telemetry.addData("Collector Armed? ", () -> collectorArmed);
         telemetry.addData("Tick Time ", () -> Math.round(tickTimer.milliseconds()));
 
-        telemetry.addData("Arm Angle", arm::getAngle);
         telemetry.addData("Arm Extension", arm::getExtension);
     }
 

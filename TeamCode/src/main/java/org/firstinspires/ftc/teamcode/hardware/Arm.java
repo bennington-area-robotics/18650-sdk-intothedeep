@@ -64,11 +64,10 @@ public class Arm {
         resetAngle();
         resetExtension();
 
-        OpModeCore.getTelemetry().addData("Current Arm Angle", this::getAngle);
+        OpModeCore.getTelemetry().addData("Current Arm Angle", this::getCachedAngle);
         OpModeCore.getTelemetry().addData("Target Arm Angle", this::getTargetAngle);
-        OpModeCore.getTelemetry().addData("Current Arm Extension", this::getExtension);
+        OpModeCore.getTelemetry().addData("Current Arm Extension", this::getCachedExtension);
         OpModeCore.getTelemetry().addData("Target Arm Extension", this::getTargetExtension);
-        OpModeCore.getTelemetry().addData("Encoder Position", () -> angleEncoder.getCurrentPosition() - tickOffsetToZero);
     }
 
     /**
@@ -80,6 +79,16 @@ public class Arm {
      */
     public double getAngle(){
         return ( angleEncoder.getCurrentPosition() - tickOffsetToZero) / ARM_TICKS_PER_DEGREE;
+    }
+
+    private double cachedAngle;
+    public double getCachedAngle(){
+        return cachedAngle;
+    }
+
+    private double cachedExtension;
+    public double getCachedExtension(){
+        return cachedExtension;
     }
 
     /**
@@ -172,7 +181,8 @@ public class Arm {
         anglePID.setConstants(angleKP, angleKI, angleKD, angleMaxI);
         extensionPID.setConstants(extensionKP, extensionKI, extensionKD, extensionMaxI);
 
-        double anglePower = anglePID.tick(targetAngle - getAngle());
+        cachedAngle = getAngle();
+        double anglePower = anglePID.tick(targetAngle - cachedAngle);
 //        if(anglePower < 0){
 //            anglePower = Math.min()
 //        }
