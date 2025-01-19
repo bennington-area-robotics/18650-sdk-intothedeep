@@ -7,7 +7,7 @@ import java.util.function.Supplier;
 
 public class PID {
     private final ElapsedTime timer = new ElapsedTime();
-    double kP, kI, kD, kF;
+    double kP, kI, kD;
     double i, maxI;
     double lastError;
     double tolerance;
@@ -29,7 +29,6 @@ public class PID {
 
     /**
      * Creates a P controller which can be used to easily apply to most things.
-     *
      * @param kP the proportional coefficient. This controls how much the magnitude of the error affects the output.
      */
     public PID(double kP){

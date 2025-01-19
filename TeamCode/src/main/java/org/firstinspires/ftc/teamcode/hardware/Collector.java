@@ -16,7 +16,7 @@ import java.math.RoundingMode;
 public class Collector {
     //config
     public static float OPEN_POSITION = 1, CLOSED_POSITION = 0; //grip
-    public static float UP_POSITION = 0, DOWN_POSITION = 0.46f; //wrist
+    public static float UP_POSITION = 0.8f, DOWN_POSITION = 0.4f; //wrist
     public static float LENGTH = 5f;
 
     public final ColorSensor colorSensor;

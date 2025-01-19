@@ -14,10 +14,7 @@ import org.firstinspires.ftc.teamcode.util.Encoder;
 @Config
 public class Arm {
     //config
-        private static final float ARM_GEAR_RATIO = 86.0f / 28.0f;
-        private static final float ARM_TICKS_PER_DEGREE_AT_MOTOR_OUTPUT = 288.0f/360.0f;
-
-        public static float ARM_TICKS_PER_DEGREE = 12.5f;
+        public static float ARM_TICKS_PER_DEGREE = 70f;
 
         public static float ARM_TICKS_PER_INCH = 190f; //TODO change this to a real number
         public static double MAX_ARM_EXTENSION = 38.0;
@@ -44,7 +41,7 @@ public class Arm {
     private double tickOffsetToZero;
 
     //todo these need actual trained values
-    public static double angleKP = 0.1, angleKI, angleKD, angleMaxI;
+    public static double angleKP = 0.02, angleKI = 0.00001, angleKD = 0.2, angleMaxI = 0.09;
     public static double extensionKP = 0.1, extensionKI, extensionKD, extensionMaxI;
 
     private final PID anglePID = new PID(angleKP, angleKI, angleKD, angleMaxI).setTolerance(0.01);
@@ -57,8 +54,12 @@ public class Arm {
         this.angleEncoder = new Encoder(angleMotorRight);
         this.extensionMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
+        this.angleMotorLeft.setDirection(DcMotorSimple.Direction.REVERSE);
+        this.angleMotorRight.setDirection(DcMotorSimple.Direction.REVERSE);
+
         this.angleMotorLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         this.angleMotorRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        this.angleEncoder.setDirection(Encoder.Direction.FORWARD);
 
         resetAngle();
         resetExtension();
@@ -67,6 +68,7 @@ public class Arm {
         OpModeCore.getTelemetry().addData("Target Arm Angle", this::getTargetAngle);
         OpModeCore.getTelemetry().addData("Current Arm Extension", this::getExtension);
         OpModeCore.getTelemetry().addData("Target Arm Extension", this::getTargetExtension);
+        OpModeCore.getTelemetry().addData("Encoder Position", () -> angleEncoder.getCurrentPosition() - tickOffsetToZero);
     }
 
     /**
@@ -77,7 +79,7 @@ public class Arm {
      * @return the angle of the arm relative to the base.
      */
     public double getAngle(){
-        return ( angleEncoder.getCurrentPosition() - tickOffsetToZero) / ARM_TICKS_PER_INCH;
+        return ( angleEncoder.getCurrentPosition() - tickOffsetToZero) / ARM_TICKS_PER_DEGREE;
     }
 
     /**
@@ -171,9 +173,12 @@ public class Arm {
         extensionPID.setConstants(extensionKP, extensionKI, extensionKD, extensionMaxI);
 
         double anglePower = anglePID.tick(targetAngle - getAngle());
-
+//        if(anglePower < 0){
+//            anglePower = Math.min()
+//        }
         angleMotorRight.setPower(anglePower);
         angleMotorLeft.setPower(anglePower);
         extensionMotor.setPower(extensionPID.tick(targetExtension - getExtension()));
+
     }
 }
