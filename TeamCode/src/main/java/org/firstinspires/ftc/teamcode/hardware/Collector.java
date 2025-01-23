@@ -108,6 +108,10 @@ public class Collector {
         return Helper.round(wristServo.getPosition(), 1) == Helper.round(DOWN_POSITION, 1);
     }
 
+    public boolean holdingSample(){
+        return isGripClosed() && colorSensor.getScoringElementColor() != ScoringElementColor.NONE;
+    }
+
     /**
      * Checks the current position of the wrist and if detected it as up or down, moves it down or moves it up respectively.
      * If position is not close enough to a up or down position to estimate, it does nothing and returns false.

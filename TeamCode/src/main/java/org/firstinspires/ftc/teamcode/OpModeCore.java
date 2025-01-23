@@ -24,6 +24,7 @@ public class OpModeCore extends LinearOpMode {
     private static Collector collector;
     private static DriveBase driveBase;
     private static Arm arm;
+    private static Autopilot autopilot;
 
     private final Gamepad previousGamepad1 = new Gamepad();
     private final Gamepad previousGamepad2 = new Gamepad();
@@ -51,6 +52,10 @@ public class OpModeCore extends LinearOpMode {
         return arm;
     }
 
+    public static Autopilot getAutopilot(){
+        return autopilot;
+    }
+
     public void initialize(){
         instance = this;
 
@@ -60,10 +65,12 @@ public class OpModeCore extends LinearOpMode {
                 "colorSensor",
                 "wristServo",
                 "gripServo",
-                false
+                true
         );
         driveBase = new DriveBase(hardwareMap);
-        arm = new Arm(hardwareMap, "tiltMotorLeft", "tiltMotorRight", "extensionMotor");
+        arm = new Arm(hardwareMap, "tiltMotorLeft", "tiltMotorRight", "extensionMotor", "touchSensor");
+        autopilot = new Autopilot(driveBase, arm, collector);
+        autopilot.setTickRunnable(this::tick);
 
         configureTelemetry();
 
@@ -100,7 +107,7 @@ public class OpModeCore extends LinearOpMode {
     public void tick(){
         checkGamepad();
         checkForScoringElement();
-        arm.tickPIDF();
+        arm.tick();
         telemetry.update();
         tickTimer.reset();
     }
@@ -143,22 +150,25 @@ public class OpModeCore extends LinearOpMode {
         }
 
         if(gamepad1.x && !previousGamepad1.x) {
+            isHighPower = !isHighPower;
             if (isHighPower) {
-                isHighPower = false;
-                driveBase.setPowerFactor(LOW_POWER_MODIFIER);
-            } else {
-                isHighPower = true;
                 driveBase.setPowerFactor(HIGH_POWER_MODIFIER);
+            } else {
+                driveBase.setPowerFactor(LOW_POWER_MODIFIER);
             }
         }
 
         if(gamepad1.dpad_down){
             if(!arm.setTargetAngle(0))
                 this.gamepad1.rumble(100);
+            collector.wristUp();
+            arm.setTargetExtension(0);
         }else if(gamepad1.dpad_up){
             if(!arm.setTargetAngle(90))
                 this.gamepad1.rumbleBlips(100);
         }
+
+
 
         arm.setTargetExtension(arm.getTargetExtension() + 0.11 * (-gamepad1.left_trigger + gamepad1.right_trigger));
 
