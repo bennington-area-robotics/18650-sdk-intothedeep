@@ -90,7 +90,6 @@ public class AutonomousCore extends LinearOpMode {
         drive.followTrajectory(traj6);
         drive.followTrajectory(traj7);
 
-        drive.setPoseEstimate(startPose);
 
         sleep(10000);
     }
