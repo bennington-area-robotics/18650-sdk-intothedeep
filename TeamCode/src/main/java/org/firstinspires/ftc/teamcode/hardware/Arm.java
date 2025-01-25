@@ -17,7 +17,7 @@ import java.util.function.Consumer;
 @Config
 public class Arm {
     //config
-        public static float ARM_TICKS_PER_DEGREE = 70f;
+        public static float ARM_TICKS_PER_DEGREE = 65f; //this is a good estimate as of 1/24/2025
 
         public static float ARM_TICKS_PER_INCH = 190f;
         public static double MAX_ARM_EXTENSION = 38.0;
@@ -59,13 +59,13 @@ public class Arm {
     private Consumer<Arm> runningMacro;
 
     //todo these need actual trained values
-    public static double downwardKP = 0.02, downwardKI = 0.00001, downwardKD = 0.2, downwardMaxI = 0.09;
-    public static double upwardKP = 0.02, upwardKI = 0.00001, upwardKD = 0.2, upwardMaxI = 0.09;
-    public static double extensionKP = 0.1, extensionKI, extensionKD, extensionMaxI;
+    public static double downwardKP = 0.02, downwardKI = 0.00001, downwardKD = 0.2, downwardMaxI = 0.09, downwardMinimum;
+    public static double upwardKP = 0.02, upwardKI = 0.00001, upwardKD = 0.2, upwardMaxI = 0.09, upwardMinimum;
+    public static double extensionKP = 0.1, extensionKI, extensionKD, extensionMaxI, extensionMinimum;
 
-    private final PID downwardPID = new PID(downwardKP, downwardKI, downwardKD, downwardMaxI).setTolerance(0.01);
-    private final PID upwardPID = new PID(upwardKP, upwardKI, upwardKD, upwardMaxI).setTolerance(0.01);
-    private final PID extensionPID = new PID(extensionKP, extensionKI, extensionKD, extensionMaxI).setTolerance(0.01);
+    private final PID downwardPID = new PID(downwardKP, downwardKI, downwardKD, downwardMaxI, downwardMinimum).setTolerance(0.01);
+    private final PID upwardPID = new PID(upwardKP, upwardKI, upwardKD, upwardMaxI, upwardMinimum).setTolerance(0.01);
+    private final PID extensionPID = new PID(extensionKP, extensionKI, extensionKD, extensionMaxI, extensionMinimum).setTolerance(0.01);
 
 
 
@@ -102,6 +102,7 @@ public class Arm {
         OpModeCore.getTelemetry().addData("Last Angle Power", this::getLastAnglePower);
         OpModeCore.getTelemetry().addData("Last Extension Power", this::getLastExtensionPower);
         OpModeCore.getTelemetry().addData("Touch Pressed", touchSensor::isPressed);
+        OpModeCore.getTelemetry().addData("Arm Encoder Tickets", () -> angleEncoder.getCurrentPosition() - tickOffsetToZero);
     }
 
     /**
@@ -269,22 +270,17 @@ public class Arm {
             setTargetAngle(0);
         }else {
             double inchesPerDegree = (getCachedAngle() - COLLECTION_ANGLE) / (getCachedExtension() - COLLECTION_EXTENSION);
-            OpModeCore.getTelemetry().log().add("Angle Per Extension: " + inchesPerDegree);
 
             double startAngle = getCachedAngle();
             double startExtension = getCachedExtension();
 
             setTargetExtension(COLLECTION_EXTENSION);
-
-            OpModeCore.getTelemetry().log().add("Collection Macro Initiating");
             runningMacro = (arm -> {
                 if (Math.abs(COLLECTION_ANGLE - arm.getCachedAngle()) < 0.5) {
-                    OpModeCore.getTelemetry().log().add("Collection Macro Ended");
                     arm.runningMacro = null;
                 } else {
                     double targetAngle = inchesPerDegree * (arm.getCachedExtension() - COLLECTION_EXTENSION) + COLLECTION_ANGLE;
                     if(!arm.setTargetAngleIgnoreMacro(targetAngle)){
-                        OpModeCore.getTelemetry().log().add("Angle to be set refused.");
                     }
                 }
             });

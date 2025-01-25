@@ -11,6 +11,7 @@ public class PID {
     double i, maxI;
     double lastError;
     double tolerance;
+    double minimum;
 
     /**
      * Creates a PID controller which can be used to easily apply to most things.
@@ -19,20 +20,14 @@ public class PID {
      * @param kI the integral coefficient. This controls how much the overall change in error affects the output.
      * @param kD the derivative coefficient. This controls how much the change in the error affects the output.
      * @param maxI the maximum of the integral sum. This controls the maximum amount the integral calculation can affect the output.
+     * @param minimum the minimum power level to output if outside of tolerance.
      */
-    public PID(double kP, double kI, double kD, double maxI){
+    public PID(double kP, double kI, double kD, double maxI, double minimum){
         this.kP = kP;
         this.kI = kI;
         this.kD = kD;
         this.maxI = maxI;
-    }
-
-    /**
-     * Creates a P controller which can be used to easily apply to most things.
-     * @param kP the proportional coefficient. This controls how much the magnitude of the error affects the output.
-     */
-    public PID(double kP){
-        this(kP, 0, 0, 0);
+        this.minimum = minimum;
     }
 
     /**
@@ -59,7 +54,8 @@ public class PID {
             double d = kD * (currentError - lastError);
 
             lastError = currentError;
-            return p + i + d;
+
+            return Math.max(p + i + d, minimum);
         }else {
             return 0;
         }

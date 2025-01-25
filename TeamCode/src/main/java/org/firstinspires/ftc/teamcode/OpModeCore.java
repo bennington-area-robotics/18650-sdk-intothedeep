@@ -4,7 +4,6 @@ import android.util.Size;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
-import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Gamepad;
@@ -15,7 +14,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
-import org.firstinspires.ftc.teamcode.hardware.AprilTagReader;
+import org.firstinspires.ftc.teamcode.apriltag.AprilTagReader;
 import org.firstinspires.ftc.teamcode.hardware.Arm;
 import org.firstinspires.ftc.teamcode.hardware.Collector;
 import org.firstinspires.ftc.teamcode.hardware.drive.DriveBase;
@@ -41,7 +40,7 @@ public class OpModeCore extends LinearOpMode {
 
     //so FTC Dashboard can access telemetry
     FtcDashboard dashboard = FtcDashboard.getInstance();
-    Telemetry telemetry = new MultipleTelemetry(this.telemetry, dashboard.getTelemetry());
+    //Telemetry telemetry = new MultipleTelemetry(super.telemetry, dashboard.getTelemetry());
 
 
     private boolean collectorArmed = false;
@@ -75,7 +74,7 @@ public class OpModeCore extends LinearOpMode {
         instance = this;
 
         //initialize hardware
-        aprilTagReader = new AprilTagReader(hardwareMap, new Position(DistanceUnit.INCH, 0, 0, 0, 0), new YawPitchRollAngles(AngleUnit.RADIANS, 0, 0, 0, 0), new Size(640, 480), 0);
+        aprilTagReader = new AprilTagReader(hardwareMap, new Position(DistanceUnit.INCH, 0, 0, 0, 0), new YawPitchRollAngles(AngleUnit.DEGREES, 0, 0, 0, 0), new Size(640, 480), 0);
         collector = new Collector(
                 hardwareMap,
                 "colorSensor",
@@ -121,7 +120,6 @@ public class OpModeCore extends LinearOpMode {
     public void tick(){
         checkGamepad();
         checkForScoringElement();
-        aprilTagReader.getFirstPosition();
         arm.tick();
         telemetry.update();
         tickTimer.reset();
