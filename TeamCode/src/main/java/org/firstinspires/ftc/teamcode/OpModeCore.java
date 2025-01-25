@@ -75,7 +75,7 @@ public class OpModeCore extends LinearOpMode {
         instance = this;
 
         //initialize hardware
-        aprilTagReader = new AprilTagReader(new Position(DistanceUnit.INCH,0, 0, 0, 0), new YawPitchRollAngles(AngleUnit.RADIANS, 0, 0, 0, 0), new Size(640, 480), 0);
+        aprilTagReader = new AprilTagReader(hardwareMap, new Position(DistanceUnit.INCH, 0, 0, 0, 0), new YawPitchRollAngles(AngleUnit.RADIANS, 0, 0, 0, 0), new Size(640, 480), 0);
         collector = new Collector(
                 hardwareMap,
                 "colorSensor",
