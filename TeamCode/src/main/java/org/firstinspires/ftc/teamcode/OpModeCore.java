@@ -1,6 +1,8 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
+import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Gamepad;
@@ -9,12 +11,12 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.hardware.Arm;
 import org.firstinspires.ftc.teamcode.hardware.Collector;
-import org.firstinspires.ftc.teamcode.hardware.DriveBase;
+import org.firstinspires.ftc.teamcode.hardware.drive.DriveBase;
 import org.firstinspires.ftc.teamcode.hardware.ScoringElementColor;
 
 /** @noinspection SpellCheckingInspection*/
 @Config
-@TeleOp(name="Main TeleOp", group ="Into The Deep")
+@TeleOp(name="1 - Main TeleOp", group ="")
 public class OpModeCore extends LinearOpMode {
 
     public static float LOW_POWER_MODIFIER = 0.25f;
@@ -28,6 +30,11 @@ public class OpModeCore extends LinearOpMode {
 
     private final Gamepad previousGamepad1 = new Gamepad();
     private final Gamepad previousGamepad2 = new Gamepad();
+
+    //so FTC Dashboard can access telemetry
+    FtcDashboard dashboard = FtcDashboard.getInstance();
+    Telemetry telemetry = new MultipleTelemetry(this.telemetry, dashboard.getTelemetry());
+
 
     private boolean collectorArmed = false;
     ElapsedTime tickTimer;
@@ -65,7 +72,7 @@ public class OpModeCore extends LinearOpMode {
                 "colorSensor",
                 "wristServo",
                 "gripServo",
-                true
+                false
         );
         driveBase = new DriveBase(hardwareMap);
         arm = new Arm(hardwareMap, "tiltMotorLeft", "tiltMotorRight", "extensionMotor", "touchSensor");
@@ -158,11 +165,9 @@ public class OpModeCore extends LinearOpMode {
             }
         }
 
-        if(gamepad1.dpad_down){
-            if(!arm.setTargetAngle(0))
-                this.gamepad1.rumble(100);
+        if(gamepad1.dpad_down && !previousGamepad1.dpad_down){
             collector.wristUp();
-            arm.setTargetExtension(0);
+            arm.collectionPosition();
         }else if(gamepad1.dpad_up){
             if(!arm.setTargetAngle(90))
                 this.gamepad1.rumbleBlips(100);

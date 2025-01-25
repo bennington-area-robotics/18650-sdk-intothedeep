@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.hardware.controllers;
+package org.firstinspires.ftc.teamcode;
 
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.acmerobotics.roadrunner.geometry.Vector2d;
@@ -6,21 +6,21 @@ import com.acmerobotics.roadrunner.trajectory.Trajectory;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.acmerobotics.dashboard.config.Config;
-import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
+import org.firstinspires.ftc.teamcode.hardware.drive.ConfiguredMecanumDrive;
 
 /*
  * This is an example of a more complex path to really test the tuning.
  */
 @Config
 @Autonomous(group = "drive")
-public class TrajectoryTester extends LinearOpMode {
+public class AutonomousCore extends LinearOpMode {
 
     public static double startX = -11.5;
     public static double startY = 63;
     public static double startAng = 90;
     @Override
     public void runOpMode() throws InterruptedException {
-        SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap);
+        ConfiguredMecanumDrive drive = new ConfiguredMecanumDrive(hardwareMap);
         Pose2d startPose = new Pose2d(startX, startY, Math.toRadians(startAng));
         drive.setPoseEstimate(startPose);
 
@@ -90,5 +90,8 @@ public class TrajectoryTester extends LinearOpMode {
         drive.followTrajectory(traj6);
         drive.followTrajectory(traj7);
 
+        drive.setPoseEstimate(startPose);
+
+        sleep(10000);
     }
 }

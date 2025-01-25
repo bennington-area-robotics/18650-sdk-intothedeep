@@ -59,11 +59,17 @@ public class Arm {
     private Consumer<Arm> runningMacro;
 
     //todo these need actual trained values
-    public static double angleKP = 0.02, angleKI = 0.00001, angleKD = 0.2, angleMaxI = 0.09;
+    public static double downwardKP = 0.02, downwardKI = 0.00001, downwardKD = 0.2, downwardMaxI = 0.09;
+    public static double upwardKP = 0.02, upwardKI = 0.00001, upwardKD = 0.2, upwardMaxI = 0.09;
     public static double extensionKP = 0.1, extensionKI, extensionKD, extensionMaxI;
 
-    private final PID anglePID = new PID(angleKP, angleKI, angleKD, angleMaxI).setTolerance(0.01);
+    private final PID downwardPID = new PID(downwardKP, downwardKI, downwardKD, downwardMaxI).setTolerance(0.01);
+    private final PID upwardPID = new PID(upwardKP, upwardKI, upwardKD, upwardMaxI).setTolerance(0.01);
     private final PID extensionPID = new PID(extensionKP, extensionKI, extensionKD, extensionMaxI).setTolerance(0.01);
+
+
+
+
 
 
     public Arm(HardwareMap hardwareMap, String tiltMotorLeftName, String tiltMotorRightName, String extensionMotorName, String touchSensorName) {
@@ -94,6 +100,8 @@ public class Arm {
         OpModeCore.getTelemetry().addData("Target Arm Angle", this::getTargetAngle);
         OpModeCore.getTelemetry().addData("Current Arm Extension", this::getCachedExtension);
         OpModeCore.getTelemetry().addData("Target Arm Extension", this::getTargetExtension);
+        OpModeCore.getTelemetry().addData("Last Angle Power", this::getLastAnglePower);
+        OpModeCore.getTelemetry().addData("Last Extension Power", this::getLastExtensionPower);
     }
 
     /**
@@ -134,7 +142,8 @@ public class Arm {
      * @return the extension of the end of the arm.
      */
     public double getExtension(){
-        return extensionMotor.getCurrentPosition() / ARM_TICKS_PER_INCH;
+        cachedExtension = extensionMotor.getCurrentPosition() / ARM_TICKS_PER_INCH;
+        return cachedExtension;
     }
 
     public double getTargetExtension(){
@@ -255,19 +264,34 @@ public class Arm {
      * Moves arm to collection pose.
      */
     public void collectionPosition(){
-        double anglePerExtension = (getCachedAngle() - COLLECTION_ANGLE) / (getCachedExtension() - COLLECTION_EXTENSION);
-        double startAngle = getCachedAngle();
-        double startExtension = getCachedExtension();
+        if(getCachedExtension() - COLLECTION_EXTENSION == 0){
+            setTargetExtension(COLLECTION_EXTENSION);
+            setTargetAngle(0);
+        }else {
+            double inchesPerDegree = (getCachedAngle() - COLLECTION_ANGLE) / (getCachedExtension() - COLLECTION_EXTENSION);
+            OpModeCore.getTelemetry().log().add("Angle Per Extension: " + inchesPerDegree);
 
-        setTargetExtension(COLLECTION_EXTENSION);
-        runningMacro = (arm -> {
-            if(Math.abs(arm.getTargetAngle() - arm.getCachedAngle()) < 0.5){
-                arm.runningMacro = null;
-            }else {
-                arm.setTargetAngleIgnoreMacro(startAngle + anglePerExtension * (arm.getCachedExtension() + startExtension));
-            }
-        });
+            double startAngle = getCachedAngle();
+            double startExtension = getCachedExtension();
+
+            setTargetExtension(COLLECTION_EXTENSION);
+
+            OpModeCore.getTelemetry().log().add("Collection Macro Initiating");
+            runningMacro = (arm -> {
+                if (Math.abs(COLLECTION_ANGLE - arm.getCachedAngle()) < 0.5) {
+                    OpModeCore.getTelemetry().log().add("Collection Macro Ended");
+                    arm.runningMacro = null;
+                } else {
+                    double targetAngle = inchesPerDegree * (arm.getCachedExtension() - COLLECTION_EXTENSION) + COLLECTION_ANGLE;
+                    if(!arm.setTargetAngleIgnoreMacro(targetAngle)){
+                        OpModeCore.getTelemetry().log().add("Angle to be set refused.");
+                    }
+                }
+            });
+        }
     }
+
+    int tickCount = 0;
 
     /**
      * Runs a controller cycle for the arm.
@@ -282,24 +306,55 @@ public class Arm {
         getAngle();
         getExtension();
 
-        if(runningMacro != null){
+        if(runningMacro != null && tickCount % 5 == 0){
             runningMacro.accept(this);
         }
 
         tickPIDF();
+        tickCount++;
+    }
+
+    private double lastAnglePower;
+    private double getAnglePower(){
+        downwardPID.setConstants(downwardKP, downwardKI, downwardKD, downwardMaxI);
+        upwardPID.setConstants(upwardKP, upwardKI, upwardKD, upwardMaxI);
+
+        if(targetAngle < getCachedAngle())
+            lastAnglePower = downwardPID.tick(targetAngle - getCachedAngle());
+        else if (targetAngle > getCachedAngle()){
+            lastAnglePower = upwardPID.tick(targetAngle - getCachedAngle());
+        }else{
+            lastAnglePower = 0;
+        }
+        return lastAnglePower;
+    }
+
+    private double getLastAnglePower(){
+        return lastAnglePower;
+    }
+
+    double lastExtensionPower;
+    private double getExtensionPower(){
+        extensionPID.setConstants(extensionKP, extensionKI, extensionKD, extensionMaxI);
+
+        lastExtensionPower = extensionPID.tick(targetExtension - getCachedExtension());
+        return lastExtensionPower;
+    }
+
+    private double getLastExtensionPower(){
+        return lastExtensionPower;
     }
 
     /**
      * Runs a cycle on the PIDF control loop for the arm.
      */
     private void tickPIDF(){
-        anglePID.setConstants(angleKP, angleKI, angleKD, angleMaxI);
-        extensionPID.setConstants(extensionKP, extensionKI, extensionKD, extensionMaxI);
+        double anglePower = getAnglePower();
 
-        double anglePower = anglePID.tick(targetAngle - getCachedAngle());
         angleMotorRight.setPower(anglePower);
         angleMotorLeft.setPower(anglePower);
-        extensionMotor.setPower(extensionPID.tick(targetExtension - getCachedAngle()));
+
+        extensionMotor.setPower(getExtensionPower());
     }
 
     public boolean isValidAngle(double degrees){

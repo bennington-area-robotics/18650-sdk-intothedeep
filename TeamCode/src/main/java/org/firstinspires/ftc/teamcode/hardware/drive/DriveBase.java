@@ -1,10 +1,12 @@
-package org.firstinspires.ftc.teamcode.hardware;
+package org.firstinspires.ftc.teamcode.hardware.drive;
 
 
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
+
+//TODO Convert this to a wrapper for ConfiguredMecanumDrive
 public class DriveBase {
     public final DcMotor leftFront, leftRear, rightFront, rightRear;
     private final DcMotor[] motors;

@@ -2,7 +2,7 @@ package org.firstinspires.ftc.teamcode;
 
 import org.firstinspires.ftc.teamcode.hardware.Arm;
 import org.firstinspires.ftc.teamcode.hardware.Collector;
-import org.firstinspires.ftc.teamcode.hardware.DriveBase;
+import org.firstinspires.ftc.teamcode.hardware.drive.DriveBase;
 
 public class Autopilot {
     private final DriveBase driveBase;
@@ -35,4 +35,16 @@ public class Autopilot {
         AWAIT_USER_DELIVERY_CONFIRMATION, DELIVER_SAMPLE,
         LOWER_ARM, RETURN_TO_SUBMERSIBLE,
     }
+
+    /*
+    Arm extended, holding piece and at basket – await confirmation
+    Holding piece and near basket – preparing for delivery
+    Holding piece and arm extended horizontal – finalizing collection
+    Holding piece and arm retracted- moving to basket
+    No piece held and arm extended, arm not horizontal, not near submersible – prepare for movement
+    No piece held and not at submersible- moving to submersible
+    No piece held and at submersible with arm extended
+
+
+     */
 }
