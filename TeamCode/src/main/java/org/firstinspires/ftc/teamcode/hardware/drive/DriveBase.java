@@ -8,7 +8,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 //TODO Convert this to a wrapper for ConfiguredMecanumDrive
 public class DriveBase extends ConfiguredMecanumDrive {
-    private static double powerFactor = 1;
+    private double powerFactor = 1;
 
     public DriveBase(HardwareMap hardwareMap) {
         super(hardwareMap);
@@ -30,7 +30,7 @@ public class DriveBase extends ConfiguredMecanumDrive {
         double rightFront = (y - x - turn) / denominator;
         double rightRear = (y + x - turn) / denominator;
 
-        setMotorPowers(leftFront, leftRear, rightFront, rightRear);
+        setMotorPowers(leftFront * powerFactor, leftRear * powerFactor, rightFront * powerFactor, rightRear * powerFactor);
     }
 
     /**
@@ -56,5 +56,9 @@ public class DriveBase extends ConfiguredMecanumDrive {
      */
     public void stop(){
         setMotorPowers(0,0,0,0);
+    }
+
+    public void setPowerFactor(double powerFactor){
+        this.powerFactor = powerFactor;
     }
 }

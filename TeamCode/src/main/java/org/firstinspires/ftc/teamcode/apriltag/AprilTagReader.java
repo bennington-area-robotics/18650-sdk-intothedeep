@@ -68,7 +68,7 @@ public class AprilTagReader {
         }
 
         OpModeCore.getTelemetry().addData("April Tag", () -> {
-            Optional<Pose2D> poseOptional = getFirstPosition();
+            Optional<Pose2D> poseOptional = getFirstPose();
             if(poseOptional.isPresent()){
                 Pose2D pose = poseOptional.get();
                 return String.format(Locale.ENGLISH, "X Y Heading %6.1f %6.1f %6.1f  (inch)",
@@ -85,7 +85,7 @@ public class AprilTagReader {
     /**
      * @return an optional pose based on the first detection found.
      */
-    public Optional<Pose2D> getFirstPosition(){
+    public Optional<Pose2D> getFirstPose(){
         try{
             Detection detection = getDetections().get(0);
             Pose2D localization = detection.getRobotPose2D();
