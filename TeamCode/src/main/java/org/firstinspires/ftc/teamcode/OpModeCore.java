@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
+import android.util.Size;
+
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
@@ -9,6 +11,11 @@ import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Position;
+import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
+import org.firstinspires.ftc.teamcode.hardware.AprilTagReader;
 import org.firstinspires.ftc.teamcode.hardware.Arm;
 import org.firstinspires.ftc.teamcode.hardware.Collector;
 import org.firstinspires.ftc.teamcode.hardware.drive.DriveBase;
@@ -22,6 +29,7 @@ public class OpModeCore extends LinearOpMode {
     public static float LOW_POWER_MODIFIER = 0.25f;
     public static float HIGH_POWER_MODIFIER = 0.75f;
 
+    private static AprilTagReader aprilTagReader;
     private static OpModeCore instance;
     private static Collector collector;
     private static DriveBase driveBase;
@@ -67,6 +75,7 @@ public class OpModeCore extends LinearOpMode {
         instance = this;
 
         //initialize hardware
+        aprilTagReader = new AprilTagReader(new Position(DistanceUnit.INCH,0, 0, 0, 0), new YawPitchRollAngles(AngleUnit.RADIANS, 0, 0, 0, 0), new Size(640, 480), 0);
         collector = new Collector(
                 hardwareMap,
                 "colorSensor",
@@ -114,6 +123,7 @@ public class OpModeCore extends LinearOpMode {
     public void tick(){
         checkGamepad();
         checkForScoringElement();
+        aprilTagReader.getFirstPosition();
         arm.tick();
         telemetry.update();
         tickTimer.reset();
