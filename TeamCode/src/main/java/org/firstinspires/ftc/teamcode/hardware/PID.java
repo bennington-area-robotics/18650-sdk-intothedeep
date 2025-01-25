@@ -55,7 +55,16 @@ public class PID {
 
             lastError = currentError;
 
-            return Math.max(p + i + d, minimum);
+            double out = p + i + d;
+
+            // if pid output's magnitude is more than the minimum magnitude, then return the pid output.
+            // if not, then return the minimum power in the direction the pid would output
+            // if the pid would output 0, then 0 will always be returned (Math.signum(0) == 0)
+            if(Math.abs(out) > minimum){
+                return out;
+            }else{
+                return Math.signum(out) * minimum;
+            }
         }else {
             return 0;
         }
