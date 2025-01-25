@@ -90,7 +90,6 @@ public class Arm {
         this.angleMotorRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         this.angleEncoder.setDirection(Encoder.Direction.FORWARD);
 
-        resetAngle();
         resetExtension();
 
         targetAngle = getAngle();
@@ -102,6 +101,7 @@ public class Arm {
         OpModeCore.getTelemetry().addData("Target Arm Extension", this::getTargetExtension);
         OpModeCore.getTelemetry().addData("Last Angle Power", this::getLastAnglePower);
         OpModeCore.getTelemetry().addData("Last Extension Power", this::getLastExtensionPower);
+        OpModeCore.getTelemetry().addData("Touch Pressed", touchSensor::isPressed);
     }
 
     /**

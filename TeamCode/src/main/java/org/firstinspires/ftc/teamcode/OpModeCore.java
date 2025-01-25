@@ -98,8 +98,6 @@ public class OpModeCore extends LinearOpMode {
 
         telemetry.addData("Collector Armed? ", () -> collectorArmed);
         telemetry.addData("Tick Time ", () -> Math.round(tickTimer.milliseconds()));
-
-        telemetry.addData("Arm Extension", arm::getExtension);
     }
 
     @Override
@@ -156,14 +154,14 @@ public class OpModeCore extends LinearOpMode {
             collectorArmed = !collectorArmed;
         }
 
-        if(gamepad1.x && !previousGamepad1.x) {
-            isHighPower = !isHighPower;
-            if (isHighPower) {
-                driveBase.setPowerFactor(HIGH_POWER_MODIFIER);
-            } else {
-                driveBase.setPowerFactor(LOW_POWER_MODIFIER);
-            }
-        }
+//        if(gamepad1.x && !previousGamepad1.x) {
+//            isHighPower = !isHighPower;
+//            if (isHighPower) {
+//                driveBase.setPowerFactor(HIGH_POWER_MODIFIER);
+//            } else {
+//                driveBase.setPowerFactor(LOW_POWER_MODIFIER);
+//            }
+//        }
 
         if(gamepad1.dpad_down && !previousGamepad1.dpad_down){
             collector.wristUp();
