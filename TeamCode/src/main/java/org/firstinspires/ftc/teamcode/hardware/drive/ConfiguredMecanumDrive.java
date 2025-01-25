@@ -84,7 +84,7 @@ public class ConfiguredMecanumDrive extends MecanumDrive {
             module.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
         }
 
-        // TODO: adjust the names of the following hardware devices to match your configuration
+        //adjust the names of the following hardware devices to match your configuration
         /*imu = hardwareMap.get(IMU.class, "imu");
         IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
                 DriveConstants.LOGO_FACING_DIR, DriveConstants.USB_FACING_DIR));
@@ -113,7 +113,7 @@ public class ConfiguredMecanumDrive extends MecanumDrive {
             setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, DriveConstants.MOTOR_VELO_PID);
         }
 
-        // TODO: reverse any motors using DcMotor.setDirection()
+        //reverse any motors using DcMotor.setDirection()
         leftFront.setDirection(DcMotorSimple.Direction.REVERSE);
         rightRear.setDirection(DcMotorSimple.Direction.REVERSE);
 
@@ -121,7 +121,7 @@ public class ConfiguredMecanumDrive extends MecanumDrive {
         List<Integer> lastTrackingEncPositions = new ArrayList<>();
         List<Integer> lastTrackingEncVelocities = new ArrayList<>();
 
-        // TODO: if desired, use setLocalizer() to change the localization method
+        //if desired, use setLocalizer() to change the localization method
         setLocalizer(new StandardTrackingWheelLocalizer(hardwareMap, lastTrackingEncPositions, lastTrackingEncVelocities));
 
         trajectorySequenceRunner = new TrajectorySequenceRunner(
@@ -275,11 +275,11 @@ public class ConfiguredMecanumDrive extends MecanumDrive {
     }
 
     @Override
-    public void setMotorPowers(double v, double v1, double v2, double v3) {
-        leftFront.setPower(v);
-        leftRear.setPower(v1);
-        rightRear.setPower(v2);
-        rightFront.setPower(v3);
+    public void setMotorPowers(double leftFront, double leftRear, double rightRear, double rightFront) {
+        this.leftFront.setPower(leftFront);
+        this.leftRear.setPower(leftRear);
+        this.rightRear.setPower(rightRear);
+        this.rightFront.setPower(rightFront);
     }
 
     @Override
