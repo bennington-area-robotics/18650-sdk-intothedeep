@@ -13,6 +13,9 @@ import org.firstinspires.ftc.teamcode.hardware.Arm;
 import org.firstinspires.ftc.teamcode.hardware.Collector;
 import org.firstinspires.ftc.teamcode.hardware.drive.DriveBase;
 import org.firstinspires.ftc.teamcode.hardware.ScoringElementColor;
+import org.firstinspires.ftc.teamcode.hardware.LynxModule;
+
+import java.util.List;
 
 /** @noinspection SpellCheckingInspection*/
 @Config
@@ -65,6 +68,14 @@ public class OpModeCore extends LinearOpMode {
 
     public void initialize(){
         instance = this;
+
+        // Get access to all Expansion Hub Modules
+        List<LynxModule> allHubs = hardwareMap.getAll(LynxModule.class);
+
+        // Set all hubs to use AUTO bulk caching mode
+        for (LynxModule module : allHubs) {
+            module.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
+        }
 
         //initialize hardware
         collector = new Collector(

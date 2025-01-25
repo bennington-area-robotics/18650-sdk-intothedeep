@@ -298,13 +298,14 @@ public class Arm {
      * This method should be called once per OpMode cycle to maintain the arm's position when at target,
      * or adjust the arm's position when not at target. This controls both extension and retraction.
      */
-    public void tick(){
-        if(touchSensor.isPressed())
+    public void tick() {
+        // Batch all sensor reads at the start
+        boolean touchPressed = touchSensor.isPressed();
+        double currentAngle = getAngle();
+        double currentExtension = getExtension();
+        
+        if(touchPressed)
             resetAngle();
-
-        //update the caches
-        getAngle();
-        getExtension();
 
         if(runningMacro != null && tickCount % 5 == 0){
             runningMacro.accept(this);
@@ -319,10 +320,10 @@ public class Arm {
         downwardPID.setConstants(downwardKP, downwardKI, downwardKD, downwardMaxI);
         upwardPID.setConstants(upwardKP, upwardKI, upwardKD, upwardMaxI);
 
-        if(targetAngle < getCachedAngle())
-            lastAnglePower = downwardPID.tick(targetAngle - getCachedAngle());
-        else if (targetAngle > getCachedAngle()){
-            lastAnglePower = upwardPID.tick(targetAngle - getCachedAngle());
+        if(targetAngle < currentAngle)
+            lastAnglePower = downwardPID.tick(targetAngle - currentAngle);
+        else if (targetAngle > currentAngle){
+            lastAnglePower = upwardPID.tick(targetAngle - currentAngle);
         }else{
             lastAnglePower = 0;
         }
@@ -337,7 +338,7 @@ public class Arm {
     private double getExtensionPower(){
         extensionPID.setConstants(extensionKP, extensionKI, extensionKD, extensionMaxI);
 
-        lastExtensionPower = extensionPID.tick(targetExtension - getCachedExtension());
+        lastExtensionPower = extensionPID.tick(targetExtension - currentExtension);
         return lastExtensionPower;
     }
 
