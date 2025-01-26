@@ -10,10 +10,6 @@ import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.Position;
-import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 import org.firstinspires.ftc.teamcode.apriltag.AprilTagReader;
 import org.firstinspires.ftc.teamcode.hardware.Arm;
 import org.firstinspires.ftc.teamcode.hardware.Collector;
@@ -74,7 +70,12 @@ public class OpModeCore extends LinearOpMode {
         instance = this;
 
         //initialize hardware
-        aprilTagReader = new AprilTagReader(hardwareMap, new Position(DistanceUnit.INCH, 0, 0, 0, 0), new YawPitchRollAngles(AngleUnit.DEGREES, 0, 0, 0, 0), new Size(640, 480), 0);
+//        aprilTagReader = new AprilTagReader(hardwareMap,
+//                new Position(DistanceUnit.INCH, 0, 0, 0, 0),
+//                new YawPitchRollAngles(AngleUnit.DEGREES, 0, 0, 0, 0),
+//                new Size(640, 480),
+//                0
+//        );
         collector = new Collector(
                 hardwareMap,
                 "colorSensor",
@@ -106,6 +107,7 @@ public class OpModeCore extends LinearOpMode {
 
         telemetry.addData("Collector Armed? ", () -> collectorArmed);
         telemetry.addData("Tick Time ", () -> Math.round(tickTimer.milliseconds()));
+        telemetry.addData("Stage", autopilot.findCurrentStage());
     }
 
     @Override

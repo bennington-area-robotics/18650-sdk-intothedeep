@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.hardware.drive;
 
 
+import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -12,6 +13,7 @@ public class DriveBase extends ConfiguredMecanumDrive {
 
     public DriveBase(HardwareMap hardwareMap) {
         super(hardwareMap);
+        setPoseEstimate(new Pose2d(0, 3 * 24, Math.toRadians(90)));
     }
 
     /**

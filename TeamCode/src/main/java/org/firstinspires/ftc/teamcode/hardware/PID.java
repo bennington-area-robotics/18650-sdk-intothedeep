@@ -20,7 +20,7 @@ public class PID {
      * @param kI the integral coefficient. This controls how much the overall change in error affects the output.
      * @param kD the derivative coefficient. This controls how much the change in the error affects the output.
      * @param maxI the maximum of the integral sum. This controls the maximum amount the integral calculation can affect the output.
-     * @param minimum the minimum power level to output if outside of tolerance.
+     * @param minimum the minimum power magnitude to output if outside of tolerance.
      */
     public PID(double kP, double kI, double kD, double maxI, double minimum){
         this.kP = kP;

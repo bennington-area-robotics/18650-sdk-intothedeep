@@ -7,16 +7,17 @@ import org.firstinspires.ftc.teamcode.hardware.Collector;
 import org.firstinspires.ftc.teamcode.hardware.drive.DriveBase;
 
 public class Autopilot {
-    //todo give these real values
-    private static final Pose2d basketPose = new Pose2d( 0, 0, Math.toRadians(0));
-    private static final Pose2d submersiblePose = new Pose2d(0, 0, Math.toRadians(0));
+    //todo these will be different per-side (these are for blue)
+    private static final Pose2d basketPose = new Pose2d( 2.5 * 24, 2.5 * 24, Math.toRadians(0));
+    private static final Pose2d submersiblePose = new Pose2d(0, 24, Math.toRadians(0));
 
 
     private final DriveBase driveBase;
     private final Arm arm;
     private final Collector collector;
-    private boolean isRunning;
     private Runnable tickRunnable;
+
+    private Stage lastStage;
 
     public Autopilot(DriveBase driveBase, Arm arm, Collector collector){
         this.driveBase = driveBase;
@@ -28,12 +29,13 @@ public class Autopilot {
         tickRunnable = runnable;
     }
 
-    public void stop(){
-        isRunning = false;
+    public void start(){
+        lastStage = findCurrentStage();
+        run();
     }
 
-    public void start(){
-        isRunning = true;
+    private void run(){
+
     }
 
     public Stage findCurrentStage(){
@@ -45,14 +47,16 @@ public class Autopilot {
             return Stage.FINALIZE_COLLECTION;
         } else if (holdingSample() && !atBasket()) {
             return Stage.MOVE_TO_BASKET;
-        } else if (holdingSample()) { //todo edit this clause (placeholder condition)
+        } else if (!holdingSample() && !armReadyToCollect()) {
             return Stage.PREPARE_FOR_RETURN_TO_SUBMERSIBLE;
-        }else{ //todo add more clauses here
+        } else if (armReadyToCollect() && !holdingSample() && !nearSubmersible()) {
+            return Stage.MOVE_TO_SUBMERSIBLE;
+        } else {
             return Stage.AWAIT_USER_INTERVENTION;
         }
     }
 
-    public enum Stage{
+    public enum Stage {
         /**
          * Waiting for the driver to intervene, this is usually triggered when autopilot encounters unexpected or unhandled conditions.
          */
@@ -78,23 +82,17 @@ public class Autopilot {
          */
         PREPARE_FOR_RETURN_TO_SUBMERSIBLE,
         /**
-         *
+         *  Moving the robot to the submersible after delivery.
          */
-        RETURN_TO_SUBMERSIBLE,
+        MOVE_TO_SUBMERSIBLE,
     }
-
-    /*
-    Arm extended, holding piece and at basket – await confirmation
-    Holding piece and near basket – preparing for delivery
-    Holding piece and arm extended horizontal – finalizing collection
-    Holding piece and arm retracted- moving to basket
-    No piece held and arm extended, arm not horizontal, not near submersible – prepare for movement
-    No piece held and not at submersible- moving to submersible
-    No piece held and at submersible with arm extended
-     */
 
     private boolean armReadyToDeliver(){
         return armVertical() && armExtended();
+    }
+
+    private boolean armReadyToCollect(){
+        return armRetracted() && armHorizontal();
     }
 
     private boolean armExtended(){
