@@ -1,16 +1,17 @@
 package org.firstinspires.ftc.teamcode;
 
-import android.util.Size;
-
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.apriltag.AprilTagReader;
+import org.firstinspires.ftc.teamcode.gamepad.GamePad;
+import org.firstinspires.ftc.teamcode.gamepad.GamePad.Value;
+import org.firstinspires.ftc.teamcode.gamepad.GamePadBuilder;
+import org.firstinspires.ftc.teamcode.gamepad.PressBind;
 import org.firstinspires.ftc.teamcode.hardware.Arm;
 import org.firstinspires.ftc.teamcode.hardware.Collector;
 import org.firstinspires.ftc.teamcode.hardware.drive.DriveBase;
@@ -30,9 +31,7 @@ public class OpModeCore extends LinearOpMode {
     private static DriveBase driveBase;
     private static Arm arm;
     private static Autopilot autopilot;
-
-    private final Gamepad previousGamepad1 = new Gamepad();
-    private final Gamepad previousGamepad2 = new Gamepad();
+    private static GamePad gamePad;
 
     //so FTC Dashboard can access telemetry
     FtcDashboard dashboard = FtcDashboard.getInstance();
@@ -89,10 +88,7 @@ public class OpModeCore extends LinearOpMode {
         autopilot.setTickRunnable(this::tick);
 
         configureTelemetry();
-
-        //save the current gamepad states to compare against to avoid errors
-        previousGamepad1.copy(gamepad1);
-        previousGamepad2.copy(gamepad2);
+        configGamepad();
 
         tickTimer = new ElapsedTime();
     }
@@ -120,7 +116,7 @@ public class OpModeCore extends LinearOpMode {
     }
 
     public void tick(){
-        checkGamepad();
+        gamePad.check();
         checkForScoringElement();
         arm.tick();
         telemetry.update();
@@ -135,60 +131,53 @@ public class OpModeCore extends LinearOpMode {
         }
     }
 
-    //this might be moved to a seperate class
     private boolean isHighPower = false;
-    public void checkGamepad(){
-        //store the current gamepads since this state can change while in a check cycle
-        Gamepad gamepad1 = new Gamepad();
-        gamepad1.copy(this.gamepad1);
-        Gamepad gamepad2 = new Gamepad();
-        gamepad2.copy(this.gamepad2);
 
+    public void configGamepad(){
+        GamePadBuilder builder = new GamePadBuilder(gamepad1);
 
-        //toggle grip on pressing a, if failed to detect if open or closed, default to close.
-        if(gamepad1.a){
-            if(!previousGamepad1.a) {
-                if (!collector.toggleGrip()) {
-                    collector.closeGrip();
-                }
-            }
-        }
+        builder.addPressBind(GamePad.Press.A, PressBind.Behavior.RISING_EDGE, () -> {
+            if (!collector.toggleGrip())
+                collector.closeGrip();
+        });
 
-        //toggle wrist on pressing b, if failed to detect if up or down, default to up.
-        if(gamepad1.b && !previousGamepad1.b){
+        builder.addPressBind(GamePad.Press.B, PressBind.Behavior.RISING_EDGE, () -> {
             if(!collector.toggleWrist())
                 collector.wristUp();
-        }
+        });
 
-        if(gamepad1.y && !previousGamepad1.y){
-            collectorArmed = !collectorArmed;
-        }
+        builder.addPressBind(GamePad.Press.Y, PressBind.Behavior.RISING_EDGE, () ->
+            collectorArmed = !collectorArmed
+        );
 
-        if(gamepad1.x && !previousGamepad1.x) {
+        builder.addPressBind(GamePad.Press.X, PressBind.Behavior.RISING_EDGE, () -> {
             isHighPower = !isHighPower;
             if (isHighPower) {
                 driveBase.setPowerFactor(HIGH_POWER_MODIFIER);
             } else {
                 driveBase.setPowerFactor(LOW_POWER_MODIFIER);
             }
-        }
+        });
 
-        if(gamepad1.dpad_down && !previousGamepad1.dpad_down){
+        builder.addPressBind(GamePad.Press.DPAD_DOWN, PressBind.Behavior.RISING_EDGE, () -> {
             collector.wristUp();
             arm.collectionPosition();
-        }else if(gamepad1.dpad_up){
+        });
+
+        builder.addPressBind(GamePad.Press.DPAD_UP, PressBind.Behavior.RISING_EDGE, () -> {
             if(!arm.setTargetAngle(90))
                 this.gamepad1.rumbleBlips(100);
-        }
+        });
 
+        builder.addMultipleValueBind(values ->
+                arm.setTargetExtension(arm.getTargetExtension() + 0.11 * (-values.get(0) + values.get(2)))
+        , Value.L_TRIGGER, Value.R_TRIGGER);
 
+        builder.addMultipleValueBind(values ->
+                driveBase.move(values.get(0), values.get(1), values.get(2))
+        , Value.L_STICK_X, Value.L_STICK_Y, Value.R_STICK_X);
 
-        arm.setTargetExtension(arm.getTargetExtension() + 0.11 * (-gamepad1.left_trigger + gamepad1.right_trigger));
+        gamePad = builder.build();
 
-        driveBase.move(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x);
-
-        //save the last gamepad state to compare again later
-        previousGamepad1.copy(gamepad1);
-        previousGamepad2.copy(gamepad2);
     }
 }
