@@ -35,6 +35,7 @@ import org.firstinspires.ftc.teamcode.util.LynxModuleUtil;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import org.firstinspires.ftc.teamcode.drive.DriveConstants;
 
 /*
  * Simple mecanum drive hardware implementation for REV hardware.
@@ -103,7 +104,7 @@ public class ConfiguredMecanumDrive extends MecanumDrive {
             motor.setMotorType(motorConfigurationType);
         }
 
-        if (DriveConstants.RUN_USING_ENCODER) {
+        if (org.firstinspires.ftc.teamcode.drive.DriveConstants.RUN_USING_ENCODER) {
             setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         }
 
