@@ -5,6 +5,7 @@ import android.util.Size;
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
+import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
@@ -23,12 +24,13 @@ import java.util.stream.Collectors;
 @Config
 public class AprilTagReader {
 
+    //todo add support for swapping between multiple cameras
     private static final boolean USE_WEBCAM = true;  // true for webcam, false for phone camera
     public static int decimation = 0; //todo test different values of decimation also test different PoseSolvers
     public static Size resolution = new Size(640, 480);
     private final Position cameraPosition;
     private final YawPitchRollAngles cameraOrientation;
-    private static boolean isInitialized = false;
+    private boolean isInitialized = false;
 
     /**
      * The variable to store our instance of the AprilTag processor.
@@ -50,18 +52,25 @@ public class AprilTagReader {
         AprilTagReader.decimation = decimation;
 
         if(!isInitialized){
-            // Create the AprilTag processor.
             aprilTag = new AprilTagProcessor.Builder()
                     .setCameraPose(cameraPosition, cameraOrientation)
                     .build();
 
-            aprilTag.setDecimation(decimation);
+            assert aprilTag != null;
 
             VisionPortal.Builder builder = new VisionPortal.Builder();
-            builder.setCamera(hardwareMap.get(WebcamName.class, "Webcam 1"));
-            builder.setCameraResolution(new Size(640, 480));
+
+            if (USE_WEBCAM) {
+                builder.setCamera(hardwareMap.get(WebcamName.class, "Webcam 1"));
+            } else {
+                builder.setCamera(BuiltinCameraDirection.BACK);
+            }
+
+            builder.setCameraResolution(resolution);
+
             builder.addProcessor(aprilTag);
 
+            // Build the Vision Portal, using the above settings.
             visionPortal = builder.build();
 
             isInitialized = true;

@@ -59,17 +59,15 @@ public class Arm {
     private Consumer<Arm> runningMacro;
 
     //todo these need actual trained values
-    public static double downwardKP = 0.02, downwardKI = 0.00001, downwardKD = 0.2, downwardMaxI = 0.09, downwardMinimum;
-    public static double upwardKP = 0.02, upwardKI = 0.00001, upwardKD = 0.2, upwardMaxI = 0.09, upwardMinimum;
-    public static double extensionKP = 0.1, extensionKI, extensionKD, extensionMaxI, extensionMinimum;
+    public static double downwardKP = 0.005, downwardKI = 0, downwardKD = 0, downwardKF = 0.15, downwardMaxI = 0;
+    public static double upwardKP = 0.02, upwardKI = 0.00001, upwardKD = 0.2, upwardKF = 0.15, upwardMaxI = 0.09;
+    public static double extensionKP = 0.1, extensionKI, extensionKD, extensionKF = 0.15, extensionMaxI;
+    public static double retractionKP = 0.1, retractionKI, retractionKD, retractionKF = 0.2, retractionMaxI;
 
-    private final PID downwardPID = new PID(downwardKP, downwardKI, downwardKD, downwardMaxI, downwardMinimum).setTolerance(0.01);
-    private final PID upwardPID = new PID(upwardKP, upwardKI, upwardKD, upwardMaxI, upwardMinimum).setTolerance(0.01);
-    private final PID extensionPID = new PID(extensionKP, extensionKI, extensionKD, extensionMaxI, extensionMinimum).setTolerance(0.01);
-
-
-
-
+    private final PID downwardPID = new PID(downwardKP, downwardKI, downwardKD, downwardKF, downwardMaxI).setTolerance(0.75);
+    private final PID upwardPID = new PID(upwardKP, upwardKI, upwardKD, upwardKF, upwardMaxI).setTolerance(0.75);
+    private final PID extensionPID = new PID(extensionKP, extensionKI, extensionKD, extensionKF, extensionMaxI).setTolerance(0.2);
+    private final PID retractionPID = new PID(retractionKP, retractionKI, retractionKD, retractionKF, retractionMaxI).setTolerance(0.2);
 
 
     public Arm(HardwareMap hardwareMap, String tiltMotorLeftName, String tiltMotorRightName, String extensionMotorName, String touchSensorName) {
@@ -91,6 +89,7 @@ public class Arm {
         this.angleEncoder.setDirection(Encoder.Direction.FORWARD);
 
         resetExtension();
+        resetAngle();
 
         targetAngle = getAngle();
         targetExtension = getExtension();
@@ -102,7 +101,7 @@ public class Arm {
         OpModeCore.getTelemetry().addData("Last Angle Power", this::getLastAnglePower);
         OpModeCore.getTelemetry().addData("Last Extension Power", this::getLastExtensionPower);
         OpModeCore.getTelemetry().addData("Touch Pressed", touchSensor::isPressed);
-        OpModeCore.getTelemetry().addData("Arm Encoder Tickets", () -> angleEncoder.getCurrentPosition() - tickOffsetToZero);
+        OpModeCore.getTelemetry().addData("Arm Encoder Ticks", () -> angleEncoder.getCurrentPosition() - tickOffsetToZero);
     }
 
     /**
@@ -280,8 +279,7 @@ public class Arm {
                     arm.runningMacro = null;
                 } else {
                     double targetAngle = inchesPerDegree * (arm.getCachedExtension() - COLLECTION_EXTENSION) + COLLECTION_ANGLE;
-                    if(!arm.setTargetAngleIgnoreMacro(targetAngle)){
-                    }
+                    arm.setTargetAngleIgnoreMacro(targetAngle);
                 }
             });
         }
@@ -312,8 +310,8 @@ public class Arm {
 
     private double lastAnglePower;
     private double getAnglePower(){
-        downwardPID.setConstants(downwardKP, downwardKI, downwardKD, downwardMaxI);
-        upwardPID.setConstants(upwardKP, upwardKI, upwardKD, upwardMaxI);
+        downwardPID.setConstants(downwardKP, downwardKI, downwardKD,downwardKF, downwardMaxI);
+        upwardPID.setConstants(upwardKP, upwardKI, upwardKD, upwardKF, upwardMaxI);
 
         if(targetAngle < getCachedAngle())
             lastAnglePower = downwardPID.tick(targetAngle - getCachedAngle());
@@ -331,9 +329,16 @@ public class Arm {
 
     double lastExtensionPower;
     private double getExtensionPower(){
-        extensionPID.setConstants(extensionKP, extensionKI, extensionKD, extensionMaxI);
+        extensionPID.setConstants(extensionKP, extensionKI, extensionKD, extensionKF, extensionMaxI);
+        retractionPID.setConstants(retractionKP, retractionKI, retractionKD, retractionKF, retractionMaxI);
 
-        lastExtensionPower = extensionPID.tick(targetExtension - getCachedExtension());
+        if(targetExtension < getCachedExtension())
+            lastExtensionPower = retractionPID.tick(targetExtension - getCachedExtension());
+        else if (targetExtension > getCachedExtension()){
+            lastExtensionPower = extensionPID.tick(targetExtension - getCachedExtension());
+        }else{
+            lastExtensionPower = 0;
+        }
         return lastExtensionPower;
     }
 

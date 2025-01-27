@@ -39,20 +39,33 @@ public class Autopilot {
     }
 
     public Stage findCurrentStage(){
-        if(armReadyToDeliver() && atBasket() && holdingSample()){
-            return Stage.READY_TO_DELIVER;
-        } else if (holdingSample() && approachingBasket()) {
-            return Stage.PREPARE_DELIVERY;
-        } else if (holdingSample() && nearSubmersible() && !armRetracted() && armHorizontal()) {
-            return Stage.FINALIZE_COLLECTION;
-        } else if (holdingSample() && !atBasket()) {
-            return Stage.MOVE_TO_BASKET;
-        } else if (!holdingSample() && !armReadyToCollect()) {
-            return Stage.PREPARE_FOR_RETURN_TO_SUBMERSIBLE;
-        } else if (armReadyToCollect() && !holdingSample() && !nearSubmersible()) {
-            return Stage.MOVE_TO_SUBMERSIBLE;
-        } else {
-            return Stage.AWAIT_USER_INTERVENTION;
+        if(holdingSample()){
+            if(!armRetracted() && armHorizontal() && nearSubmersible()){
+                return Stage.FINALIZE_COLLECTION;
+            }else{
+                if(approachingBasket()){
+                    if(armReadyToDeliver() && atBasket()){
+                        return Stage.READY_TO_DELIVER;
+                    }else {
+                        return Stage.PREPARE_DELIVERY;
+                    }
+                }else {
+                    return Stage.MOVE_TO_BASKET;
+                }
+            }
+        }else {
+            if (nearSubmersible()) {
+                if ((!armReadyToCollect() && collector.isWristTargetUp())) {
+                    return Stage.PREPARE_TO_COLLECT;
+                }else {
+                    return Stage.AWAIT_USER_INTERVENTION;
+                }
+            }else if(!armReadyToCollect()){
+                return Stage.PREPARE_FOR_RETURN_TO_SUBMERSIBLE;
+            }else {
+                return Stage.MOVE_TO_SUBMERSIBLE;
+            }
+
         }
     }
 
@@ -74,7 +87,7 @@ public class Autopilot {
          */
         PREPARE_DELIVERY,
         /**
-         * The robot is ready to deliver a sample to the basket.
+         * The robot is ready to deliver a sample to the basket. Allow user to finalize delivery.
          */
         READY_TO_DELIVER,
         /**
@@ -85,6 +98,10 @@ public class Autopilot {
          *  Moving the robot to the submersible after delivery.
          */
         MOVE_TO_SUBMERSIBLE,
+        /**
+         * Prepare the robot so the user can collect a peace easily.
+         */
+        PREPARE_TO_COLLECT
     }
 
     private boolean armReadyToDeliver(){
@@ -104,7 +121,7 @@ public class Autopilot {
     }
 
     private boolean armVertical(){
-        return errorTolerable(arm.getCachedAngle(), 90, 3);
+        return errorTolerable(arm.getCachedAngle(), 90, 5);
     }
 
     private boolean armHorizontal(){

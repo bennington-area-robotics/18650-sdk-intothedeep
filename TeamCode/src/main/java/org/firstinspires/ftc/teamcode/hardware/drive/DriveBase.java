@@ -2,12 +2,8 @@ package org.firstinspires.ftc.teamcode.hardware.drive;
 
 
 import com.acmerobotics.roadrunner.geometry.Pose2d;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
-
-//TODO Convert this to a wrapper for ConfiguredMecanumDrive
 public class DriveBase extends ConfiguredMecanumDrive {
     private double powerFactor = 1;
 
@@ -32,7 +28,7 @@ public class DriveBase extends ConfiguredMecanumDrive {
         double rightFront = (y - x - turn) / denominator;
         double rightRear = (y + x - turn) / denominator;
 
-        setMotorPowers(leftFront * powerFactor, leftRear * powerFactor, rightFront * powerFactor, rightRear * powerFactor);
+        setMotorPowers(leftFront * powerFactor, leftRear * powerFactor, rightRear * powerFactor, rightFront * powerFactor);
     }
 
     /**
@@ -50,7 +46,7 @@ public class DriveBase extends ConfiguredMecanumDrive {
         double rightFront = (y - x) / denominator;
         double rightRear = (y + x) / denominator;
 
-        setMotorPowers(leftFront * powerFactor, leftRear * powerFactor, rightFront * powerFactor, rightRear * powerFactor);
+        setMotorPowers(leftFront * powerFactor, leftRear * powerFactor, rightRear * powerFactor, rightFront * powerFactor);
     }
 
     /**

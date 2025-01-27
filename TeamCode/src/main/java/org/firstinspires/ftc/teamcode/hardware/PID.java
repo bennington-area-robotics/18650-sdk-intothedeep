@@ -7,7 +7,7 @@ import java.util.function.Supplier;
 
 public class PID {
     private final ElapsedTime timer = new ElapsedTime();
-    double kP, kI, kD;
+    double kP, kI, kD, kF;
     double i, maxI;
     double lastError;
     double tolerance;
@@ -20,14 +20,13 @@ public class PID {
      * @param kI the integral coefficient. This controls how much the overall change in error affects the output.
      * @param kD the derivative coefficient. This controls how much the change in the error affects the output.
      * @param maxI the maximum of the integral sum. This controls the maximum amount the integral calculation can affect the output.
-     * @param minimum the minimum power magnitude to output if outside of tolerance.
      */
-    public PID(double kP, double kI, double kD, double maxI, double minimum){
+    public PID(double kP, double kI, double kD, double kF, double maxI){
         this.kP = kP;
         this.kI = kI;
         this.kD = kD;
+        this.kF = kF;
         this.maxI = maxI;
-        this.minimum = minimum;
     }
 
     /**
@@ -55,16 +54,7 @@ public class PID {
 
             lastError = currentError;
 
-            double out = p + i + d;
-
-            // if pid output's magnitude is more than the minimum magnitude, then return the pid output.
-            // if not, then return the minimum power in the direction the pid would output
-            // if the pid would output 0, then 0 will always be returned (Math.signum(0) == 0)
-            if(Math.abs(out) > minimum){
-                return out;
-            }else{
-                return Math.signum(out) * minimum;
-            }
+            return p + i + d + Math.signum(currentError) * kF;
         }else {
             return 0;
         }
@@ -92,10 +82,11 @@ public class PID {
      * @param kD the derivative coefficient. This controls how much the change in the error affects the output.
      * @param maxI the maximum of the integral sum. This controls the maximum amount the integral calculation can affect the output.
      */
-    public void setConstants(double kP, double kI, double kD, double maxI){
+    public void setConstants(double kP, double kI, double kD, double kF, double maxI){
         this.kP = kP;
         this.kI = kI;
         this.kD = kD;
+        this.kF = kF;
         this.maxI = maxI;
     }
 

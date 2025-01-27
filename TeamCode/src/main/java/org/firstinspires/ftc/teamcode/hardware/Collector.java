@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.hardware;
 import android.annotation.SuppressLint;
 
 import com.acmerobotics.dashboard.config.Config;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -15,18 +16,23 @@ import java.math.RoundingMode;
 @Config
 public class Collector {
     //config
-    public static float OPEN_POSITION = 1, CLOSED_POSITION = 0; //grip
-    public static float UP_POSITION = 0.8f, DOWN_POSITION = 0.4f; //wrist
+    public static float OPEN_POSITION = 0.4f, CLOSED_POSITION = 0; //grip
+    public static int UP_POSITION = 0, DOWN_POSITION = 0; //todo these need real values. wrist
     public static float LENGTH = 5f;
 
     public final ColorSensor colorSensor;
-    final Servo gripServo, wristServo;
+    final Servo gripServo;
+    private final DcMotor wristMotor;
 
     @SuppressLint("DefaultLocale")
-    public Collector(HardwareMap hardwareMap, String colorSensorName, String wristServoName, String gripServoName, boolean includeTelem){
+    public Collector(HardwareMap hardwareMap, String colorSensorName, String wristMotorName, String gripServoName, boolean includeTelem){
         this.colorSensor = new ColorSensor(hardwareMap, colorSensorName);
         this.gripServo = hardwareMap.get(Servo.class, gripServoName);
-        this.wristServo = hardwareMap.get(Servo.class, wristServoName);
+        this.wristMotor = hardwareMap.get(DcMotor.class, wristMotorName);
+
+
+        wristUp();
+        wristMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
         if(includeTelem) {
             OpModeCore.getTelemetry().addLine("Grip")
@@ -34,7 +40,7 @@ public class Collector {
                     .addData("Open?", this::isGripOpen)
                     .addData("Closed?", this::isGripClosed);
             OpModeCore.getTelemetry().addLine("Wrist")
-                    .addData("Position", wristServo::getPosition)
+                    .addData("Position", wristMotor::getCurrentPosition)
                     .addData("Up?", this::isWristUp)
                     .addData("Down?", this::isWristDown);
             OpModeCore.getTelemetry().addLine("Color Sensor")
@@ -88,40 +94,51 @@ public class Collector {
 
     //wrist
 
-    public void wrist(double position){
-        wristServo.setPosition(position);
+    public void wristTo(int position){
+        wristMotor.setTargetPosition(position);
     }
 
     public void wristUp(){
-        wristServo.setPosition(UP_POSITION);
+        wristMotor.setTargetPosition(UP_POSITION);
     }
 
     public void wristDown(){
-        wristServo.setPosition(DOWN_POSITION);
+        wristMotor.setTargetPosition(DOWN_POSITION);
     }
 
     public boolean isWristUp(){
-        return Helper.round(wristServo.getPosition(), 1) == Helper.round(UP_POSITION, 1);
+        return Helper.errorTolerable(wristMotor.getCurrentPosition(), UP_POSITION, 5);
     }
 
     public boolean isWristDown(){
-        return Helper.round(wristServo.getPosition(), 1) == Helper.round(DOWN_POSITION, 1);
+        return Helper.errorTolerable(wristMotor.getCurrentPosition(), DOWN_POSITION, 5);
+    }
+
+    public boolean isWristTargetUp(){
+        return Helper.errorTolerable(wristMotor.getTargetPosition(), UP_POSITION, 5);
+    }
+
+    public boolean isWristTargetDown(){
+        return Helper.errorTolerable(wristMotor.getTargetPosition(), DOWN_POSITION, 5);
     }
 
     public boolean holdingSample(){
         return isGripClosed() && colorSensor.getScoringElementColor() != ScoringElementColor.NONE;
     }
 
+    public boolean holdingSample(ScoringElementColor elementColor){
+        return isGripClosed() && colorSensor.getScoringElementColor() == elementColor;
+    }
+
     /**
-     * Checks the current position of the wrist and if detected it as up or down, moves it down or moves it up respectively.
-     * If position is not close enough to a up or down position to estimate, it does nothing and returns false.
-     * @return whether the wrist was toggled
+     * Attempts to toggle the wrist target between up and down. If the target is not up or down, the target will not be changed.
+     * @return whether the wrist target was changed.
      */
     public boolean toggleWrist(){
-        if (isWristUp()) {
+        if (isWristTargetUp()) {
             wristDown();
             return true;
-        }else if (isWristDown()) {
+        }else if (isWristTargetDown()) {
             wristUp();
             return true;
         }else{
@@ -130,6 +147,10 @@ public class Collector {
     }
 
     private static class Helper {
+        private static boolean errorTolerable(int number1, int number2, int tolerance){
+            return Math.abs(number2 - number1) <= tolerance;
+        }
+
         public static double round(double value, int precision) {
             if (precision < 0) {
                 throw new IllegalArgumentException("Precision must be a non-negative integer.");
