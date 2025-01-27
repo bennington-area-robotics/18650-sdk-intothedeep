@@ -7,7 +7,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.acmerobotics.dashboard.config.Config;
 import org.firstinspires.ftc.teamcode.hardware.drive.ConfiguredMecanumDrive;
-import org.firstinspires.ftc.teamcode.drive.DriveConstants;
+import org.firstinspires.ftc.teamcode.hardware.drive.DriveConstants;
 
 /*
  * This is an example of a more complex path to really test the tuning.
