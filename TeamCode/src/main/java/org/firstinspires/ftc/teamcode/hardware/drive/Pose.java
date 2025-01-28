@@ -39,20 +39,20 @@ import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
  *                               ||
  *                             +-|_/-------------------------------------------------+
  *                            /#+||-------------------------------------------------/|
- *                           /#/ ||                                                /#|    ___________
- *             ___________  /#/                                                   /#/    /          /
- *            /          / /#/                                                   /#/    /          /
- *           /          / /#/                                                   /#/    /          /
- *          /          / /#/                                                   /#/    /          /
+ *                           /#/ ||                                          /     /#|    ___________
+ *             ___________  /#/                                             /     /#/    /          /
+ *            /          / /#/                                              \    /#/    /          /
+ *           /          / /#/                                                \  /#/    /          /
+ *          /          / /#/                                                  \/#/    /          /
  *         /          / /#/                                                   /#/    /   RED    /
  *        /   BLUE   / /#/                                                   /#/    /          /
  *       /          / /#/                                         _,_,      /#/    /          /
- *      /          / /#/                                          \|./     /#/    /          /
- *     /          / /#/                                           _| |    /#/    /          /
- *    /          / /#/                                            \|./   /#/    /__________/
- *   /          / /#/                                              | |  /#/
- *  /__________/ +-----------------------------------------------------+#/
- *               |/                                                | | |/
+ *      /          / /#/ \                                        \|./     /#/    /          /
+ *     /          / /#/   \                                       _| |    /#/    /          /
+ *    /          / /#/     \                                      \|./   /#/    /__________/
+ *   /          / /#/      /                                       | |  /#/
+ *  /__________/ +--------+----------------------------------------+-+-+#/
+ *               |/      /            <b>Callam Jomaa</b>                 | | |/
  *               +-----------------------------------------------------+
  *  </pre>
  */
@@ -201,6 +201,68 @@ public class Pose {
         return roll;
     }
 
+
+
+    /**
+     * @param unit the distance unit to return the coordinate in
+     * @return the x coordinate in the provided distance unit.
+     */
+    public double x(DistanceUnit unit) {
+        return unit.fromUnit(DistanceUnit.INCH, x);
+    }
+
+    /**
+     * @param unit the distance unit to return the coordinate in
+     * @return the y coordinate in the provided distance unit.
+     */
+    public double y(DistanceUnit unit) {
+        return unit.fromUnit(DistanceUnit.INCH, y);
+    }
+
+    /**
+     * @param unit the distance unit to return the coordinate in
+     * @return the z coordinate in the provided distance unit.
+     */
+    public double z(DistanceUnit unit) {
+        return unit.fromUnit(DistanceUnit.INCH, z);
+    }
+
+    /**
+     * @apiNote equivalent to heading()
+     * @param unit the angle unit to return the angle in
+     * @return the yaw angle in the provided angle unit.
+     */
+    public double yaw(AngleUnit unit) {
+        return unit.fromUnit(AngleUnit.DEGREES, yaw);
+    }
+
+    /**
+     * @apiNote equivalent to heading()
+     * @param unit the angle unit to return the angle in
+     * @return the heading angle in the provided angle unit.
+     */
+    public double heading(AngleUnit unit) {
+        return unit.fromUnit(AngleUnit.DEGREES, yaw);
+    }
+
+    /**
+     * @apiNote equivalent to heading()
+     * @param unit the angle unit to return the angle in
+     * @return the pitch angle in the provided angle unit.
+     */
+    public double pitch(AngleUnit unit) {
+        return unit.fromUnit(AngleUnit.DEGREES, pitch);
+    }
+
+    /**
+     * @apiNote equivalent to heading()
+     * @param unit the angle unit to return the angle in
+     * @return the roll angle in the provided angle unit.
+     */
+    public double roll(AngleUnit unit) {
+        return unit.fromUnit(AngleUnit.DEGREES, roll);
+    }
+
     public double distanceTo(Pose otherPose){
         double dx = otherPose.x - x;
         double dy = otherPose.y - y;
@@ -218,5 +280,13 @@ public class Pose {
 
     public Pose3D toNav3D(){
         return new Pose3D(new Position(DistanceUnit.INCH, x, y, z, 0), new YawPitchRollAngles(AngleUnit.DEGREES, yaw, pitch, roll, 0));
+    }
+
+    public Position getPosition(){
+        return new Position(DistanceUnit.INCH, x, y, z, 0);
+    }
+
+    public YawPitchRollAngles getAngles(){
+        return new YawPitchRollAngles(AngleUnit.DEGREES, yaw, pitch, roll, 0);
     }
 }
