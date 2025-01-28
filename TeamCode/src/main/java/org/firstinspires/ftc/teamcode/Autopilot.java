@@ -1,28 +1,30 @@
 package org.firstinspires.ftc.teamcode;
 
-import com.acmerobotics.roadrunner.geometry.Pose2d;
-
 import org.firstinspires.ftc.teamcode.hardware.Arm;
 import org.firstinspires.ftc.teamcode.hardware.Collector;
 import org.firstinspires.ftc.teamcode.hardware.drive.DriveBase;
+import org.firstinspires.ftc.teamcode.hardware.drive.Pose;
 
 public class Autopilot {
     //todo these will be different per-side (these are for blue)
-    private static final Pose2d basketPose = new Pose2d( 2.5 * 24, 2.5 * 24, Math.toRadians(0));
-    private static final Pose2d submersiblePose = new Pose2d(0, 24, Math.toRadians(0));
+    private static final Pose basketPose = new Pose( 2.5 * 24, 2.5 * 24, 0);
+    private static final Pose submersiblePoseA = new Pose(0, 24, 0);
+    //todo there should be multiple paths to go for
 
 
     private final DriveBase driveBase;
     private final Arm arm;
     private final Collector collector;
+    private boolean isRunning;
     private Runnable tickRunnable;
 
-    private Stage lastStage;
+    private Stage currentStage;
 
     public Autopilot(DriveBase driveBase, Arm arm, Collector collector){
         this.driveBase = driveBase;
         this.arm = arm;
         this.collector = collector;
+        this.isRunning = false;
     }
 
     public void setTickRunnable(Runnable runnable){
@@ -30,12 +32,30 @@ public class Autopilot {
     }
 
     public void start(){
-        lastStage = findCurrentStage();
-        run();
+        currentStage = findCurrentStage();
+        isRunning = true;
     }
 
-    private void run(){
+    public void stop(){
+        isRunning = false;
+    }
 
+    public void tick(){
+        if(isRunning){
+            switch (currentStage){
+                case FINALIZE_COLLECTION:
+                    //ensure wrist is up
+                    //once wrist is up check that we still have a sample (if not then await user intervention
+                    //retract arm fully
+                    //update state to MOVE_TO_BASKET
+                break;
+                case MOVE_TO_BASKET:
+                    //check that we still have a sample (if not then await user intervention
+                    //begin pathing to the basket
+                    //once you are approaching the basket, move to PREPARE_DELIVERY
+                break;
+            }
+        }
     }
 
     public Stage findCurrentStage(){
@@ -67,6 +87,14 @@ public class Autopilot {
             }
 
         }
+    }
+
+    public void beginMoveToBasket(){
+        //driveBase.followTrajectoryAsync();
+    }
+
+    public void beginMoveToSubmersible(){
+        //driveBase.followTrajectoryAsync();
     }
 
     public enum Stage {
@@ -129,15 +157,15 @@ public class Autopilot {
     }
 
     private boolean atBasket(){
-        return withinInches(driveBase.getPoseEstimate(), basketPose, 1);
+        return withinInches(driveBase.getPoseSimple(), basketPose, 1);
     }
 
     private boolean approachingBasket(){
-        return withinInches(driveBase.getPoseEstimate(), basketPose, 24);
+        return withinInches(driveBase.getPoseSimple(), basketPose, 24);
     }
 
     private boolean nearSubmersible(){
-        return withinInches(driveBase.getPoseEstimate(), submersiblePose, 2);
+        return withinInches(driveBase.getPoseSimple(), submersiblePoseA, 2);
     }
 
     private boolean holdingSample(){
@@ -148,11 +176,7 @@ public class Autopilot {
         return Math.abs(number2 - number1) <= tolerance;
     }
 
-    private double getDistance(Pose2d pose1, Pose2d pose2){
-        return Math.sqrt(Math.pow(pose2.getX() - pose1.getX(), 2) + Math.pow(pose2.getY() - pose1.getY(), 2));
-    }
-
-    private boolean withinInches(Pose2d pose1, Pose2d pose2, double distance){
-        return getDistance(pose1, pose2) <= distance;
+    private boolean withinInches(Pose pose1, Pose pose2, double distance){
+        return pose1.distanceTo(pose2) <= distance;
     }
 }
