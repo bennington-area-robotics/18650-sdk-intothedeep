@@ -13,6 +13,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 import org.firstinspires.ftc.teamcode.OpModeCore;
+import org.firstinspires.ftc.teamcode.hardware.drive.Pose;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
@@ -24,7 +25,7 @@ import java.util.stream.Collectors;
 @Config
 public class AprilTagReader {
 
-    //todo add support for swapping between multiple cameras
+
     private static final boolean USE_WEBCAM = true;  // true for webcam, false for phone camera
     public static int decimation = 0; //todo test different values of decimation also test different PoseSolvers
     public static Size resolution = new Size(640, 480);
@@ -77,13 +78,13 @@ public class AprilTagReader {
         }
 
         OpModeCore.getTelemetry().addData("April Tag", () -> {
-            Optional<Pose2D> poseOptional = getFirstPose();
+            Optional<Pose> poseOptional = getFirstPose();
             if(poseOptional.isPresent()){
-                Pose2D pose = poseOptional.get();
+                Pose pose = poseOptional.get();
                 return String.format(Locale.ENGLISH, "X Y Heading %6.1f %6.1f %6.1f  (inch)",
-                        pose.getX(DistanceUnit.INCH),
-                        pose.getY(DistanceUnit.INCH),
-                        pose.getHeading(AngleUnit.DEGREES));
+                        pose.x(),
+                        pose.y(),
+                        pose.heading());
             }else{
                 return "No detections";
             }
@@ -94,10 +95,10 @@ public class AprilTagReader {
     /**
      * @return an optional pose based on the first detection found.
      */
-    public Optional<Pose2D> getFirstPose(){
+    public Optional<Pose> getFirstPose(){
         try{
             Detection detection = getDetections().get(0);
-            Pose2D localization = detection.getRobotPose2D();
+            Pose localization = detection.getRobotPose();
 
             return Optional.of(localization);
         } catch(IndexOutOfBoundsException e) {

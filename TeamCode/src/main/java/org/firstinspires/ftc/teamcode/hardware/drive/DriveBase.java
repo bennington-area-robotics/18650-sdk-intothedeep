@@ -49,6 +49,10 @@ public class DriveBase extends ConfiguredMecanumDrive {
         setMotorPowers(leftFront * powerFactor, leftRear * powerFactor, rightRear * powerFactor, rightFront * powerFactor);
     }
 
+    public Pose getPoseSimple(){
+        return Pose.from(super.getPoseEstimate());
+    }
+
     /**
      * Stops all motors. This is a shortcut method for <code>driveBase.setMotorPowers(0, 0, 0, 0)</code>`.
      */

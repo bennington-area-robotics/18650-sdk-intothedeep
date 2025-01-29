@@ -1,10 +1,8 @@
 package org.firstinspires.ftc.teamcode.apriltag;
 
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
-import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
-import org.firstinspires.ftc.robotcore.external.navigation.Position;
-import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
+import androidx.annotation.Nullable;
+
+import org.firstinspires.ftc.teamcode.hardware.drive.Pose;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 
 /**
@@ -20,19 +18,8 @@ public class Detection {
     /**
      * @return the absolute 3D pose of the robot based on the april tag detection.
      */
-    public Pose3D getRobotPose3D(){
-        return tagDetection.robotPose;
-    }
-
-
-    //todo confirm the ori yaw is actual absolute heading.
-    /**
-     * @return the absolute 2D pose of the robot based on the april tag detection.
-     */
-    public Pose2D getRobotPose2D(){
-        Position pos = tagDetection.robotPose.getPosition();
-        YawPitchRollAngles ori = tagDetection.robotPose.getOrientation();
-        return new Pose2D(pos.unit, pos.x, pos.y, AngleUnit.DEGREES, ori.getYaw(AngleUnit.DEGREES));
+    public Pose getRobotPose(){
+        return Pose.from(tagDetection.robotPose);
     }
 
     public String getName(){
@@ -41,5 +28,17 @@ public class Detection {
 
     public int getId(){
         return tagDetection.metadata.id;
+    }
+
+    @Override
+    public boolean equals(@Nullable Object obj) {
+        if(this == obj)
+            return true;
+
+        if(obj instanceof Detection){
+            return ((Detection) obj).getId() == getId();
+        }
+
+        return false;
     }
 }
