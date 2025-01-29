@@ -9,25 +9,35 @@ import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 
-//todo finish this illustration
+//todo finish this illustration (add x and y)
 
 /**
  * <h3>A class intended to be a simple, universal bridge between different Pose classes.</h3>
  * <pre><code>
  *     //Create a new Pose
- *     Pose pose1 = new Pose(15, 25, 90);
+ *     Pose newPose2D = new Pose(15, 25, 45);
+ *     Pose newPose3D = new Pose(15, 25, 45, 120, 76, 50);
  *
  *     //Create a pose from a Road Runner Pose2d
  *     Pose2d rrPose1 = new Pose2d(15, 25, 90);
- *     Pose pose2 = Pose.from(rrPose1);
+ *     Pose fromRRPose = Pose.from(rrPose1);
  *
  *     //Create a pose from a FTC Nav Pose2D
- *     Pose2D navPose1 = new Pose2D(DistanceUnit.INCH, 5, 10, AngleUnit.DEGREES, 45);
- *     Pose pose3 = Pose.from(navPose1);
+ *     Pose2D navPose2D1 = new Pose2D(DistanceUnit.INCH, 5, 10, AngleUnit.DEGREES, 45);
+ *     Pose fromNav2D = Pose.from(navPose2D1);
  *
- *     //Convert back
- *     Pose2d rrPose2 = pose2.toRR();
- *     Pose2D navPose2 = pose3.toNav();
+ *     //Create a pose from a FTC Nav Pose3D
+ *     Pose2D navPose3D1 = new Pose3D(DistanceUnit.INCH, 5, 10, 2, AngleUnit.DEGREES, 45, 30, 60);
+ *     Pose fromNav3D = Pose.from(navPose3D1);
+ *
+ *     //Convert a pose to another type of pose
+ *     Pose2d rrPose2 = newPose2D.toRR();
+ *     Pose2D navPose2D2 = newPose2D.toNav();
+ *     Pose3D navPose3D2 = newPose3D.toNav3D();
+ *
+ *     //poses can be cross-converted even between 2D and 3D
+ *     Pose myPose = Pose.from(new Pose2d(50, 30, 45));
+ *     Pose3D myNavPose = myPose.toNav3D();
  * </code></pre>
  * <br>
  * <h1>Visualizing Coordinates:</h1>
@@ -41,37 +51,38 @@ import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
  *                            /#+||-------------------------------------------------/|
  *                           /#/ ||                                          /     /#|    ___________
  *             ___________  /#/                                             /     /#/    /          /
- *            /          / /#/                                              \    /#/    /          /
- *           /          / /#/                                                \  /#/    /          /
- *          /          / /#/                                                  \/#/    /          /
- *         /          / /#/                                                   /#/    /   RED    /
- *        /   BLUE   / /#/                                                   /#/    /          /
- *       /          / /#/                                         _,_,      /#/    /          /
- *      /          / /#/ \                                        \|./     /#/    /          /
- *     /          / /#/   \                                       _| |    /#/    /          /
- *    /          / /#/     \                                      \|./   /#/    /__________/
+ *            /          / /#/                     |   /                    \    /#/    /          /
+ *           /          / /#/                      |  /                      \  /#/    /          /
+ *          /          / /#/                       | /                        \/#/    /          /
+ *         /          / /#/                        |/                         /#/    /   RED    /
+ *        /   BLUE   / /#/             ____________|____________             /#/    /          /
+ *       /          / /#/                         /               _,_,      /#/    /          /
+ *      /          / /#/ \                       /                \|./     /#/    /          /
+ *     /          / /#/   \                     /                 _| |    /#/    /          /
+ *    /          / /#/     \                   /                  \|./   /#/    /__________/
  *   /          / /#/      /                                       | |  /#/
  *  /__________/ +--------+----------------------------------------+-+-+#/
- *               |/      /            <b>Callam Jomaa</b>                 | | |/
+ *               |/      /                                         | | |/
  *               +-----------------------------------------------------+
+ *  </pre>
+ *  <br>
+ *  <h1>Visualizing Orientation:</h1>
+ *  <hr>
+ *  <pre>
+ *              &#x293A; yaw (heading)
+ *              |
+ *              |  / &#x2197; forward &#x2197;
+ *              | /
+ *              |/
+ *    __________|__________ &#x2939; pitch
+ *             /
+ *            /
+ *           /
+ *             &#x21B6; roll
  *  </pre>
  */
 public class Pose {
     private final double x, y, z;
-    /**
-     * <pre>
-     *                 &#x293A; yaw (heading)
-     *                 |
-     *                 |  / &#x2197; forward &#x2197;
-     *                 | /
-     *                 |/
-     *       __________|__________ &#x2939; pitch
-     *                /
-     *               /
-     *              /
-     *             &#x21B6; roll
-     * </pre>
-     */
     private final double yaw, pitch, roll;
 
     private Pose(double x, double y, double z, double yaw, double pitch, double roll, AngleUnit angleUnit, DistanceUnit distanceUnit){

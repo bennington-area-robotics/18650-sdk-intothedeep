@@ -17,8 +17,13 @@ import java.math.RoundingMode;
 public class Collector {
     //config
     public static float OPEN_POSITION = 0.4f, CLOSED_POSITION = 0; //grip
-    public static int UP_POSITION = 0, DOWN_POSITION = 0; //todo these need real values. wrist
+    public static int UP_POSITION = 90, DOWN_POSITION = 15; //wrist
     public static float LENGTH = 5f;
+    public static double wristKP = 0.5, wristKI, wristKD, wristKF, wristMaxI;
+
+    PID pid = new PID(wristKP, wristKI, wristKD, wristKF, wristMaxI);
+
+    public int wristTarget;
 
     public final ColorSensor colorSensor;
     final Servo gripServo;
@@ -30,9 +35,10 @@ public class Collector {
         this.gripServo = hardwareMap.get(Servo.class, gripServoName);
         this.wristMotor = hardwareMap.get(DcMotor.class, wristMotorName);
 
-
+        wristMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        wristMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        wristMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         wristUp();
-        wristMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
         if(includeTelem) {
             OpModeCore.getTelemetry().addLine("Grip")
@@ -95,15 +101,15 @@ public class Collector {
     //wrist
 
     public void wristTo(int position){
-        wristMotor.setTargetPosition(position);
+        wristTarget = position;
     }
 
     public void wristUp(){
-        wristMotor.setTargetPosition(UP_POSITION);
+        wristTo(UP_POSITION);
     }
 
     public void wristDown(){
-        wristMotor.setTargetPosition(DOWN_POSITION);
+        wristTo(DOWN_POSITION);
     }
 
     public boolean isWristUp(){
@@ -144,6 +150,12 @@ public class Collector {
         }else{
             return false;
         }
+    }
+
+    public void tick(){
+        pid.setConstants(wristKP, wristKI, wristKD, wristKF, wristMaxI);
+
+        wristMotor.setPower(pid.tick(wristMotor.getCurrentPosition() - wristTarget));
     }
 
     private static class Helper {

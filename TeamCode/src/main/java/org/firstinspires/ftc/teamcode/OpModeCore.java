@@ -75,9 +75,9 @@ public class OpModeCore extends LinearOpMode {
         collector = new Collector(
                 hardwareMap,
                 "colorSensor",
-                "wristServo",
+                "wristMotor",
                 "gripServo",
-                false
+                true
         );
         driveBase = new DriveBase(hardwareMap);
         arm = new Arm(hardwareMap, "tiltMotorLeft", "tiltMotorRight", "extensionMotor", "touchSensor");
@@ -126,6 +126,7 @@ public class OpModeCore extends LinearOpMode {
         checkGamepad();
         checkForScoringElement();
         arm.tick();
+        collector.tick();
         telemetry.update();
         tickTimer.reset();
     }
@@ -140,7 +141,7 @@ public class OpModeCore extends LinearOpMode {
 
     //this might be moved to a seperate class
     private boolean isHighPower = false;
-    public void checkGamepad(){
+    public void checkGamepad() {
         //store the current gamepads since this state can change while in a check cycle
         Gamepad gamepad1 = new Gamepad();
         gamepad1.copy(this.gamepad1);
