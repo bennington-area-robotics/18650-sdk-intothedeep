@@ -121,11 +121,11 @@ public class Collector {
     }
 
     public boolean isWristTargetUp(){
-        return Helper.errorTolerable(wristMotor.getTargetPosition(), UP_POSITION, 5);
+        return Helper.errorTolerable(wristTarget, UP_POSITION, 5);
     }
 
     public boolean isWristTargetDown(){
-        return Helper.errorTolerable(wristMotor.getTargetPosition(), DOWN_POSITION, 5);
+        return Helper.errorTolerable(wristTarget, DOWN_POSITION, 5);
     }
 
     public boolean holdingSample(){
