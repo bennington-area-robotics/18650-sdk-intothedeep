@@ -88,7 +88,7 @@ public class OpModeCore extends LinearOpMode {
 
         aprilTagReader = new AprilTagReader(hardwareMap,
                 new Position(DistanceUnit.INCH, 0, 0, 0, 0),
-                new YawPitchRollAngles(AngleUnit.DEGREES, 0, 0, 0, 0),
+                new YawPitchRollAngles(AngleUnit.DEGREES, -90, -90, 0, 0),
                 new Size(640, 480),
                 0
         );
