@@ -157,6 +157,7 @@ public class Collector {
     public void tick(){
         pid.setConstants(wristKP, wristKI, wristKD, wristKF, wristMaxI);
 
+        pid.setDirection(PID.Direction.REVERSE);
         wristMotor.setPower(pid.tick(wristMotor.getCurrentPosition() - wristTarget));
     }
 
