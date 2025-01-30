@@ -112,41 +112,37 @@ public class OpModeCore extends LinearOpMode {
     }
 
     private void configureTelemetry(){
-    }
-    
-    public void updateTelemetry(){
+        telemetry.setAutoClear(false);
         telemetry.addLine("System Status")
-                .addData("Collector Armed?", collectorArmed)
-                .addData("Tick Time", Math.round(tickTimer.milliseconds()))
+                .addData("Collector Armed?", () -> collectorArmed)
+                .addData("Tick Time", () -> Math.round(tickTimer.milliseconds()))
                 .addData("Stage", autopilot.findCurrentStage());
 
         telemetry.addLine("Arm Status")
-                .addData("Current Angle", arm.getCachedAngle())
-                .addData("Target Angle", arm.getTargetAngle())
-                .addData("Current Extension", arm.getCachedExtension())
-                .addData("Target Extension", arm.getTargetExtension())
-                .addData("Last Angle Power", arm.getLastAnglePower())
-                .addData("Last Extension Power", arm.getLastExtensionPower())
-                .addData("Touch Sensor Pressed", touchSensor.isPressed());
+                .addData("Current Angle", () -> arm.getCachedAngle())
+                .addData("Target Angle", () -> arm.getTargetAngle())
+                .addData("Current Extension", () -> arm.getCachedExtension())
+                .addData("Target Extension", () -> arm.getTargetExtension())
+                .addData("Last Angle Power", () -> arm.getLastAnglePower())
+                .addData("Last Extension Power", () -> arm.getLastExtensionPower())
+                .addData("Touch Sensor Pressed", () -> touchSensor.isPressed());
 
         telemetry.addLine("Grip")
-                .addData("Position", collector.getGripPosition())
-                .addData("Open?", collector.isGripOpen())
-                .addData("Closed?", collector.isGripClosed());
+                .addData("Position", () -> collector.getGripPosition())
+                .addData("Open?", () -> collector.isGripOpen())
+                .addData("Closed?", () -> collector.isGripClosed());
 
         telemetry.addLine("Wrist")
-                .addData("Position", collector.getWristPosition())
-                .addData("Up?", collector.isWristUp())
-                .addData("Down?", collector.isWristDown());
+                .addData("Position", () -> collector.getWristPosition())
+                .addData("Up?", () -> collector.isWristUp())
+                .addData("Down?", () -> collector.isWristDown());
 
         telemetry.addLine("Color Sensor")
-                .addData("HSV", getHSV())
-                .addData("RGB", getRGB())
-                .addData("Scoring Color", collector.colorSensor.getScoringElementColor());
+                .addData("HSV", this::getHSV)
+                .addData("RGB", this::getRGB)
+                .addData("Scoring Color", () -> collector.colorSensor.getScoringElementColor());
 
-        telemetry.addData("April Tag", aprilTagReader.getDetectionString());
-
-        telemetry.update();
+        telemetry.addData("April Tag", () -> aprilTagReader.getDetectionString());
     }
 
     private String getHSV(){
@@ -173,7 +169,7 @@ public class OpModeCore extends LinearOpMode {
         checkForScoringElement();
         arm.tick();
         collector.tick();
-        updateTelemetry();
+        telemetry.update();
         tickTimer.reset();
     }
 
@@ -248,6 +244,7 @@ public class OpModeCore extends LinearOpMode {
                     this.gamepad1.rumbleBlips(100);
             }
         }
+
 
         arm.setTargetExtension(arm.getTargetExtension() + 0.11 * (-gamepad1.left_trigger + gamepad1.right_trigger));
 
