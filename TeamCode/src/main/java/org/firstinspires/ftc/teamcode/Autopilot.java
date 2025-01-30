@@ -141,19 +141,19 @@ public class Autopilot {
     }
 
     private boolean armExtended(){
-        return errorTolerable(arm.getCachedExtension(), 38, 3);
+        return errorTolerable(arm.getExtension(), 38, 3);
     }
 
     private boolean armRetracted(){
-        return errorTolerable(arm.getCachedExtension(), 0, 3);
+        return errorTolerable(arm.getExtension(), 0, 3);
     }
 
     private boolean armVertical(){
-        return errorTolerable(arm.getCachedAngle(), 90, 5);
+        return errorTolerable(arm.getAngle(), 90, 5);
     }
 
     private boolean armHorizontal(){
-        return errorTolerable(arm.getCachedAngle(), 0, 5);
+        return errorTolerable(arm.getAngle(), 0, 5);
     }
 
     private boolean atBasket(){

@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode;
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
+import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Gamepad;
@@ -76,6 +77,10 @@ public class OpModeCore extends LinearOpMode {
     public void initialize(){
         instance = this;
 
+        for (LynxModule hub : hardwareMap.getAll(LynxModule.class)) {
+            hub.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
+        }
+
         //initialize hardware
         collector = new Collector(
                 hardwareMap,
@@ -84,8 +89,17 @@ public class OpModeCore extends LinearOpMode {
                 "gripServo"
         );
         driveBase = new DriveBase(hardwareMap);
-        arm = new Arm(hardwareMap, "tiltMotorLeft", "tiltMotorRight", "extensionMotor", "touchSensor");
+        arm = new Arm(
+                hardwareMap,
+                "tiltMotorLeft",
+                "tiltMotorRight",
+                "extensionMotor",
+                "touchSensor"
+        );
         touchSensor = hardwareMap.get(TouchSensor.class, "touchSensor");
+
+
+
         autopilot = new Autopilot(driveBase, arm, collector);
         autopilot.setTickRunnable(this::tick);
 
@@ -113,31 +127,37 @@ public class OpModeCore extends LinearOpMode {
     }
     
     public void updateTelemetry(){
-        telemetry.addData("Collector Armed? ", collectorArmed);
-        telemetry.addData("Tick Time ", Math.round(tickTimer.milliseconds()));
-        telemetry.addData("Stage", autopilot.findCurrentStage());
-        telemetry.addData("Current Arm Angle", arm.getCachedAngle());
-        telemetry.addData("Target Arm Angle", arm.getTargetAngle());
-        telemetry.addData("Current Arm Extension", arm.getCachedExtension());
-        telemetry.addData("Target Arm Extension", arm.getTargetExtension());
-        telemetry.addData("Last Angle Power", arm.getLastAnglePower());
-        telemetry.addData("Last Extension Power", arm.getLastExtensionPower());
-        telemetry.addData("Touch Pressed", touchSensor.isPressed());
+        telemetry.addLine("System Status")
+                .addData("Collector Armed?", collectorArmed)
+                .addData("Tick Time", Math.round(tickTimer.milliseconds()))
+                .addData("Stage", autopilot.findCurrentStage());
+
+        telemetry.addLine("Arm Status")
+                .addData("Current Angle", arm.getAngle())
+                .addData("Target Angle", arm.getTargetAngle())
+                .addData("Current Extension", arm.getExtension())
+                .addData("Target Extension", arm.getTargetExtension())
+                .addData("Last Angle Power", arm.getLastAnglePower())
+                .addData("Last Extension Power", arm.getLastExtensionPower())
+                .addData("Touch Sensor Pressed", touchSensor.isPressed());
 
         telemetry.addLine("Grip")
                 .addData("Position", collector.getGripPosition())
                 .addData("Open?", collector.isGripOpen())
                 .addData("Closed?", collector.isGripClosed());
+
         telemetry.addLine("Wrist")
                 .addData("Position", collector.getWristPosition())
                 .addData("Up?", collector.isWristUp())
                 .addData("Down?", collector.isWristDown());
+
         telemetry.addLine("Color Sensor")
                 .addData("HSV", getHSV())
                 .addData("RGB", getRGB())
                 .addData("Scoring Color", collector.colorSensor.getScoringElementColor());
+
         telemetry.addData("April Tag", aprilTagReader.getDetectionString());
-        
+
         telemetry.update();
     }
 
@@ -227,14 +247,14 @@ public class OpModeCore extends LinearOpMode {
 
         if(gamepad1.dpad_down && !previousGamepad1.dpad_down){
             if(manualArm){
-                arm.setTargetAngle(arm.getTargetAngle() + 15);
+                arm.setTargetAngle(arm.getTargetAngle() - 15);
             }else{
                 collector.wristUp();
                 arm.collectionPosition();
             }
-        }else if(gamepad1.dpad_up){
+        }else if(gamepad1.dpad_up && !previousGamepad1.dpad_up){
             if(manualArm){
-                arm.setTargetAngle(arm.getTargetAngle() - 15);
+                arm.setTargetAngle(arm.getTargetAngle() + 15);
             }else {
                 if (!arm.setTargetAngle(95))
                     this.gamepad1.rumbleBlips(100);
