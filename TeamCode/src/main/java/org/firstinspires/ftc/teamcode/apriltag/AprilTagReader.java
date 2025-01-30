@@ -9,7 +9,6 @@ import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDir
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
-import org.firstinspires.ftc.teamcode.OpModeCore;
 import org.firstinspires.ftc.teamcode.hardware.drive.Pose;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
@@ -73,19 +72,19 @@ public class AprilTagReader {
 
             isInitialized = true;
         }
+    }
 
-        OpModeCore.getTelemetry().addData("April Tag", () -> {
-            Optional<Pose> poseOptional = getFirstPose();
-            if(poseOptional.isPresent()){
-                Pose pose = poseOptional.get();
-                return String.format(Locale.ENGLISH, "X Y Heading %6.1f %6.1f %6.1f  (inch)",
-                        pose.x(),
-                        pose.y(),
-                        pose.heading());
-            }else{
-                return "No detections";
-            }
-        });
+    public String getDetectionString(){
+        Optional<Pose> poseOptional = getFirstPose();
+        if(poseOptional.isPresent()){
+            Pose pose = poseOptional.get();
+            return String.format(Locale.ENGLISH, "X Y Heading %6.1f %6.1f %6.1f  (inch)",
+                    pose.x(),
+                    pose.y(),
+                    pose.heading());
+        }else{
+            return "No detections";
+        }
     }
 
 
@@ -101,7 +100,6 @@ public class AprilTagReader {
         } catch(IndexOutOfBoundsException e) {
             return Optional.empty();
         }
-
     }
 
     /**

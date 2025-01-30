@@ -119,5 +119,5 @@ public class AutonomousCore extends LinearOpMode {
         sleep(10000);
     }
 
-    //todo add methods, each corresponding to a move you want to make in autonomouse
+    //todo add methods, each corresponding to a move you want to make in autonomous
 }

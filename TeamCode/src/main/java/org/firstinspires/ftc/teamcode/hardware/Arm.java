@@ -9,7 +9,6 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.TouchSensor;
 
-import org.firstinspires.ftc.teamcode.OpModeCore;
 import org.firstinspires.ftc.teamcode.util.Encoder;
 
 import java.util.function.Consumer;
@@ -60,9 +59,10 @@ public class Arm {
     private Consumer<Arm> runningMacro;
 
     //todo these need actual trained values
+    //increase KF on arm
     public static double downwardKP = 0.005, downwardKI = 0, downwardKD = 0, downwardKF = -0.15, downwardMaxI = 0;
     public static double upwardKP = 0.02, upwardKI = 0.00001, upwardKD = 0.2, upwardKF = 0.15, upwardMaxI = 0.09;
-    public static double extensionKP = 0.1, extensionKI, extensionKD, extensionKF = 0.15, extensionMaxI;
+    public static double extensionKP = 0.2, extensionKI, extensionKD, extensionKF = 0.15, extensionMaxI;
     public static double retractionKP = 0.1, retractionKI, retractionKD, retractionKF = 0.2, retractionMaxI;
 
     private final PID downwardPID = new PID(downwardKP, downwardKI, downwardKD, downwardKF, downwardMaxI).setTolerance(0.75);
@@ -94,15 +94,6 @@ public class Arm {
 
         targetAngle = getAngle();
         targetExtension = getExtension();
-
-        OpModeCore.getTelemetry().addData("Current Arm Angle", this::getCachedAngle);
-        OpModeCore.getTelemetry().addData("Target Arm Angle", this::getTargetAngle);
-        OpModeCore.getTelemetry().addData("Current Arm Extension", this::getCachedExtension);
-        OpModeCore.getTelemetry().addData("Target Arm Extension", this::getTargetExtension);
-        OpModeCore.getTelemetry().addData("Last Angle Power", this::getLastAnglePower);
-        OpModeCore.getTelemetry().addData("Last Extension Power", this::getLastExtensionPower);
-        OpModeCore.getTelemetry().addData("Touch Pressed", touchSensor::isPressed);
-        OpModeCore.getTelemetry().addData("Arm Encoder Ticks", () -> angleEncoder.getCurrentPosition() - tickOffsetToZero);
     }
 
     /**
@@ -247,12 +238,6 @@ public class Arm {
         extensionMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     }
 
-    private double getCollectorExtension(){
-        if(OpModeCore.getCollector().isWristUp())
-            return Collector.LENGTH;
-        return 0;
-    }
-
     public void deliveryPosition(){
         if(runningMacro != null)
             return;
@@ -331,7 +316,7 @@ public class Arm {
         return lastAnglePower;
     }
 
-    private double getLastAnglePower(){
+    public double getLastAnglePower(){
         return lastAnglePower;
     }
 
@@ -350,7 +335,7 @@ public class Arm {
         return lastExtensionPower;
     }
 
-    private double getLastExtensionPower(){
+    public double getLastExtensionPower(){
         return lastExtensionPower;
     }
 

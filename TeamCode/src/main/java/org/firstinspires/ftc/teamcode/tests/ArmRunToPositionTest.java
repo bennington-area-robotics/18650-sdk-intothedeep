@@ -79,8 +79,7 @@ public class ArmRunToPositionTest extends LinearOpMode {
                 hardwareMap,
                 "colorSensor",
                 "wristMotor",
-                "gripServo",
-                true
+                "gripServo"
         );
         driveBase = new DriveBase(hardwareMap);
         arm = new Arm(hardwareMap, "tiltMotorLeft", "tiltMotorRight", "extensionMotor", "touchSensor");

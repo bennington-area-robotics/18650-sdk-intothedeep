@@ -4,12 +4,8 @@ import android.annotation.SuppressLint;
 
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 import com.qualcomm.robotcore.hardware.Servo;
-
-import org.firstinspires.ftc.teamcode.OpModeCore;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -31,7 +27,7 @@ public class Collector {
     private final DcMotor wristMotor;
 
     @SuppressLint("DefaultLocale")
-    public Collector(HardwareMap hardwareMap, String colorSensorName, String wristMotorName, String gripServoName, boolean includeTelem){
+    public Collector(HardwareMap hardwareMap, String colorSensorName, String wristMotorName, String gripServoName){
         this.colorSensor = new ColorSensor(hardwareMap, colorSensorName);
         this.gripServo = hardwareMap.get(Servo.class, gripServoName);
         this.wristMotor = hardwareMap.get(DcMotor.class, wristMotorName);
@@ -40,27 +36,6 @@ public class Collector {
         wristMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         wristMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         wristUp();
-
-        if(includeTelem) {
-            OpModeCore.getTelemetry().addLine("Grip")
-                    .addData("Position", gripServo::getPosition)
-                    .addData("Open?", this::isGripOpen)
-                    .addData("Closed?", this::isGripClosed);
-            OpModeCore.getTelemetry().addLine("Wrist")
-                    .addData("Position", wristMotor::getCurrentPosition)
-                    .addData("Up?", this::isWristUp)
-                    .addData("Down?", this::isWristDown);
-            OpModeCore.getTelemetry().addLine("Color Sensor")
-                    .addData("HSV", () -> {
-                        float[] hsv = colorSensor.getHSV();
-                        return String.format("Hue: %.3f Saturation: %.3f Value: %.3f", hsv[0], hsv[1], hsv[2]);
-                    })
-                    .addData("RGB", () -> {
-                        NormalizedRGBA rgba = colorSensor.getRGBA();
-                        return String.format("Red: %.3f Green: %.3f Blue: %.3f", rgba.red, rgba.green, rgba.blue);
-                    })
-                    .addData("Scoring Color", colorSensor::getScoringElementColor);
-        }
     }
 
 
@@ -135,6 +110,14 @@ public class Collector {
 
     public boolean holdingSample(ScoringElementColor elementColor){
         return isGripClosed() && colorSensor.getScoringElementColor() == elementColor;
+    }
+
+    public double getGripPosition(){
+        return gripServo.getPosition();
+    }
+
+    public double getWristPosition(){
+        return wristMotor.getCurrentPosition();
     }
 
     /**

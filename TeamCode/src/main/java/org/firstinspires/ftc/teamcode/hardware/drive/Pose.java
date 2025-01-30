@@ -9,8 +9,6 @@ import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 
-//todo finish this illustration (add x and y)
-
 /**
  * <h3>A class intended to be a simple, universal bridge between different Pose classes.</h3>
  * <pre><code>
@@ -39,9 +37,9 @@ import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
  *     Pose myPose = Pose.from(new Pose2d(50, 30, 45));
  *     Pose3D myNavPose = myPose.toNav3D();
  * </code></pre>
+ * <hr>
  * <br>
  * <h1>Visualizing Coordinates:</h1>
- * <hr>
  *
  * <pre>
  *                               ,_,
@@ -50,17 +48,17 @@ import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
  *                             +-|_/-------------------------------------------------+
  *                            /#+||-------------------------------------------------/|
  *                           /#/ || _/                                       /     /#|    ___________
- *             ___________  /#/  _/‾                                        /     /#/    /          /
+ *             ___________  /#/  _/‾              +z   -x                   /     /#/    /          /
  *            /          / /#/‾‾                   |   /                    \    /#/    /          /
  *           /          / /#/                      |  /                      \  /#/    /          /
  *          /          / /#/                       | /                        \/#/    /          /
- *         /          / /#/                        |/                         /#/    /   RED    /
- *        /   BLUE   / /#/             ____________|____________             /#/    /          /
+ *         /          / /#/                        |/                         /#/    /   BLUE   /
+ *        /   RED    / /#/          -x ____________|____________ +y          /#/    /          /
  *       /          / /#/                         /               _,_,      /#/    /          /
  *      /          / /#/ \                       /                \|./     /#/    /          /
  *     /          / /#/   \                     /                 _| |    /#/    /          /
  *    /          / /#/     \                   /                  \|./   /#/    /__________/
- *   /          / /#/      /                                       | |_./#/
+ *   /          / /#/      /                 +x                    | |_./#/
  *  /__________/ +--------+----------------------------------------+-+-+#/
  *               |/      /                                       / | | |/
  *               +-----------------------------------------------------+

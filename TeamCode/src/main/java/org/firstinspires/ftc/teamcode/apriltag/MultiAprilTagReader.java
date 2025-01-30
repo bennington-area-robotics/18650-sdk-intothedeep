@@ -52,4 +52,12 @@ public class MultiAprilTagReader {
     public List<Detection> getDetections(int cameraNum){
         return processors.get(cameraNum).getDetections().stream().map(Detection::new).collect(Collectors.toList());
     }
+
+    public List<VisionPortal> getPortals() {
+        return portals;
+    }
+
+    public List<AprilTagProcessor> getProcessors() {
+        return processors;
+    }
 }

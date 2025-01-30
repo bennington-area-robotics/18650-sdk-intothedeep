@@ -4,9 +4,12 @@ import android.util.Size;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
+import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Gamepad;
+import com.qualcomm.robotcore.hardware.NormalizedRGBA;
+import com.qualcomm.robotcore.hardware.TouchSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
@@ -19,6 +22,8 @@ import org.firstinspires.ftc.teamcode.hardware.Arm;
 import org.firstinspires.ftc.teamcode.hardware.Collector;
 import org.firstinspires.ftc.teamcode.hardware.drive.DriveBase;
 import org.firstinspires.ftc.teamcode.hardware.ScoringElementColor;
+
+import java.util.Locale;
 
 /** @noinspection SpellCheckingInspection*/
 @Config
@@ -34,11 +39,14 @@ public class OpModeCore extends LinearOpMode {
     private static DriveBase driveBase;
     private static Arm arm;
     private static Autopilot autopilot;
+    private static TouchSensor touchSensor;
 
     private final Gamepad previousGamepad1 = new Gamepad();
     private final Gamepad previousGamepad2 = new Gamepad();
 
     FtcDashboard dashboard = FtcDashboard.getInstance();
+
+    MultipleTelemetry telemetry = new MultipleTelemetry(super.telemetry, dashboard.getTelemetry());
 
     public static int targetPos = 0;
 
@@ -77,11 +85,11 @@ public class OpModeCore extends LinearOpMode {
                 hardwareMap,
                 "colorSensor",
                 "wristMotor",
-                "gripServo",
-                true
+                "gripServo"
         );
         driveBase = new DriveBase(hardwareMap);
         arm = new Arm(hardwareMap, "tiltMotorLeft", "tiltMotorRight", "extensionMotor", "touchSensor");
+        touchSensor = hardwareMap.get(TouchSensor.class, "touchSensor");
         autopilot = new Autopilot(driveBase, arm, collector);
         autopilot.setTickRunnable(this::tick);
 
@@ -102,16 +110,48 @@ public class OpModeCore extends LinearOpMode {
     }
 
     private void configureTelemetry(){
-        telemetry.setAutoClear(false); //disable clearing telemetry after update() is called
+        telemetry.setAutoClear(true);
         telemetry.log().setCapacity(100);
         telemetry.log().setDisplayOrder(Telemetry.Log.DisplayOrder.NEWEST_FIRST);
-
-        //use suppliers to allow updating values without clearing and re-adding
-        //such as: telemetry.addData("Detected Color", collector.colorSensor::getScoringElementColor); DO NOT UNCOMMENT
-
+    }
+    
+    public void updateTelemetry(){
         telemetry.addData("Collector Armed? ", collectorArmed);
         telemetry.addData("Tick Time ", Math.round(tickTimer.milliseconds()));
         telemetry.addData("Stage", autopilot.findCurrentStage());
+        telemetry.addData("Current Arm Angle", arm.getCachedAngle());
+        telemetry.addData("Target Arm Angle", arm.getTargetAngle());
+        telemetry.addData("Current Arm Extension", arm.getCachedExtension());
+        telemetry.addData("Target Arm Extension", arm.getTargetExtension());
+        telemetry.addData("Last Angle Power", arm.getLastAnglePower());
+        telemetry.addData("Last Extension Power", arm.getLastExtensionPower());
+        telemetry.addData("Touch Pressed", touchSensor.isPressed());
+
+        telemetry.addLine("Grip")
+                .addData("Position", collector.getGripPosition())
+                .addData("Open?", collector.isGripOpen())
+                .addData("Closed?", collector.isGripClosed());
+        telemetry.addLine("Wrist")
+                .addData("Position", collector.getWristPosition())
+                .addData("Up?", collector.isWristUp())
+                .addData("Down?", collector.isWristDown());
+        telemetry.addLine("Color Sensor")
+                .addData("HSV", getHSV())
+                .addData("RGB", getRGB())
+                .addData("Scoring Color", collector.colorSensor.getScoringElementColor());
+        telemetry.addData("April Tag", aprilTagReader.getDetectionString());
+        
+        telemetry.update();
+    }
+
+    private String getHSV(){
+        float[] hsv = collector.colorSensor.getHSV();
+        return String.format(Locale.ENGLISH,"Hue: %.3f Saturation: %.3f Value: %.3f", hsv[0], hsv[1], hsv[2]);
+    }
+
+    private String getRGB(){
+        NormalizedRGBA rgba = collector.colorSensor.getRGBA();
+        return String.format(Locale.ENGLISH,"Red: %.3f Green: %.3f Blue: %.3f", rgba.red, rgba.green, rgba.blue);
     }
 
     @Override
@@ -128,7 +168,7 @@ public class OpModeCore extends LinearOpMode {
         checkForScoringElement();
         arm.tick();
         collector.tick();
-        telemetry.update();
+        updateTelemetry();
         tickTimer.reset();
     }
 
@@ -196,8 +236,12 @@ public class OpModeCore extends LinearOpMode {
                 arm.collectionPosition();
             }
         }else if(gamepad1.dpad_up){
-            if(!arm.setTargetAngle(95))
-                this.gamepad1.rumbleBlips(100);
+            if(manualArm){
+                arm.setTargetAngle(arm.getTargetAngle() - 15);
+            }else {
+                if (!arm.setTargetAngle(95))
+                    this.gamepad1.rumbleBlips(100);
+            }
         }
 
         arm.setTargetExtension(arm.getTargetExtension() + 0.11 * (-gamepad1.left_trigger + gamepad1.right_trigger));
