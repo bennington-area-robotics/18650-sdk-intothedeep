@@ -41,10 +41,6 @@ public class OpModeCore extends LinearOpMode {
     private final Gamepad previousGamepad1 = new Gamepad();
     private final Gamepad previousGamepad2 = new Gamepad();
 
-    FtcDashboard dashboard = FtcDashboard.getInstance();
-
-    MultipleTelemetry telemetry = new MultipleTelemetry(this.telemetry, dashboard.getTelemetry());
-
     public static int targetPos = 0;
 
     private boolean collectorArmed = false;
@@ -76,6 +72,8 @@ public class OpModeCore extends LinearOpMode {
 
     public void initialize(){
         instance = this;
+
+
 
         //initialize hardware
         collector = new Collector(
@@ -117,7 +115,6 @@ public class OpModeCore extends LinearOpMode {
     }
 
     private void configureTelemetry(){
-
     }
     
     public void updateTelemetry(){
