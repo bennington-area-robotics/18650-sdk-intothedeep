@@ -25,10 +25,11 @@ public class Arm {
         public static double MAX_HORIZONTAL_EXTENSION = 38.0;
 
         public static double DELIVERY_EXTENSION = 38.0;
-        public static double DELIVERY_ANGLE = 90.0;
+        public static double DELIVERY_ANGLE = 95.0;
 
         public static double COLLECTION_EXTENSION = 0.0;
         public static double COLLECTION_ANGLE = 0.0;
+        public static double SPECIMEN_ANGLE = 55;
     //config
 
     private final DcMotorEx angleMotorRight;
@@ -161,7 +162,7 @@ public class Arm {
      * @param degrees the target angle in degrees.
      * @return whether the operation was successful (whether it passed the checks).
      */
-    public boolean setTargetAngle(@FloatRange(from=0, to=90) double degrees){
+    public boolean setTargetAngle(@FloatRange(from=0, to=100) double degrees){
         if(runningMacro != null){
             return false;
         }
@@ -181,7 +182,7 @@ public class Arm {
      * @param degrees the target angle in degrees.
      * @return whether the operation was successful (whether it passed the checks).
      */
-    private boolean setTargetAngleIgnoreMacro(@FloatRange(from=0, to=90) double degrees){
+    private boolean setTargetAngleIgnoreMacro(@FloatRange(from=0, to=100) double degrees){
         if(isValidAngle(degrees)){
             targetAngle = degrees;
             return true;
@@ -258,6 +259,13 @@ public class Arm {
 
         setTargetAngleIgnoreMacro(DELIVERY_ANGLE);
         setTargetExtension(DELIVERY_EXTENSION);
+    }
+
+    public void specimenPosition(){
+        if(runningMacro !=null)
+            return;
+
+        setTargetAngleIgnoreMacro(SPECIMEN_ANGLE);
     }
 
     /**
@@ -360,7 +368,7 @@ public class Arm {
 
     public boolean isValidAngle(double degrees){
         //do not set the target to a degree outside the desired range of motion
-        if(degrees < 0 || degrees > 90)
+        if(degrees < 0 || degrees > 100)
             return false;
 
         //do not set the target to a degree that will cause the arm to move outside the extension bounds.

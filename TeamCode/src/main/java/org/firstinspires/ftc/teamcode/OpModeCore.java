@@ -168,6 +168,10 @@ public class OpModeCore extends LinearOpMode {
             collectorArmed = !collectorArmed;
         }
 
+        if(gamepad1.left_bumper && !previousGamepad1.left_bumper){
+            arm.specimenPosition();
+        }
+
         if(gamepad1.x && !previousGamepad1.x) {
             isHighPower = !isHighPower;
             if (isHighPower) {
@@ -181,7 +185,7 @@ public class OpModeCore extends LinearOpMode {
             collector.wristUp();
             arm.collectionPosition();
         }else if(gamepad1.dpad_up){
-            if(!arm.setTargetAngle(90))
+            if(!arm.setTargetAngle(95))
                 this.gamepad1.rumbleBlips(100);
         }
 
