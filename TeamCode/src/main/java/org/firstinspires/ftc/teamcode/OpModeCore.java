@@ -133,9 +133,9 @@ public class OpModeCore extends LinearOpMode {
                 .addData("Stage", autopilot.findCurrentStage());
 
         telemetry.addLine("Arm Status")
-                .addData("Current Angle", arm.getAngle())
+                .addData("Current Angle", arm.getCachedAngle())
                 .addData("Target Angle", arm.getTargetAngle())
-                .addData("Current Extension", arm.getExtension())
+                .addData("Current Extension", arm.getCachedExtension())
                 .addData("Target Extension", arm.getTargetExtension())
                 .addData("Last Angle Power", arm.getLastAnglePower())
                 .addData("Last Extension Power", arm.getLastExtensionPower())
