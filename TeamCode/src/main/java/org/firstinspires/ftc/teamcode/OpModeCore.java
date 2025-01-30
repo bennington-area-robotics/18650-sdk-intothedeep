@@ -40,6 +40,7 @@ public class OpModeCore extends LinearOpMode {
 
     FtcDashboard dashboard = FtcDashboard.getInstance();
 
+    public static int targetPos = 0;
 
     private boolean collectorArmed = false;
     ElapsedTime tickTimer;
@@ -156,6 +157,11 @@ public class OpModeCore extends LinearOpMode {
                 if (!collector.toggleGrip()) {
                     collector.closeGrip();
                 }
+            }
+        }
+        if(gamepad1.right_bumper && !previousGamepad1.right_bumper){
+            if(!previousGamepad1.a) {
+                arm.setTargetAngle(targetPos);
             }
         }
 

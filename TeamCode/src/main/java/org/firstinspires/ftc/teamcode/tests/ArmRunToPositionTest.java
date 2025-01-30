@@ -159,10 +159,17 @@ public class ArmRunToPositionTest extends LinearOpMode {
             }
         }
 
+        if(gamepad1.dpad_up && !previousGamepad1.dpad_up){
+            arm.setTargetExtension(arm.getTargetExtension() + 1);
+        }
+        if(gamepad1.dpad_down && !previousGamepad1.dpad_down){
+            arm.setTargetExtension(arm.getTargetExtension() - 1);
+        }
 
 
 
-        arm.setTargetExtension(arm.getTargetExtension() + 0.11 * (-gamepad1.left_trigger + gamepad1.right_trigger));
+
+        //arm.setTargetExtension(arm.getTargetExtension() + 0.11 * (-gamepad1.left_trigger + gamepad1.right_trigger));
 
         driveBase.move(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x);
 

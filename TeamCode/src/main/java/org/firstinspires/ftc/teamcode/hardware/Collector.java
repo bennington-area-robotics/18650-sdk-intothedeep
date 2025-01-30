@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -19,7 +20,7 @@ public class Collector {
     public static float OPEN_POSITION = 0.4f, CLOSED_POSITION = 0; //grip
     public static int UP_POSITION = 90, DOWN_POSITION = 15; //wrist
     public static float LENGTH = 5f;
-    public static double wristKP = 0.5, wristKI, wristKD, wristKF, wristMaxI;
+    public static double wristKP = 0.015, wristKI, wristKD, wristKF = 0.125, wristMaxI;
 
     PID pid = new PID(wristKP, wristKI, wristKD, wristKF, wristMaxI);
 
@@ -37,6 +38,7 @@ public class Collector {
 
         wristMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         wristMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        wristMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         wristMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         wristUp();
 
