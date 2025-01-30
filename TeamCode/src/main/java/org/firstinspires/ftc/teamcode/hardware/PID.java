@@ -12,6 +12,12 @@ public class PID {
     double lastError;
     double tolerance;
     double minimum;
+    Direction direction;
+
+    public enum Direction {
+        FORWARD, REVERSE
+    }
+
 
     /**
      * Creates a PID controller which can be used to easily apply to most things.
@@ -27,6 +33,14 @@ public class PID {
         this.kD = kD;
         this.kF = kF;
         this.maxI = maxI;
+    }
+
+    public void setDirection(Direction direction) {
+        this.direction = direction;
+    }
+
+    public Direction getDirection() {
+        return direction;
     }
 
     /**
@@ -54,7 +68,10 @@ public class PID {
 
             lastError = currentError;
 
-            return p + i + d + Math.signum(currentError) * kF;
+            if(direction == Direction.FORWARD)
+                return (p + i + d + kF);
+            else
+                return -(p + i + d + kF);
         }else {
             return 0;
         }

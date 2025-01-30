@@ -141,6 +141,7 @@ public class OpModeCore extends LinearOpMode {
 
     //this might be moved to a seperate class
     private boolean isHighPower = false;
+    private boolean manualArm = false;
     public void checkGamepad() {
         //store the current gamepads since this state can change while in a check cycle
         Gamepad gamepad1 = new Gamepad();
@@ -169,7 +170,7 @@ public class OpModeCore extends LinearOpMode {
         }
 
         if(gamepad1.left_bumper && !previousGamepad1.left_bumper){
-            arm.specimenPosition();
+            manualArm = !manualArm;
         }
 
         if(gamepad1.x && !previousGamepad1.x) {
@@ -182,14 +183,16 @@ public class OpModeCore extends LinearOpMode {
         }
 
         if(gamepad1.dpad_down && !previousGamepad1.dpad_down){
-            collector.wristUp();
-            arm.collectionPosition();
+            if(manualArm){
+                arm.setTargetAngle(arm.getTargetAngle() + 15);
+            }else{
+                collector.wristUp();
+                arm.collectionPosition();
+            }
         }else if(gamepad1.dpad_up){
             if(!arm.setTargetAngle(95))
                 this.gamepad1.rumbleBlips(100);
         }
-
-
 
         arm.setTargetExtension(arm.getTargetExtension() + 0.11 * (-gamepad1.left_trigger + gamepad1.right_trigger));
 
