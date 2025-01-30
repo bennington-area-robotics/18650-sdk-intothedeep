@@ -27,6 +27,8 @@ public class OpModeCore extends LinearOpMode {
     public static float LOW_POWER_MODIFIER = 0.25f;
     public static float HIGH_POWER_MODIFIER = 0.75f;
 
+    public static float MAX_INCHES_PER_SECOND = 3;
+
     private static AprilTagReader aprilTagReader;
     private static OpModeCore instance;
     private static Collector collector;
@@ -113,7 +115,6 @@ public class OpModeCore extends LinearOpMode {
 
     private void configureTelemetry(){
         telemetry.setAutoClear(false);
-        telemetry.setNumDecimalPlaces(2, 3);
         telemetry.addLine("System Status")
                 .addData("Collector Armed?", () -> collectorArmed)
                 .addData("Tick Time", () -> Math.round(tickTimer.milliseconds()))
@@ -247,7 +248,10 @@ public class OpModeCore extends LinearOpMode {
         }
 
 
-        arm.setTargetExtension(arm.getTargetExtension() + 0.11 * (-gamepad1.left_trigger + gamepad1.right_trigger));
+        arm.setTargetExtension(
+                arm.getTargetExtension() +
+                        tickTimer.seconds() * MAX_INCHES_PER_SECOND * (-gamepad1.left_trigger + gamepad1.right_trigger)
+        );
 
         driveBase.move(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x);
 
