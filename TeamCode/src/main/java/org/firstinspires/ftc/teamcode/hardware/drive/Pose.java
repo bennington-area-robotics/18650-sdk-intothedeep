@@ -279,6 +279,41 @@ public class Pose {
         return unit.fromUnit(AngleUnit.DEGREES, roll);
     }
 
+    public Pose withOffset(
+            double xOffsetInches, double yOffsetInches, double zOffsetInches,
+            double yawOffsetDegrees, double pitchOffsetDegrees, double rollOffsetDegrees
+    ) {
+        return new Pose(
+                x + xOffsetInches, y + yOffsetInches, z + zOffsetInches,
+                yaw + yawOffsetDegrees, pitch + pitchOffsetDegrees, roll + rollOffsetDegrees
+        );
+    }
+
+    public Pose plusX(double xOffsetInches){
+        return withOffset(x + xOffsetInches,0,0,0,0,0);
+    }
+
+    public Pose plusY(double yOffsetInches){
+        return withOffset(0, y + yOffsetInches,0,0,0,0);
+    }
+
+    public Pose plusZ(double zOffsetInches){
+        return withOffset(0,0,z + zOffsetInches,0,0,0);
+    }
+
+    public Pose plusYaw(double yawOffsetInches){
+        return withOffset(0,0,0,yaw + yawOffsetInches,0,0);
+    }
+
+    public Pose plusPitch(double pitchOffsetInches){
+        return withOffset(0,0,0,0,pitch + pitchOffsetInches,0);
+    }
+
+    public Pose plusRoll(double rollOffsetInches){
+        return withOffset(0,0,0,0,0, roll + rollOffsetInches);
+    }
+
+
     public double distanceTo(Pose otherPose){
         double dx = otherPose.x - x;
         double dy = otherPose.y - y;

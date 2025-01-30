@@ -35,6 +35,7 @@ public class MultiAprilTagReader {
                     .setCamera(camName)
                     .setLiveViewContainerId(viewIds[i])
                     .addProcessor(processors.get(i))
+                    .setCameraResolution(camera.getResolution())
                     .build()
             );
         }

@@ -1,14 +1,8 @@
 package org.firstinspires.ftc.teamcode.apriltag;
 
-import android.util.Size;
-
 import com.acmerobotics.dashboard.config.Config;
-import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.firstinspires.ftc.robotcore.external.navigation.Position;
-import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 import org.firstinspires.ftc.teamcode.hardware.drive.Pose;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
@@ -23,10 +17,8 @@ public class AprilTagReader {
 
 
     private static final boolean USE_WEBCAM = true;  // true for webcam, false for phone camera
-    public static int decimation = 0; //todo test different values of decimation also test different PoseSolvers
-    public static Size resolution = new Size(640, 480);
-    private final Position cameraPosition;
-    private final YawPitchRollAngles cameraOrientation;
+    //todo test different values of decimation also test different PoseSolvers
+
     private boolean isInitialized = false;
 
     /**
@@ -41,16 +33,11 @@ public class AprilTagReader {
 
 
 
-    public AprilTagReader(HardwareMap hardwareMap, Position cameraPosition, YawPitchRollAngles cameraOrientation, Size resolution, int decimation){
-
-        this.cameraPosition = cameraPosition;
-        this.cameraOrientation = cameraOrientation;
-        AprilTagReader.resolution = resolution;
-        AprilTagReader.decimation = decimation;
+    public AprilTagReader(Camera camera){
 
         if(!isInitialized){
             aprilTag = new AprilTagProcessor.Builder()
-                    .setCameraPose(cameraPosition, cameraOrientation)
+                    .setCameraPose(camera.getPosition(), camera.getAngles())
                     .build();
 
             assert aprilTag != null;
@@ -58,12 +45,12 @@ public class AprilTagReader {
             VisionPortal.Builder builder = new VisionPortal.Builder();
 
             if (USE_WEBCAM) {
-                builder.setCamera(hardwareMap.get(WebcamName.class, "Webcam 1"));
+                builder.setCamera(camera.passable());
             } else {
                 builder.setCamera(BuiltinCameraDirection.BACK);
             }
 
-            builder.setCameraResolution(resolution);
+            builder.setCameraResolution(camera.getResolution());
 
             builder.addProcessor(aprilTag);
 

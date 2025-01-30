@@ -16,10 +16,12 @@ import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 import org.firstinspires.ftc.teamcode.Autopilot;
 import org.firstinspires.ftc.teamcode.apriltag.AprilTagReader;
+import org.firstinspires.ftc.teamcode.apriltag.Camera;
 import org.firstinspires.ftc.teamcode.hardware.Arm;
 import org.firstinspires.ftc.teamcode.hardware.Collector;
 import org.firstinspires.ftc.teamcode.hardware.drive.DriveBase;
 import org.firstinspires.ftc.teamcode.hardware.ScoringElementColor;
+import org.firstinspires.ftc.teamcode.hardware.drive.Pose;
 
 /** @noinspection SpellCheckingInspection*/
 @Config
@@ -88,11 +90,12 @@ public class ArmRunToPositionTest extends LinearOpMode {
 
         configureTelemetry();
 
-        aprilTagReader = new AprilTagReader(hardwareMap,
-                new Position(DistanceUnit.INCH, 0, 0, 0, 0),
-                new YawPitchRollAngles(AngleUnit.DEGREES, -90, -90, 0, 0),
-                new Size(640, 480),
-                0
+        aprilTagReader = new AprilTagReader(
+                new Camera(
+                        hardwareMap,
+                        "Webcam 1",
+                        new Pose(0,0,0)
+                )
         );
 
         //save the current gamepad states to compare against to avoid errors
