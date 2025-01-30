@@ -113,6 +113,7 @@ public class OpModeCore extends LinearOpMode {
 
     private void configureTelemetry(){
         telemetry.setAutoClear(false);
+        telemetry.setNumDecimalPlaces(2, 3);
         telemetry.addLine("System Status")
                 .addData("Collector Armed?", () -> collectorArmed)
                 .addData("Tick Time", () -> Math.round(tickTimer.milliseconds()))
