@@ -43,7 +43,7 @@ public class OpModeCore extends LinearOpMode {
 
     FtcDashboard dashboard = FtcDashboard.getInstance();
 
-    MultipleTelemetry telemetry = new MultipleTelemetry(super.telemetry, dashboard.getTelemetry());
+    MultipleTelemetry telemetry = new MultipleTelemetry(this.telemetry, dashboard.getTelemetry());
 
     public static int targetPos = 0;
 
@@ -76,10 +76,6 @@ public class OpModeCore extends LinearOpMode {
 
     public void initialize(){
         instance = this;
-
-        for (LynxModule hub : hardwareMap.getAll(LynxModule.class)) {
-            hub.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
-        }
 
         //initialize hardware
         collector = new Collector(
@@ -121,9 +117,7 @@ public class OpModeCore extends LinearOpMode {
     }
 
     private void configureTelemetry(){
-        telemetry.setAutoClear(true);
-        telemetry.log().setCapacity(100);
-        telemetry.log().setDisplayOrder(Telemetry.Log.DisplayOrder.NEWEST_FIRST);
+
     }
     
     public void updateTelemetry(){
