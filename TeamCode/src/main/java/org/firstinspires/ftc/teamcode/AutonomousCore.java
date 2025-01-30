@@ -7,7 +7,9 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.acmerobotics.dashboard.config.Config;
 import org.firstinspires.ftc.teamcode.hardware.drive.ConfiguredMecanumDrive;
+import org.firstinspires.ftc.teamcode.hardware.drive.DriveBase;
 import org.firstinspires.ftc.teamcode.hardware.drive.DriveConstants;
+import org.firstinspires.ftc.teamcode.hardware.drive.Pose;
 
 /*
  * This is an example of a more complex path to really test the tuning.
@@ -16,16 +18,52 @@ import org.firstinspires.ftc.teamcode.hardware.drive.DriveConstants;
 @Autonomous(group = "drive")
 public class AutonomousCore extends LinearOpMode {
 
+    //TODO FOR EBEN - clean up this code! remove the unnecessary code if its commented, implement the methods I added here
+
     public static double startX = 0;
     public static double startY = 63;
     public static double startAng = 90;
+
+    public static boolean DELIVER_SPECIMEN = true;
+    public static AutoTask task = AutoTask.PUSH_SAMPLES_TO_OBSERVATION_ZONE;
+
+    public enum AutoTask {
+        PUSH_SAMPLES_TO_OBSERVATION_ZONE, PUSH_SAMPLES_TO_NET_ZONE, PARK_IN_OBSERVATION_ZONE, PARK_LEVEL_1_ASCENT
+    }
+
+    private DriveBase drive;
+    private final Pose2d startPose = new Pose(startX, startY, startAng).toRR();
+
+    private final Pose2d lastEndPose = startPose;
+
     @Override
     public void runOpMode() throws InterruptedException {
-        ConfiguredMecanumDrive drive = new ConfiguredMecanumDrive(hardwareMap);
-        Pose2d startPose = new Pose2d(startX, startY, Math.toRadians(startAng));
-        drive.setPoseEstimate(startPose);
+        initialize();
 
         waitForStart();
+
+        run();
+    }
+
+    /**
+     * Prepare the robot for autonomous
+     * @implNote This should account for where the robot starts, and the position all 'appendages' start in.
+     * If there is some initialization movement that needs to happen to allow the bot to start in a position where it will fit in an 18x18, this is when it should happen.
+     * Since we get to define the starting position, this is a good time to reset our encoders if necessary.
+     */
+    public void initialize(){
+        drive = new DriveBase(hardwareMap);
+        drive.setPoseEstimate(startPose);
+
+        //TODO FOR EBEN - finish implementing this
+    }
+
+    /**
+     * Complete delivering a sample (if true) and the AutoTask.
+     * @implNote This should follow a unique path depending on DELIVER_SPECIMEN and the AutoTask.
+     */
+    public void run(){
+        //TODO FOR EBEN - finish implementing this
 
         if (isStopRequested()) return;
         Trajectory moveToSamples = drive.trajectoryBuilder(startPose, true)
@@ -80,4 +118,6 @@ public class AutonomousCore extends LinearOpMode {
 
         sleep(10000);
     }
+
+    //todo add methods, each corresponding to a move you want to make in autonomouse
 }

@@ -68,10 +68,10 @@ public class PID {
 
             lastError = currentError;
 
-            if(direction == Direction.FORWARD)
-                return (p + i + d + kF);
-            else
+            if(direction == Direction.REVERSE)
                 return -(p + i + d + kF);
+            else
+                return (p + i + d + kF);
         }else {
             return 0;
         }

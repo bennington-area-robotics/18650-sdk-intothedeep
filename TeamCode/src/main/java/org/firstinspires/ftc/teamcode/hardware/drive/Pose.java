@@ -49,9 +49,9 @@ import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
  *                               ||
  *                             +-|_/-------------------------------------------------+
  *                            /#+||-------------------------------------------------/|
- *                           /#/ ||                                          /     /#|    ___________
- *             ___________  /#/                                             /     /#/    /          /
- *            /          / /#/                     |   /                    \    /#/    /          /
+ *                           /#/ || _/                                       /     /#|    ___________
+ *             ___________  /#/  _/‾                                        /     /#/    /          /
+ *            /          / /#/‾‾                   |   /                    \    /#/    /          /
  *           /          / /#/                      |  /                      \  /#/    /          /
  *          /          / /#/                       | /                        \/#/    /          /
  *         /          / /#/                        |/                         /#/    /   RED    /
@@ -60,9 +60,9 @@ import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
  *      /          / /#/ \                       /                \|./     /#/    /          /
  *     /          / /#/   \                     /                 _| |    /#/    /          /
  *    /          / /#/     \                   /                  \|./   /#/    /__________/
- *   /          / /#/      /                                       | |  /#/
+ *   /          / /#/      /                                       | |_./#/
  *  /__________/ +--------+----------------------------------------+-+-+#/
- *               |/      /                                         | | |/
+ *               |/      /                                       / | | |/
  *               +-----------------------------------------------------+
  *  </pre>
  *  <br>
@@ -84,14 +84,16 @@ import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 public class Pose {
     private final double x, y, z;
     private final double yaw, pitch, roll;
+    private final long acquisitionTime;
 
-    private Pose(double x, double y, double z, double yaw, double pitch, double roll, AngleUnit angleUnit, DistanceUnit distanceUnit){
+    private Pose(double x, double y, double z, double yaw, double pitch, double roll, AngleUnit angleUnit, DistanceUnit distanceUnit, long acquisitionTime){
         this.x = distanceUnit.fromUnit(distanceUnit, x);
         this.y = distanceUnit.fromUnit(distanceUnit, y);
         this.z = distanceUnit.fromUnit(distanceUnit, z);
         this.yaw = AngleUnit.normalizeDegrees(AngleUnit.DEGREES.fromUnit(angleUnit, yaw));
         this.pitch = AngleUnit.normalizeDegrees(AngleUnit.DEGREES.fromUnit(angleUnit, pitch));
         this.roll = AngleUnit.normalizeDegrees(AngleUnit.DEGREES.fromUnit(angleUnit, roll));
+        this.acquisitionTime = acquisitionTime;
     }
 
     public static Pose from(Pose2d rrPose){
@@ -103,7 +105,8 @@ public class Pose {
                 0,
                 0,
                 AngleUnit.RADIANS,
-                DistanceUnit.INCH
+                DistanceUnit.INCH,
+                0
         );
     }
 
@@ -116,7 +119,8 @@ public class Pose {
                 0,
                 0,
                 AngleUnit.DEGREES,
-                DistanceUnit.INCH
+                DistanceUnit.INCH,
+                0
         );
     }
 
@@ -131,7 +135,8 @@ public class Pose {
                 angles.getPitch(AngleUnit.DEGREES),
                 angles.getRoll(AngleUnit.DEGREES),
                 AngleUnit.DEGREES,
-                position.unit
+                position.unit,
+                position.acquisitionTime
         );
     }
 
@@ -144,7 +149,8 @@ public class Pose {
                 0 ,
                 0,
                 AngleUnit.DEGREES,
-                DistanceUnit.INCH
+                DistanceUnit.INCH,
+                0
         );
     }
 
@@ -157,7 +163,8 @@ public class Pose {
                 0 ,
                 0,
                 AngleUnit.DEGREES,
-                DistanceUnit.INCH
+                DistanceUnit.INCH,
+                0
         );
     }
 
@@ -290,7 +297,7 @@ public class Pose {
     }
 
     public Pose3D toNav3D(){
-        return new Pose3D(new Position(DistanceUnit.INCH, x, y, z, 0), new YawPitchRollAngles(AngleUnit.DEGREES, yaw, pitch, roll, 0));
+        return new Pose3D(new Position(DistanceUnit.INCH, x, y, z, acquisitionTime), new YawPitchRollAngles(AngleUnit.DEGREES, yaw, pitch, roll, acquisitionTime));
     }
 
     public Position getPosition(){

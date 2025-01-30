@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.hardware.drive;
 
 
 import com.acmerobotics.roadrunner.geometry.Pose2d;
+import com.acmerobotics.roadrunner.trajectory.Trajectory;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 public class DriveBase extends ConfiguredMecanumDrive {
@@ -62,5 +63,11 @@ public class DriveBase extends ConfiguredMecanumDrive {
 
     public void setPowerFactor(double powerFactor){
         this.powerFactor = powerFactor;
+    }
+
+    public void followTrajectories(Trajectory... trajectories) {
+        for (Trajectory trajectory : trajectories) {
+            followTrajectory(trajectory);
+        }
     }
 }

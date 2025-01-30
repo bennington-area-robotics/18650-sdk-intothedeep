@@ -109,8 +109,8 @@ public class OpModeCore extends LinearOpMode {
         //use suppliers to allow updating values without clearing and re-adding
         //such as: telemetry.addData("Detected Color", collector.colorSensor::getScoringElementColor); DO NOT UNCOMMENT
 
-        telemetry.addData("Collector Armed? ", () -> collectorArmed);
-        telemetry.addData("Tick Time ", () -> Math.round(tickTimer.milliseconds()));
+        telemetry.addData("Collector Armed? ", collectorArmed);
+        telemetry.addData("Tick Time ", Math.round(tickTimer.milliseconds()));
         telemetry.addData("Stage", autopilot.findCurrentStage());
     }
 
