@@ -115,8 +115,9 @@ public class OpModeCore extends LinearOpMode {
 
     private void configureTelemetry(){
         telemetry.setAutoClear(false);
-        telemetry.addLine("System Status")
-                .addData("Collector Armed?", () -> collectorArmed)
+        telemetry.setDisplayFormat(Telemetry.DisplayFormat.HTML);
+        telemetry.addLine("System Status<br>")
+                .addData("<b>Collector Armed?</b>", () -> collectorArmed)
                 .addData("Tick Time", () -> Math.round(tickTimer.milliseconds()))
                 .addData("Stage", autopilot.findCurrentStage());
 
