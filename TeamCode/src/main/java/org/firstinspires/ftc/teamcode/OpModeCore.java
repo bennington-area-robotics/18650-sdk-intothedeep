@@ -41,10 +41,6 @@ public class OpModeCore extends LinearOpMode {
     private final Gamepad previousGamepad1 = new Gamepad();
     private final Gamepad previousGamepad2 = new Gamepad();
 
-    FtcDashboard dashboard = FtcDashboard.getInstance();
-
-    MultipleTelemetry telemetry = new MultipleTelemetry(super.telemetry, dashboard.getTelemetry());
-
     public static int targetPos = 0;
 
     private boolean collectorArmed = false;
@@ -77,9 +73,7 @@ public class OpModeCore extends LinearOpMode {
     public void initialize(){
         instance = this;
 
-        for (LynxModule hub : hardwareMap.getAll(LynxModule.class)) {
-            hub.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
-        }
+
 
         //initialize hardware
         collector = new Collector(
@@ -121,9 +115,6 @@ public class OpModeCore extends LinearOpMode {
     }
 
     private void configureTelemetry(){
-        telemetry.setAutoClear(true);
-        telemetry.log().setCapacity(100);
-        telemetry.log().setDisplayOrder(Telemetry.Log.DisplayOrder.NEWEST_FIRST);
     }
     
     public void updateTelemetry(){

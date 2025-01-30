@@ -47,7 +47,7 @@ public class Camera {
     }
 
     public Size getResolution(){
-        org.firstinspires.ftc.robotcore.external.android.util.Size ftcSize = passable.getCameraCharacteristics().getDefaultSize(ImageFormat.YUV_420_888);
+        org.firstinspires.ftc.robotcore.external.android.util.Size ftcSize = passable.getCameraCharacteristics().getDefaultSize(ImageFormat.YUY2);
         return new Size(ftcSize.getWidth(), ftcSize.getHeight());
     }
 }
