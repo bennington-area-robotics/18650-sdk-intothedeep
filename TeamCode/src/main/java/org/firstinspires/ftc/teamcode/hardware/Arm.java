@@ -15,21 +15,32 @@ import java.util.function.Consumer;
 
 @Config
 public class Arm {
-    //config
-        public static float ARM_TICKS_PER_DEGREE = 65f; //this is a good estimate as of 1/24/2025
 
-        public static float ARM_TICKS_PER_INCH = 190f;
-        public static double MAX_ARM_EXTENSION = 37.0;
+    //<editor-fold desc="Config">
+    public static float ARM_TICKS_PER_DEGREE = 65f; //this is a good estimate as of 1/24/2025
 
-        public static double MAX_HORIZONTAL_EXTENSION = 38.0;
+    public static float ARM_TICKS_PER_INCH = 190f;
+    public static double MAX_ARM_EXTENSION = 37.0;
 
-        public static double DELIVERY_EXTENSION = 38.0;
-        public static double DELIVERY_ANGLE = 95.0;
+    public static double MAX_HORIZONTAL_EXTENSION = 38.0;
 
-        public static double COLLECTION_EXTENSION = 0.0;
-        public static double COLLECTION_ANGLE = 0.0;
-        public static double SPECIMEN_ANGLE = 55;
-    //config
+    public static double DELIVERY_EXTENSION = 38.0;
+    public static double DELIVERY_ANGLE = 95.0;
+
+    public static double COLLECTION_EXTENSION = 0.0;
+    public static double COLLECTION_ANGLE = 0.0;
+    public static double SPECIMEN_ANGLE = 55;
+
+    public static double downwardKP = 0.005, downwardKI = 0, downwardKD = 0, downwardKF = -0.15, downwardMaxI = 0;
+    public static double upwardKP = 0.02, upwardKI = 0.00001, upwardKD = 0.2, upwardKF = 0.15, upwardMaxI = 0.09;
+    public static double extensionKP = 0.2, extensionKI, extensionKD, extensionKF = 0.15, extensionMaxI;
+    public static double retractionKP = 0.1, retractionKI, retractionKD, retractionKF = -0.2, retractionMaxI;
+
+    private final PID downwardPID = new PID(downwardKP, downwardKI, downwardKD, downwardKF, downwardMaxI).setTolerance(0.75);
+    private final PID upwardPID = new PID(upwardKP, upwardKI, upwardKD, upwardKF, upwardMaxI).setTolerance(0.75);
+    private final PID extensionPID = new PID(extensionKP, extensionKI, extensionKD, extensionKF, extensionMaxI).setTolerance(0.2);
+    private final PID retractionPID = new PID(retractionKP, retractionKI, retractionKD, retractionKF, retractionMaxI).setTolerance(0.2);
+    //</editor-fold>
 
     private final DcMotorEx angleMotorRight;
     private final DcMotorEx angleMotorLeft;
@@ -59,18 +70,9 @@ public class Arm {
     private Consumer<Arm> runningMacro;
 
     //todo these need actual trained values
-    public static double downwardKP = 0.005, downwardKI = 0, downwardKD = 0, downwardKF = -0.15, downwardMaxI = 0;
-    public static double upwardKP = 0.02, upwardKI = 0.00001, upwardKD = 0.2, upwardKF = 0.15, upwardMaxI = 0.09;
-    public static double extensionKP = 0.2, extensionKI, extensionKD, extensionKF = 0.15, extensionMaxI;
-    public static double retractionKP = 0.1, retractionKI, retractionKD, retractionKF = -0.2, retractionMaxI;
-
-    private final PID downwardPID = new PID(downwardKP, downwardKI, downwardKD, downwardKF, downwardMaxI).setTolerance(0.75);
-    private final PID upwardPID = new PID(upwardKP, upwardKI, upwardKD, upwardKF, upwardMaxI).setTolerance(0.75);
-    private final PID extensionPID = new PID(extensionKP, extensionKI, extensionKD, extensionKF, extensionMaxI).setTolerance(0.2);
-    private final PID retractionPID = new PID(retractionKP, retractionKI, retractionKD, retractionKF, retractionMaxI).setTolerance(0.2);
-
 
     public Arm(HardwareMap hardwareMap, String tiltMotorLeftName, String tiltMotorRightName, String extensionMotorName, String touchSensorName) {
+        //<editor-fold desc="Hardware Config">
         this.angleMotorRight = hardwareMap.get(DcMotorEx.class, tiltMotorRightName);
         this.angleMotorLeft = hardwareMap.get(DcMotorEx.class, tiltMotorLeftName);
         this.extensionMotor = hardwareMap.get(DcMotorEx.class, extensionMotorName);
@@ -87,6 +89,7 @@ public class Arm {
         this.angleMotorLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         this.angleMotorRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         this.angleEncoder.setDirection(Encoder.Direction.FORWARD);
+        //</editor-fold>
 
         resetExtension();
         resetAngle();
@@ -105,12 +108,20 @@ public class Arm {
         return (angleEncoder.getCurrentPosition() - tickOffsetToZero) / ARM_TICKS_PER_DEGREE;
     }
 
+    public double getAngleVelocity(){
+        return angleEncoder.getCorrectedVelocity() / ARM_TICKS_PER_DEGREE;
+    }
+
     /**
      * Get the current extension of the end of the arm past the minimum extension (fully retracted).
      *
      * @return the extension of the end of the arm.
      */
     public double getExtension(){
+        return extensionMotor.getCurrentPosition() / ARM_TICKS_PER_INCH;
+    }
+
+    public double getExtensionVelocity(){
         return extensionMotor.getCurrentPosition() / ARM_TICKS_PER_INCH;
     }
 

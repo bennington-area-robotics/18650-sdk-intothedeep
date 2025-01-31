@@ -28,11 +28,13 @@ import java.util.Locale;
 @TeleOp(name="1 - Main TeleOp")
 public class OpModeCore extends LinearOpMode {
 
+    //<editor-fold desc="Config">
     public static float LOW_POWER_MODIFIER = 0.25f;
     public static float HIGH_POWER_MODIFIER = 0.75f;
-
     public static float MAX_INCHES_PER_SECOND = 3;
+    //</editor-fold>
 
+    //<editor-fold desc="Fields">
     private static AprilTagReader aprilTagReader;
     private static OpModeCore instance;
     private static Collector collector;
@@ -46,12 +48,13 @@ public class OpModeCore extends LinearOpMode {
     private final Gamepad previousGamepad1 = new Gamepad();
     private final Gamepad previousGamepad2 = new Gamepad();
 
-    public static int targetPos = 0;
 
     private boolean collectorArmed = false;
     ElapsedTime tickTimer, gamepadTimer;
     private List<LynxModule> lynxModules;
+    //</editor-fold>
 
+    //<editor-fold desc="Instance Getters">
     public static OpModeCore getInstance(){
         return instance;
     }
@@ -75,6 +78,7 @@ public class OpModeCore extends LinearOpMode {
     public static Autopilot getAutopilot(){
         return autopilot;
     }
+    //</editor-fold>
 
     public void initialize(){
         instance = this;
@@ -221,9 +225,7 @@ public class OpModeCore extends LinearOpMode {
             }
         }
         if(gamepad1.right_bumper && !previousGamepad1.right_bumper){
-            if(!previousGamepad1.a) {
-                arm.setTargetAngle(targetPos);
-            }
+
         }
 
         //toggle wrist on pressing b, if failed to detect if up or down, default to up.
