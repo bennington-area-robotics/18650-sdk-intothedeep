@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.Locale;
 //todo reset macro
 //todo on initialization, move to limits
-//todo telemetry wrapper
 
 /** @noinspection SpellCheckingInspection*/
 @Config
@@ -41,6 +40,8 @@ public class OpModeCore extends LinearOpMode {
     private static Arm arm;
     private static Autopilot autopilot;
     private static TouchSensor touchSensor;
+    
+    private PrettyTelemetry prettyTelem;
 
     private final Gamepad previousGamepad1 = new Gamepad();
     private final Gamepad previousGamepad2 = new Gamepad();
@@ -122,38 +123,38 @@ public class OpModeCore extends LinearOpMode {
     }
 
     private void configureTelemetry(){
-        telemetry.setAutoClear(false);
-        telemetry.setDisplayFormat(Telemetry.DisplayFormat.HTML);
-        telemetry.addLine("<b>System Status</b><br>")
-                .addData("Collector Armed?", () -> collectorArmed + "<br>")
-                .addData("Tick Time", () -> Math.round(tickTimer.milliseconds()) + "<br>")
-                .addData("Stage", autopilot.findCurrentStage() + "<br>");
+        prettyTelem = new PrettyTelemetry(telemetry);
+        
+        prettyTelem.addLine("System Status")
+                .addData("Collector Armed?", () -> collectorArmed)
+                .addData("Tick Time", () -> Math.round(tickTimer.milliseconds()))
+                .addData("Stage", () -> autopilot.findCurrentStage());
 
-        telemetry.addLine("<b>Arm Status</b>" + "<br>")
-                .addData("Current Angle", () -> arm.getAngle() + "<br>")
-                .addData("Target Angle", () -> arm.getTargetAngle() + "<br>")
-                .addData("Current Extension", () -> arm.getExtension() + "<br>")
-                .addData("Target Extension", () -> arm.getTargetExtension() + "<br>")
-                .addData("Last Angle Power", () -> arm.getLastAnglePower() + "<br>")
-                .addData("Last Extension Power", () -> arm.getLastExtensionPower() + "<br>")
-                .addData("Touch Sensor Pressed", () -> touchSensor.isPressed() + "<br>");
+        prettyTelem.addLine("Arm Status")
+                .addData("Current Angle", () -> arm.getAngle())
+                .addData("Target Angle", () -> arm.getTargetAngle())
+                .addData("Current Extension", () -> arm.getExtension())
+                .addData("Target Extension", () -> arm.getTargetExtension())
+                .addData("Last Angle Power", () -> arm.getLastAnglePower())
+                .addData("Last Extension Power", () -> arm.getLastExtensionPower())
+                .addData("Touch Sensor Pressed", () -> touchSensor.isPressed());
 
-        telemetry.addLine("<b>Grip</b>" + "<br>")
-                .addData("Position", () -> collector.getGripPosition() + "<br>")
-                .addData("Open?", () -> collector.isGripOpen() + "<br>")
-                .addData("Closed?", () -> collector.isGripClosed() + "<br>");
+        prettyTelem.addLine("Grip")
+                .addData("Position", () -> collector.getGripPosition())
+                .addData("Open?", () -> collector.isGripOpen())
+                .addData("Closed?", () -> collector.isGripClosed());
 
-        telemetry.addLine("<b>Wrist</b>" + "<br>")
-                .addData("Position", () -> collector.getWristPosition() + "<br>")
-                .addData("Up?", () -> collector.isWristUp() + "<br>")
-                .addData("Down?", () -> collector.isWristDown() + "<br>");
+        prettyTelem.addLine("Wrist")
+                .addData("Position", () -> collector.getWristPosition())
+                .addData("Up?", () -> collector.isWristUp())
+                .addData("Down?", () -> collector.isWristDown());
 
-        telemetry.addLine("<b>Color Sensor</b>" + "<br>")
-                .addData("HSV", () -> this.getHSV()  + "<br>")
-                .addData("RGB", () -> this.getRGB()  + "<br>")
-                .addData("Scoring Color", () -> collector.colorSensor.getScoringElementColor() + "<br>");
+        prettyTelem.addLine("Color Sensor")
+                .addData("HSV", this::getHSV)
+                .addData("RGB", this::getRGB)
+                .addData("Scoring Color", () -> collector.colorSensor.getScoringElementColor());
 
-        telemetry.addData("<b>April Tag</b>", () -> aprilTagReader.getDetectionString() + "<br>");
+        prettyTelem.addData("April Tag", () -> aprilTagReader.getDetectionString());
     }
 
     private String getHSV(){
