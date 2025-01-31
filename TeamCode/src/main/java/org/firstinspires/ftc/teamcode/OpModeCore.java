@@ -31,7 +31,7 @@ public class OpModeCore extends LinearOpMode {
     public static float LOW_POWER_MODIFIER = 0.25f;
     public static float HIGH_POWER_MODIFIER = 0.75f;
 
-    public static float MAX_INCHES_PER_SECOND = 300;
+    public static float MAX_INCHES_PER_SECOND = 3;
 
     private static AprilTagReader aprilTagReader;
     private static OpModeCore instance;
@@ -49,7 +49,7 @@ public class OpModeCore extends LinearOpMode {
     public static int targetPos = 0;
 
     private boolean collectorArmed = false;
-    ElapsedTime tickTimer;
+    ElapsedTime tickTimer, gamepadTimer;
     private List<LynxModule> lynxModules;
 
     public static OpModeCore getInstance(){
@@ -120,6 +120,7 @@ public class OpModeCore extends LinearOpMode {
         previousGamepad2.copy(gamepad2);
 
         tickTimer = new ElapsedTime();
+        gamepadTimer = new ElapsedTime();
     }
 
     private void configureTelemetry(){
@@ -267,8 +268,10 @@ public class OpModeCore extends LinearOpMode {
 
         arm.setTargetExtension(
                 arm.getTargetExtension() +
-                        tickTimer.seconds() * MAX_INCHES_PER_SECOND * (-gamepad1.left_trigger + gamepad1.right_trigger)
+                        gamepadTimer.seconds() * MAX_INCHES_PER_SECOND * (-gamepad1.left_trigger + gamepad1.right_trigger)
         );
+
+        gamepadTimer.reset();
 
         driveBase.move(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x);
 
