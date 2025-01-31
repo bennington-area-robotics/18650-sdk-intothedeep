@@ -182,7 +182,7 @@ public class OpModeCore extends LinearOpMode {
         checkForScoringElement();
         arm.tick();
         collector.tick();
-        telemetry.update();
+        prettyTelem.update();
         tickTimer.reset();
     }
 
