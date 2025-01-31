@@ -27,7 +27,7 @@ public class OpModeCore extends LinearOpMode {
     public static float LOW_POWER_MODIFIER = 0.25f;
     public static float HIGH_POWER_MODIFIER = 0.75f;
 
-    public static float MAX_INCHES_PER_SECOND = 3;
+    public static float MAX_INCHES_PER_SECOND = 300;
 
     private static AprilTagReader aprilTagReader;
     private static OpModeCore instance;

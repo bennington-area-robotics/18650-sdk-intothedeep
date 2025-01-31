@@ -19,7 +19,7 @@ public class Arm {
         public static float ARM_TICKS_PER_DEGREE = 65f; //this is a good estimate as of 1/24/2025
 
         public static float ARM_TICKS_PER_INCH = 190f;
-        public static double MAX_ARM_EXTENSION = 38.0;
+        public static double MAX_ARM_EXTENSION = 37.0;
 
         public static double MAX_HORIZONTAL_EXTENSION = 38.0;
 
@@ -62,7 +62,7 @@ public class Arm {
     public static double downwardKP = 0.005, downwardKI = 0, downwardKD = 0, downwardKF = -0.15, downwardMaxI = 0;
     public static double upwardKP = 0.02, upwardKI = 0.00001, upwardKD = 0.2, upwardKF = 0.15, upwardMaxI = 0.09;
     public static double extensionKP = 0.2, extensionKI, extensionKD, extensionKF = 0.15, extensionMaxI;
-    public static double retractionKP = 0.1, retractionKI, retractionKD, retractionKF = 0.2, retractionMaxI;
+    public static double retractionKP = 0.1, retractionKI, retractionKD, retractionKF = -0.2, retractionMaxI;
 
     private final PID downwardPID = new PID(downwardKP, downwardKI, downwardKD, downwardKF, downwardMaxI).setTolerance(0.75);
     private final PID upwardPID = new PID(upwardKP, upwardKI, upwardKD, upwardKF, upwardMaxI).setTolerance(0.75);
@@ -267,7 +267,8 @@ public class Arm {
 
             setTargetExtension(COLLECTION_EXTENSION);
             runningMacro = (arm -> {
-                if (Math.abs(COLLECTION_ANGLE - arm.getCachedAngle()) < 0.5) {
+                if (Math.abs(COLLECTION_ANGLE - arm.getCachedAngle()) < 5) {
+                    arm.setTargetAngle(COLLECTION_ANGLE);
                     arm.runningMacro = null;
                 } else {
                     double targetAngle = inchesPerDegree * (arm.getCachedExtension() - COLLECTION_EXTENSION) + COLLECTION_ANGLE;
