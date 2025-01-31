@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.acmerobotics.dashboard.config.Config;
+import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Gamepad;
@@ -17,11 +18,11 @@ import org.firstinspires.ftc.teamcode.hardware.drive.DriveBase;
 import org.firstinspires.ftc.teamcode.hardware.ScoringElementColor;
 import org.firstinspires.ftc.teamcode.hardware.drive.Pose;
 
+import java.util.List;
 import java.util.Locale;
 //todo reset macro
 //todo on initialization, move to limits
 //todo telemetry wrapper
-//todo caching wrapper
 
 /** @noinspection SpellCheckingInspection*/
 @Config
@@ -48,6 +49,7 @@ public class OpModeCore extends LinearOpMode {
 
     private boolean collectorArmed = false;
     ElapsedTime tickTimer;
+    private List<LynxModule> lynxModules;
 
     public static OpModeCore getInstance(){
         return instance;
@@ -76,7 +78,11 @@ public class OpModeCore extends LinearOpMode {
     public void initialize(){
         instance = this;
 
+        lynxModules = hardwareMap.getAll(LynxModule.class);
 
+        for(LynxModule module : lynxModules){
+            module.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
+        }
 
         //initialize hardware
         collector = new Collector(
@@ -170,12 +176,19 @@ public class OpModeCore extends LinearOpMode {
     }
 
     public void tick(){
+        updateMotorServoCache();
         checkGamepad();
         checkForScoringElement();
         arm.tick();
         collector.tick();
         telemetry.update();
         tickTimer.reset();
+    }
+
+    public void updateMotorServoCache(){
+        for(LynxModule module : lynxModules){
+            module.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
+        }
     }
 
     public void checkForScoringElement(){
