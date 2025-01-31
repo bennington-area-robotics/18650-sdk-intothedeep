@@ -267,7 +267,7 @@ public class Arm {
 
             setTargetExtension(COLLECTION_EXTENSION);
             runningMacro = (arm -> {
-                if (Math.abs(COLLECTION_ANGLE - arm.getCachedAngle()) < 5) {
+                if (Math.abs(COLLECTION_ANGLE - arm.getCachedAngle()) < 10) {
                     arm.setTargetAngleIgnoreMacro(COLLECTION_ANGLE);
                     arm.runningMacro = null;
                 } else {

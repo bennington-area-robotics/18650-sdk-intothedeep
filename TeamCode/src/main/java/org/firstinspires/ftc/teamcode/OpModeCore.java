@@ -18,6 +18,10 @@ import org.firstinspires.ftc.teamcode.hardware.ScoringElementColor;
 import org.firstinspires.ftc.teamcode.hardware.drive.Pose;
 
 import java.util.Locale;
+//todo reset macro
+//todo on initialization, move to limits
+//todo telemetry wrapper
+//todo caching wrapper
 
 /** @noinspection SpellCheckingInspection*/
 @Config
@@ -90,8 +94,6 @@ public class OpModeCore extends LinearOpMode {
                 "touchSensor"
         );
         touchSensor = hardwareMap.get(TouchSensor.class, "touchSensor");
-
-
 
         autopilot = new Autopilot(driveBase, arm, collector);
         autopilot.setTickRunnable(this::tick);
