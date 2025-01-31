@@ -268,7 +268,7 @@ public class Arm {
             setTargetExtension(COLLECTION_EXTENSION);
             runningMacro = (arm -> {
                 if (Math.abs(COLLECTION_ANGLE - arm.getCachedAngle()) < 5) {
-                    arm.setTargetAngle(COLLECTION_ANGLE);
+                    arm.setTargetAngleIgnoreMacro(COLLECTION_ANGLE);
                     arm.runningMacro = null;
                 } else {
                     double targetAngle = inchesPerDegree * (arm.getCachedExtension() - COLLECTION_EXTENSION) + COLLECTION_ANGLE;
