@@ -34,12 +34,12 @@ public class Arm {
     public static double downwardKP = 0.005, downwardKI = 0, downwardKD = 0, downwardKF = -0.15, downwardMaxI = 0;
     public static double upwardKP = 0.02, upwardKI = 0.00001, upwardKD = 0.2, upwardKF = 0.15, upwardMaxI = 0.09;
     public static double extensionKP = 0.2, extensionKI, extensionKD, extensionKF = 0.15, extensionMaxI;
-    public static double retractionKP = 0.1, retractionKI, retractionKD, retractionKF = -0.2, retractionMaxI;
+    public static double retractionKP = 0.1, retractionKI, retractionKD, retractionKF = -0.5, retractionMaxI;
 
     private final PID downwardPID = new PID(downwardKP, downwardKI, downwardKD, downwardKF, downwardMaxI).setTolerance(0.75);
     private final PID upwardPID = new PID(upwardKP, upwardKI, upwardKD, upwardKF, upwardMaxI).setTolerance(0.75);
-    private final PID extensionPID = new PID(extensionKP, extensionKI, extensionKD, extensionKF, extensionMaxI).setTolerance(0.2);
-    private final PID retractionPID = new PID(retractionKP, retractionKI, retractionKD, retractionKF, retractionMaxI).setTolerance(0.2);
+    private final PID extensionPID = new PID(extensionKP, extensionKI, extensionKD, extensionKF, extensionMaxI).setTolerance(0.3);
+    private final PID retractionPID = new PID(retractionKP, retractionKI, retractionKD, retractionKF, retractionMaxI).setTolerance(0.3);
     //</editor-fold>
 
     private final DcMotorEx angleMotorRight;
@@ -244,7 +244,7 @@ public class Arm {
      * Moves arm to collection pose.
      */
     public void collectionPosition(){
-        if(getExtension() - COLLECTION_EXTENSION == 0){
+        if(getExtension() - COLLECTION_EXTENSION < 1.5){
             setTargetExtension(COLLECTION_EXTENSION);
             setTargetAngle(0);
         }else {
@@ -257,7 +257,11 @@ public class Arm {
             runningMacro = (arm -> {
                 if (Math.abs(COLLECTION_ANGLE - arm.getAngle()) < 10) {
                     arm.setTargetAngleIgnoreMacro(COLLECTION_ANGLE);
+                    arm.setTargetExtension(arm.getExtension());
                     arm.runningMacro = null;
+                } else if (getExtension() - COLLECTION_EXTENSION < 1.5) {
+                    arm.setTargetAngleIgnoreMacro(COLLECTION_ANGLE);
+                    arm.setTargetExtension(DELIVERY_EXTENSION);
                 } else {
                     double targetAngle = inchesPerDegree * (arm.getExtension() - COLLECTION_EXTENSION) + COLLECTION_ANGLE;
                     arm.setTargetAngleIgnoreMacro(targetAngle);

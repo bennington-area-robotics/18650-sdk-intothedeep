@@ -31,7 +31,7 @@ public class OpModeCore extends LinearOpMode {
     //<editor-fold desc="Config">
     public static float LOW_POWER_MODIFIER = 0.25f;
     public static float HIGH_POWER_MODIFIER = 0.75f;
-    public static float MAX_INCHES_PER_SECOND = 3;
+    public static float MAX_INCHES_PER_SECOND = 9f;
     //</editor-fold>
 
     //<editor-fold desc="Fields">
@@ -86,7 +86,7 @@ public class OpModeCore extends LinearOpMode {
         lynxModules = hardwareMap.getAll(LynxModule.class);
 
         for(LynxModule module : lynxModules){
-            module.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
+            module.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
         }
 
         //initialize hardware
@@ -109,8 +109,6 @@ public class OpModeCore extends LinearOpMode {
         autopilot = new Autopilot(driveBase, arm, collector);
         autopilot.setTickRunnable(this::tick);
 
-        configureTelemetry();
-
         aprilTagReader = new AprilTagReader(
                 new Camera(
                         hardwareMap,
@@ -125,6 +123,9 @@ public class OpModeCore extends LinearOpMode {
 
         tickTimer = new ElapsedTime();
         gamepadTimer = new ElapsedTime();
+
+        // always configure telemetry last
+        configureTelemetry();
     }
 
     private void configureTelemetry(){
@@ -133,7 +134,9 @@ public class OpModeCore extends LinearOpMode {
         prettyTelem.addLine("System Status")
                 .addData("Collector Armed?", () -> collectorArmed)
                 .addData("Tick Time", () -> Math.round(tickTimer.milliseconds()))
-                .addData("Stage", () -> autopilot.findCurrentStage());
+                .addData("Stage", () -> autopilot.findCurrentStage())
+                .addData("Localization: ", () -> driveBase.getPoseSimple())
+        ;
 
         prettyTelem.addLine("Arm Status")
                 .addData("Current Angle", () -> arm.getAngle())
@@ -182,7 +185,7 @@ public class OpModeCore extends LinearOpMode {
     }
 
     public void tick(){
-        updateMotorServoCache();
+        //updateMotorServoCache();
         checkGamepad();
         checkForScoringElement();
         arm.tick();
@@ -193,7 +196,7 @@ public class OpModeCore extends LinearOpMode {
 
     public void updateMotorServoCache(){
         for(LynxModule module : lynxModules){
-            module.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
+            module.clearBulkCache();
         }
     }
 
@@ -223,9 +226,6 @@ public class OpModeCore extends LinearOpMode {
                     collector.closeGrip();
                 }
             }
-        }
-        if(gamepad1.right_bumper && !previousGamepad1.right_bumper){
-
         }
 
         //toggle wrist on pressing b, if failed to detect if up or down, default to up.
@@ -262,7 +262,7 @@ public class OpModeCore extends LinearOpMode {
             if(manualArm){
                 arm.setTargetAngle(arm.getTargetAngle() + 15);
             }else {
-                if (!arm.setTargetAngle(95))
+                if (!arm.setTargetAngle(100))
                     this.gamepad1.rumbleBlips(100);
             }
         }

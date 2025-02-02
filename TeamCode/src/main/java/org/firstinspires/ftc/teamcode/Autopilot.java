@@ -7,8 +7,8 @@ import org.firstinspires.ftc.teamcode.hardware.drive.Pose;
 
 public class Autopilot {
     //todo these will be different per-side (these are for blue)
-    private static final Pose basketPose = new Pose( 2.5 * 24, 2.5 * 24, 0);
-    private static final Pose submersiblePoseA = new Pose(0, 24, 0);
+    private static final Pose basketPose = new Pose( 53, 57, 0);
+    private static final Pose submersiblePoseA = new Pose(0, 30, 0);
     //todo there should be multiple paths to go for
 
 
@@ -157,7 +157,7 @@ public class Autopilot {
     }
 
     private boolean atBasket(){
-        return withinInches(driveBase.getPoseSimple(), basketPose, 1);
+        return withinInches(driveBase.getPoseSimple(), basketPose, 3);
     }
 
     private boolean approachingBasket(){
