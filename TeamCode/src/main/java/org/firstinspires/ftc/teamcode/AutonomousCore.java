@@ -79,9 +79,9 @@ public class AutonomousCore extends LinearOpMode {
                 .build();*/
         Trajectory moveToSamples3 = drive.trajectoryBuilder(startPose, true)
                 .splineTo(new Vector2d(0, 45), Math.toRadians(-90), ConfiguredMecanumDrive.getVelocityConstraint(10, DriveConstants.MAX_ANG_VEL, DriveConstants.TRACK_WIDTH), ConfiguredMecanumDrive.getAccelerationConstraint(DriveConstants.MAX_ACCEL))
-                .splineToConstantHeading(new Vector2d(-38, 48), Math.toRadians(-90))
+                .splineToConstantHeading(new Vector2d(-40, 52), Math.toRadians(-90))
                 //.splineToSplineHeading(new Pose2d(-36, 48, Math.toRadians(90)), Math.toRadians(0))
-                .splineTo(new Vector2d(-38,20), Math.toRadians(-90))
+                .splineTo(new Vector2d(-40,20), Math.toRadians(-90))
                 .splineToConstantHeading(new Vector2d(-48,12), Math.toRadians(90))
 
                 .splineToConstantHeading(new Vector2d(-48, 45), Math.toRadians(90))
