@@ -1,15 +1,25 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.acmerobotics.dashboard.config.Config;
+
 import org.firstinspires.ftc.teamcode.hardware.Arm;
 import org.firstinspires.ftc.teamcode.hardware.Collector;
+import org.firstinspires.ftc.teamcode.hardware.drive.Area;
 import org.firstinspires.ftc.teamcode.hardware.drive.DriveBase;
 import org.firstinspires.ftc.teamcode.hardware.drive.Pose;
-
+@Config
 public class Autopilot {
     //todo these will be different per-side (these are for blue)
     private static final Pose basketPose = new Pose( 53, 57, 0);
     private static final Pose submersiblePoseA = new Pose(0, 30, 0);
     //todo there should be multiple paths to go for
+
+    //Blue Alliance Areas
+    public static final Area basketArea = new Area(new Pose(15, 72), new Pose(72, 24));
+    public static final Area specimenDeliveryArea = new Area(new Pose(-15, 48), new Pose(15, 24));
+    public static final Area observationZoneCollectionArea = new Area(new Pose(-72, 72), new Pose(-24, 36));
+    public static final Area submersibleChamberArea = new Area(new Pose(-15, 48), new Pose(15, 24));
+    public static final Area submersibleAscentArea = new Area(new Pose(15, 24), new Pose(48, -24));
 
 
     private final DriveBase driveBase;
@@ -166,6 +176,17 @@ public class Autopilot {
 
     private boolean nearSubmersible(){
         return withinInches(driveBase.getPoseSimple(), submersiblePoseA, 2);
+    }
+
+
+    public boolean inBasketArea(){return basketArea.containsPose(driveBase.getPoseSimple());}
+
+    public boolean inSpecimenDeliveryArea(){return specimenDeliveryArea.containsPose(driveBase.getPoseSimple());}
+
+    public boolean inObservationZoneCollectionArea(){return observationZoneCollectionArea.containsPose(driveBase.getPoseSimple());}
+
+    public boolean isInSubmersibleCollectionArea(){
+        return submersibleChamberArea.containsPose(driveBase.getPoseSimple()) || submersibleAscentArea.containsPose(driveBase.getPoseSimple());
     }
 
     private boolean holdingSample(){
