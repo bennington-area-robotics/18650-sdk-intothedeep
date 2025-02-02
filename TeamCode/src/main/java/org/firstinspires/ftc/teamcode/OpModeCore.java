@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Locale;
 //todo reset macro
 //todo on initialization, move to limits
+//todo caching!
 
 /** @noinspection SpellCheckingInspection*/
 @Config
@@ -89,7 +90,7 @@ public class OpModeCore extends LinearOpMode {
         lynxModules = hardwareMap.getAll(LynxModule.class);
 
         for(LynxModule module : lynxModules){
-            module.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
+            module.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
         }
 
         //initialize hardware

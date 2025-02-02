@@ -16,7 +16,7 @@ public class DriveBase extends ConfiguredMecanumDrive {
 
     public DriveBase(HardwareMap hardwareMap) {
         super(hardwareMap);
-        setPoseEstimate(new Pose2d(0, 63, Math.toRadians(90)));
+        setPoseEstimate(new Pose2d(0, 63, Math.toRadians(-90)));
     }
 
     /**
