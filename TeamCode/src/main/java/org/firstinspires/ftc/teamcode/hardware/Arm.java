@@ -15,7 +15,7 @@ import java.util.function.Consumer;
 
 @Config
 public class Arm {
-
+    //todo increase extension tolerances
     //<editor-fold desc="Config">
     public static float ARM_TICKS_PER_DEGREE = 65f; //this is a good estimate as of 1/24/2025
 
