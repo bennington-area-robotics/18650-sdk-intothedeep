@@ -14,6 +14,7 @@ import org.firstinspires.ftc.teamcode.apriltag.AprilTagReader;
 import org.firstinspires.ftc.teamcode.apriltag.Camera;
 import org.firstinspires.ftc.teamcode.hardware.Arm;
 import org.firstinspires.ftc.teamcode.hardware.Collector;
+import org.firstinspires.ftc.teamcode.hardware.drive.Area;
 import org.firstinspires.ftc.teamcode.hardware.drive.DriveBase;
 import org.firstinspires.ftc.teamcode.hardware.ScoringElementColor;
 import org.firstinspires.ftc.teamcode.hardware.drive.Pose;
@@ -42,6 +43,8 @@ public class OpModeCore extends LinearOpMode {
     private static Arm arm;
     private static Autopilot autopilot;
     private static TouchSensor touchSensor;
+
+
     
     private PrettyTelemetry prettyTelem;
 
@@ -136,6 +139,12 @@ public class OpModeCore extends LinearOpMode {
                 .addData("Tick Time", () -> Math.round(tickTimer.milliseconds()))
                 .addData("Stage", () -> autopilot.findCurrentStage())
                 .addData("Localization: ", () -> driveBase.getPoseSimple())
+        ;
+        prettyTelem.addLine("Game State")
+                .addData("In Basket Area", () -> autopilot.inBasketArea())
+                .addData("In Submersible Collection Area", () -> autopilot.inBasketArea())
+                .addData("In Observation Collection Area", () -> autopilot.inObservationZoneCollectionArea())
+                .addData("In Specimen Delivery Area", () -> autopilot.inSpecimenDeliveryArea())
         ;
 
         prettyTelem.addLine("Arm Status")
