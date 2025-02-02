@@ -13,9 +13,6 @@ import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 
 import java.util.Locale;
 
-
-//todo area class to represent portions of the field bounded by pose corners
-//corner width height, center width height, top left + bottom right
 /**
  * <h3>A class intended to be a simple, universal bridge between different Pose classes.</h3>
  * <pre><code>
@@ -171,6 +168,10 @@ public class Pose {
                 DistanceUnit.INCH,
                 0
         );
+    }
+
+    public Pose(double xInches, double yInches){
+        this(xInches, yInches, 0);
     }
 
     /**

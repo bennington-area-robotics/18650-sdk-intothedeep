@@ -12,6 +12,9 @@ import java.math.RoundingMode;
 
 @Config
 public class Collector {
+
+    //todo add collector mode to always stay parallel with ground
+
     //config
     public static float OPEN_POSITION = 0.4f, CLOSED_POSITION = 0; //grip
     public static int UP_POSITION = 90, DOWN_POSITION = 15; //wrist
