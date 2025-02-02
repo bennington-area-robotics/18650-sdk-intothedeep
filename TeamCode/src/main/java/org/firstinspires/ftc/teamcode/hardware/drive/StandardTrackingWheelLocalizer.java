@@ -38,7 +38,9 @@ public class StandardTrackingWheelLocalizer extends ThreeTrackingWheelLocalizer 
     public static double X_MULTIPLIER = 1.003153245;// 1.01108486; Multiplier in the X direction
     public static double Y_MULTIPLIER = 1.00086445; //1.006502753 Multiplier in the Y direction
 
-    private Encoder leftEncoder, rightEncoder, frontEncoder;
+    private static Encoder leftEncoder;
+    private static Encoder rightEncoder;
+    private static Encoder frontEncoder;
 
     private List<Integer> lastEncPositions, lastEncVels;
 
@@ -65,6 +67,12 @@ public class StandardTrackingWheelLocalizer extends ThreeTrackingWheelLocalizer 
 
     public static double encoderTicksToInches(double ticks) {
         return WHEEL_RADIUS * 2 * Math.PI * GEAR_RATIO * ticks / TICKS_PER_REV;
+    }
+
+    public static void reverseEncoders(){
+        leftEncoder.setDirection(Encoder.Direction.REVERSE);
+        rightEncoder.setDirection(Encoder.Direction.FORWARD);
+        frontEncoder.setDirection(Encoder.Direction.FORWARD);
     }
 
     @NonNull

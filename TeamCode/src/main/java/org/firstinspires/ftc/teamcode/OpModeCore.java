@@ -18,6 +18,7 @@ import org.firstinspires.ftc.teamcode.hardware.drive.Area;
 import org.firstinspires.ftc.teamcode.hardware.drive.DriveBase;
 import org.firstinspires.ftc.teamcode.hardware.ScoringElementColor;
 import org.firstinspires.ftc.teamcode.hardware.drive.Pose;
+import org.firstinspires.ftc.teamcode.hardware.drive.StandardTrackingWheelLocalizer;
 
 import java.util.List;
 import java.util.Locale;
@@ -127,6 +128,9 @@ public class OpModeCore extends LinearOpMode {
 
         tickTimer = new ElapsedTime();
         gamepadTimer = new ElapsedTime();
+
+        StandardTrackingWheelLocalizer.reverseEncoders();
+
 
         // always configure telemetry last
         configureTelemetry();
