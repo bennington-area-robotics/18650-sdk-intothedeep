@@ -9,8 +9,8 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 @Config
 public class DriveBase extends ConfiguredMecanumDrive {
-    public static float TRANSLATIONAL_VELOCITY_MULTIPLIER = 10f;
-    public static float HEADING_VELOCITY_MULTIPLIER = 6f;
+    public static float TRANSLATIONAL_VELOCITY_MULTIPLIER = 40f;
+    public static float HEADING_VELOCITY_MULTIPLIER = 3f;
 
     private double powerFactor = 1;
 
@@ -25,16 +25,7 @@ public class DriveBase extends ConfiguredMecanumDrive {
      * @param y the power to move forward/back with. Positive -> forward, Negative -> backward
      * @param turn the power to turn with. Positive -> turn right, Negative -> turn left
      */
-    public void move(double x, double y, double turn){
-        // Denominator is the largest motor power (absolute value) or 1
-        // This ensures all the powers maintain the correct ratio, but only when
-        // at least one is out of the range [-1, 1]
-//        double denominator = Math.max(Math.abs(y) + Math.abs(x) + Math.abs(turn), 1);
-//        double leftFront = (y - x + turn) / denominator;
-//        double leftRear = (y + x + turn) / denominator;
-//        double rightFront = (y + x - turn) / denominator;
-//        double rightRear = (y - x - turn) / denominator;
-
+    public void moveUsingRR(double x, double y, double turn){
         setDriveSignal(new DriveSignal(
                 new Pose2d(
                 TRANSLATIONAL_VELOCITY_MULTIPLIER * y,
@@ -42,6 +33,19 @@ public class DriveBase extends ConfiguredMecanumDrive {
                 HEADING_VELOCITY_MULTIPLIER * -turn
                 )
         ));
+    }
+
+    public void moveUsingPower(double x, double y, double turn){
+        // Denominator is the largest motor power (absolute value) or 1
+        // This ensures all the powers maintain the correct ratio, but only when
+        // at least one is out of the range [-1, 1]
+        double denominator = Math.max(Math.abs(y) + Math.abs(x) + Math.abs(turn), 1);
+        double leftFront = ((y - x + turn) / denominator) * powerFactor;
+        double leftRear = ((y + x + turn) / denominator) * powerFactor;
+        double rightFront = ((y + x - turn) / denominator) * powerFactor;
+        double rightRear = ((y - x - turn) / denominator) * powerFactor;
+
+        setMotorPowers(leftFront, leftRear, rightRear, rightFront);
     }
 
     public Pose getPoseSimple(){

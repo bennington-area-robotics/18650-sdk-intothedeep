@@ -18,11 +18,7 @@ public class Area {
     private final Pose center;
 
     public Area(Pose topLeft, double width, double height){
-        this.topLeft = topLeft;
-        this.topRight = topLeft.plusX(width);
-        this.bottomLeft = topLeft.plusY(-height);
-        this.bottomRight = topLeft.plusX(width).plusY(-height);
-        this.center = topLeft.plusX(width/2.0).plusY(-height/2);
+        this(topLeft, topLeft.plusX(width).plusY(-height));
     }
 
     public Area(Pose topLeft, Pose bottomRight){
@@ -90,9 +86,5 @@ public class Area {
                 (pose.x() >= getMinX() && pose.x() <= getMaxX()) &&
                 (pose.y() >= getMinY() && pose.y() <= getMaxY())
         );
-    }
-
-    public static void main(String[] args){
-        Area area = new Area(new Pose(10, 10), 30, 30);
     }
 }

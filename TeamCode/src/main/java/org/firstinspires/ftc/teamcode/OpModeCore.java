@@ -86,7 +86,7 @@ public class OpModeCore extends LinearOpMode {
         lynxModules = hardwareMap.getAll(LynxModule.class);
 
         for(LynxModule module : lynxModules){
-            module.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
+            module.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
         }
 
         //initialize hardware
@@ -275,7 +275,7 @@ public class OpModeCore extends LinearOpMode {
 
         gamepadTimer.reset();
 
-        driveBase.move(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x);
+        driveBase.moveUsingPower(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x);
 
         //save the last gamepad state to compare again later
         previousGamepad1.copy(gamepad1);
