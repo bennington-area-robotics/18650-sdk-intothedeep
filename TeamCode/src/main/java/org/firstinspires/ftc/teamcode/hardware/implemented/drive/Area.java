@@ -1,15 +1,15 @@
-package org.firstinspires.ftc.teamcode.hardware.drive;
+package org.firstinspires.ftc.teamcode.hardware.implemented.drive;
 
 public class Area {
 
     /**
      * The size of the area in the x direction.
      */
-    private double width;
+    private final double width;
     /**
      * The size of the area in the y direction.
      */
-    private double height;
+    private final double height;
 
     private final Pose topLeft;
     private final Pose topRight;
@@ -51,18 +51,30 @@ public class Area {
         return center;
     }
 
+    /**
+     * @return the smallest x value within the area.
+     */
     public double getMinX(){
         return bottomLeft.x();
     }
 
+    /**
+     * @return the largest x value within the area.
+     */
     public double getMaxX(){
         return topRight.x();
     }
 
+    /**
+     * @return the smallest y value within the area.
+     */
     public double getMinY(){
         return bottomLeft.y();
     }
 
+    /**
+     * @return the largest y value within the area.
+     */
     public double getMaxY(){
         return topRight.y();
     }
@@ -82,9 +94,6 @@ public class Area {
     }
 
     public boolean containsPose(Pose pose){
-        return (
-                (pose.x() >= getMinX() && pose.x() <= getMaxX()) &&
-                (pose.y() >= getMinY() && pose.y() <= getMaxY())
-        );
+        return ((pose.x() >= getMinX() && pose.x() <= getMaxX()) && (pose.y() >= getMinY() && pose.y() <= getMaxY()));
     }
 }

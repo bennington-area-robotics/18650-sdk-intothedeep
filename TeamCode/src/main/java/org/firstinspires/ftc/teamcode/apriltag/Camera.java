@@ -8,7 +8,7 @@ import android.util.Size;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.CameraName;
 import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
-import org.firstinspires.ftc.teamcode.hardware.drive.Pose;
+import org.firstinspires.ftc.teamcode.hardware.implemented.drive.Pose;
 
 public class Camera {
     private final CameraName passable;

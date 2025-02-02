@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+//todo make a two-directional PID, with seperate constants for pos/neg
 public class PID {
     private final ElapsedTime timer = new ElapsedTime();
     double kP, kI, kD, kF;
@@ -51,7 +52,7 @@ public class PID {
      * @return the directional output power of the PID.
      */
     public double tick(double currentError){
-        if(Math.abs(currentError) > tolerance) {
+        if(Math.abs(currentError) > tolerance) { //todo change this to if last say 5 reads were within tolerance
             double timeChange = timer.milliseconds();
             timer.reset();
 

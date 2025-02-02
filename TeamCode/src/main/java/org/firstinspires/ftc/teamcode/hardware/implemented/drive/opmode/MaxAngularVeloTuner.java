@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.hardware.drive.opmode;
+package org.firstinspires.ftc.teamcode.hardware.implemented.drive.opmode;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
@@ -10,7 +10,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.teamcode.hardware.drive.ConfiguredMecanumDrive;
+import org.firstinspires.ftc.teamcode.hardware.implemented.drive.ConfiguredMecanumDrive;
 
 import java.util.Objects;
 

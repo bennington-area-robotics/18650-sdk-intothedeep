@@ -12,19 +12,17 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.apriltag.AprilTagReader;
 import org.firstinspires.ftc.teamcode.apriltag.Camera;
-import org.firstinspires.ftc.teamcode.hardware.Arm;
-import org.firstinspires.ftc.teamcode.hardware.Collector;
-import org.firstinspires.ftc.teamcode.hardware.drive.Area;
-import org.firstinspires.ftc.teamcode.hardware.drive.DriveBase;
-import org.firstinspires.ftc.teamcode.hardware.ScoringElementColor;
-import org.firstinspires.ftc.teamcode.hardware.drive.Pose;
-import org.firstinspires.ftc.teamcode.hardware.drive.StandardTrackingWheelLocalizer;
+import org.firstinspires.ftc.teamcode.hardware.implemented.Arm;
+import org.firstinspires.ftc.teamcode.hardware.implemented.Collector;
+import org.firstinspires.ftc.teamcode.hardware.implemented.drive.DriveBase;
+import org.firstinspires.ftc.teamcode.hardware.implemented.ScoringElementColor;
+import org.firstinspires.ftc.teamcode.hardware.implemented.drive.Pose;
+import org.firstinspires.ftc.teamcode.hardware.implemented.drive.StandardTrackingWheelLocalizer;
 
 import java.util.List;
 import java.util.Locale;
 //todo reset macro
 //todo on initialization, move to limits
-//todo caching!
 
 /** @noinspection SpellCheckingInspection*/
 @Config

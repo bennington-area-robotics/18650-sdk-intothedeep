@@ -6,10 +6,10 @@ import com.acmerobotics.roadrunner.trajectory.Trajectory;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.acmerobotics.dashboard.config.Config;
-import org.firstinspires.ftc.teamcode.hardware.drive.ConfiguredMecanumDrive;
-import org.firstinspires.ftc.teamcode.hardware.drive.DriveBase;
-import org.firstinspires.ftc.teamcode.hardware.drive.DriveConstants;
-import org.firstinspires.ftc.teamcode.hardware.drive.Pose;
+import org.firstinspires.ftc.teamcode.hardware.implemented.drive.ConfiguredMecanumDrive;
+import org.firstinspires.ftc.teamcode.hardware.implemented.drive.DriveBase;
+import org.firstinspires.ftc.teamcode.hardware.implemented.drive.DriveConstants;
+import org.firstinspires.ftc.teamcode.hardware.implemented.drive.Pose;
 
 /*
  * This is an example of a more complex path to really test the tuning.

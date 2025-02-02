@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.hardware;
+package org.firstinspires.ftc.teamcode.hardware.implemented;
 
 import androidx.annotation.FloatRange;
 
@@ -9,6 +9,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.TouchSensor;
 
+import org.firstinspires.ftc.teamcode.hardware.PID;
 import org.firstinspires.ftc.teamcode.util.Encoder;
 
 import java.util.function.Consumer;
@@ -38,8 +39,8 @@ public class Arm {
 
     private final PID downwardPID = new PID(downwardKP, downwardKI, downwardKD, downwardKF, downwardMaxI).setTolerance(0.75);
     private final PID upwardPID = new PID(upwardKP, upwardKI, upwardKD, upwardKF, upwardMaxI).setTolerance(0.75);
-    private final PID extensionPID = new PID(extensionKP, extensionKI, extensionKD, extensionKF, extensionMaxI).setTolerance(0.3);
-    private final PID retractionPID = new PID(retractionKP, retractionKI, retractionKD, retractionKF, retractionMaxI).setTolerance(0.3);
+    private final PID extensionPID = new PID(extensionKP, extensionKI, extensionKD, extensionKF, extensionMaxI).setTolerance(0.4);
+    private final PID retractionPID = new PID(retractionKP, retractionKI, retractionKD, retractionKF, retractionMaxI).setTolerance(0.4);
     //</editor-fold>
 
     private final DcMotorEx angleMotorRight;
