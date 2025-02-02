@@ -35,7 +35,6 @@ import org.firstinspires.ftc.teamcode.util.LynxModuleUtil;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import org.firstinspires.ftc.teamcode.hardware.drive.DriveConstants;
 
 /*
  * Simple mecanum drive hardware implementation for REV hardware.
@@ -81,10 +80,6 @@ public class ConfiguredMecanumDrive extends MecanumDrive {
 
         batteryVoltageSensor = hardwareMap.voltageSensor.iterator().next();
 
-        for (LynxModule module : hardwareMap.getAll(LynxModule.class)) {
-            module.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
-        }
-
         //adjust the names of the following hardware devices to match your configuration
         /*imu = hardwareMap.get(IMU.class, "imu");
         IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
@@ -100,7 +95,7 @@ public class ConfiguredMecanumDrive extends MecanumDrive {
 
         for (DcMotorEx motor : motors) {
             MotorConfigurationType motorConfigurationType = motor.getMotorType().clone();
-            motorConfigurationType.setAchieveableMaxRPMFraction(1.0);
+            motorConfigurationType.setAchieveableMaxRPMFraction(1.0); //TODO FOR EBEN - this could account for some of the perceived error; shouldn't this be something a little lower?
             motor.setMotorType(motorConfigurationType);
         }
 

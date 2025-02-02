@@ -15,21 +15,32 @@ import java.util.function.Consumer;
 
 @Config
 public class Arm {
-    //config
-        public static float ARM_TICKS_PER_DEGREE = 65f; //this is a good estimate as of 1/24/2025
 
-        public static float ARM_TICKS_PER_INCH = 190f;
-        public static double MAX_ARM_EXTENSION = 37.0;
+    //<editor-fold desc="Config">
+    public static float ARM_TICKS_PER_DEGREE = 65f; //this is a good estimate as of 1/24/2025
 
-        public static double MAX_HORIZONTAL_EXTENSION = 38.0;
+    public static float ARM_TICKS_PER_INCH = 190f;
+    public static double MAX_ARM_EXTENSION = 37.0;
 
-        public static double DELIVERY_EXTENSION = 38.0;
-        public static double DELIVERY_ANGLE = 95.0;
+    public static double MAX_HORIZONTAL_EXTENSION = 38.0;
 
-        public static double COLLECTION_EXTENSION = 0.0;
-        public static double COLLECTION_ANGLE = 0.0;
-        public static double SPECIMEN_ANGLE = 55;
-    //config
+    public static double DELIVERY_EXTENSION = 38.0;
+    public static double DELIVERY_ANGLE = 95.0;
+
+    public static double COLLECTION_EXTENSION = 0.0;
+    public static double COLLECTION_ANGLE = 0.0;
+    public static double SPECIMEN_ANGLE = 55;
+
+    public static double downwardKP = 0.005, downwardKI = 0, downwardKD = 0, downwardKF = -0.15, downwardMaxI = 0;
+    public static double upwardKP = 0.02, upwardKI = 0.00001, upwardKD = 0.2, upwardKF = 0.15, upwardMaxI = 0.09;
+    public static double extensionKP = 0.2, extensionKI, extensionKD, extensionKF = 0.15, extensionMaxI;
+    public static double retractionKP = 0.1, retractionKI, retractionKD, retractionKF = -0.5, retractionMaxI;
+
+    private final PID downwardPID = new PID(downwardKP, downwardKI, downwardKD, downwardKF, downwardMaxI).setTolerance(0.75);
+    private final PID upwardPID = new PID(upwardKP, upwardKI, upwardKD, upwardKF, upwardMaxI).setTolerance(0.75);
+    private final PID extensionPID = new PID(extensionKP, extensionKI, extensionKD, extensionKF, extensionMaxI).setTolerance(0.3);
+    private final PID retractionPID = new PID(retractionKP, retractionKI, retractionKD, retractionKF, retractionMaxI).setTolerance(0.3);
+    //</editor-fold>
 
     private final DcMotorEx angleMotorRight;
     private final DcMotorEx angleMotorLeft;
@@ -59,18 +70,9 @@ public class Arm {
     private Consumer<Arm> runningMacro;
 
     //todo these need actual trained values
-    public static double downwardKP = 0.005, downwardKI = 0, downwardKD = 0, downwardKF = -0.15, downwardMaxI = 0;
-    public static double upwardKP = 0.02, upwardKI = 0.00001, upwardKD = 0.2, upwardKF = 0.15, upwardMaxI = 0.09;
-    public static double extensionKP = 0.2, extensionKI, extensionKD, extensionKF = 0.15, extensionMaxI;
-    public static double retractionKP = 0.1, retractionKI, retractionKD, retractionKF = -0.2, retractionMaxI;
-
-    private final PID downwardPID = new PID(downwardKP, downwardKI, downwardKD, downwardKF, downwardMaxI).setTolerance(0.75);
-    private final PID upwardPID = new PID(upwardKP, upwardKI, upwardKD, upwardKF, upwardMaxI).setTolerance(0.75);
-    private final PID extensionPID = new PID(extensionKP, extensionKI, extensionKD, extensionKF, extensionMaxI).setTolerance(0.2);
-    private final PID retractionPID = new PID(retractionKP, retractionKI, retractionKD, retractionKF, retractionMaxI).setTolerance(0.2);
-
 
     public Arm(HardwareMap hardwareMap, String tiltMotorLeftName, String tiltMotorRightName, String extensionMotorName, String touchSensorName) {
+        //<editor-fold desc="Hardware Config">
         this.angleMotorRight = hardwareMap.get(DcMotorEx.class, tiltMotorRightName);
         this.angleMotorLeft = hardwareMap.get(DcMotorEx.class, tiltMotorLeftName);
         this.extensionMotor = hardwareMap.get(DcMotorEx.class, extensionMotorName);
@@ -87,6 +89,7 @@ public class Arm {
         this.angleMotorLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         this.angleMotorRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         this.angleEncoder.setDirection(Encoder.Direction.FORWARD);
+        //</editor-fold>
 
         resetExtension();
         resetAngle();
@@ -99,42 +102,27 @@ public class Arm {
      * Get the current angle of the arm. This is relative to the base, at 0 the arm is horizontal, and at 90 the arm is vertical.
      * Uses should be able to handle angles past 90 degrees, since the motor will not always land at exactly 90.
      *
-     * @apiNote This method is relatively costly due to reading motor positions, avoid calling more than necessary. Use to update the cached angle when necessary.
      * @return the angle of the arm relative to the base.
      */
     public double getAngle(){
-        cachedAngle = ( angleEncoder.getCurrentPosition() - tickOffsetToZero) / ARM_TICKS_PER_DEGREE;
-        return cachedAngle;
+        return (angleEncoder.getCurrentPosition() - tickOffsetToZero) / ARM_TICKS_PER_DEGREE;
     }
 
-    /**
-     * Returns the cached angle value.
-     * <p>
-     * This method provides the last angle value retrieved from the encoder.
-     * Using the cached value can improve performance by avoiding redundant
-     * calls to hardware components.
-     * </p>
-     *
-     * @return The cached angle value.
-     */
-    public double getCachedAngle(){
-        return cachedAngle;
-    }
-
-    private double cachedExtension;
-    public double getCachedExtension(){
-        return cachedExtension;
+    public double getAngleVelocity(){
+        return angleEncoder.getCorrectedVelocity() / ARM_TICKS_PER_DEGREE;
     }
 
     /**
      * Get the current extension of the end of the arm past the minimum extension (fully retracted).
      *
-     * @apiNote This method is relatively costly due to reading motor positions, avoid calling more than necessary.
      * @return the extension of the end of the arm.
      */
     public double getExtension(){
-        cachedExtension = extensionMotor.getCurrentPosition() / ARM_TICKS_PER_INCH;
-        return cachedExtension;
+        return extensionMotor.getCurrentPosition() / ARM_TICKS_PER_INCH;
+    }
+
+    public double getExtensionVelocity(){
+        return extensionMotor.getCurrentPosition() / ARM_TICKS_PER_INCH;
     }
 
     public double getTargetExtension(){
@@ -256,22 +244,26 @@ public class Arm {
      * Moves arm to collection pose.
      */
     public void collectionPosition(){
-        if(getCachedExtension() - COLLECTION_EXTENSION == 0){
+        if(getExtension() - COLLECTION_EXTENSION < 1.5){
             setTargetExtension(COLLECTION_EXTENSION);
             setTargetAngle(0);
         }else {
-            double inchesPerDegree = (getCachedAngle() - COLLECTION_ANGLE) / (getCachedExtension() - COLLECTION_EXTENSION);
+            double inchesPerDegree = (getAngle() - COLLECTION_ANGLE) / (getExtension() - COLLECTION_EXTENSION);
 
-            double startAngle = getCachedAngle();
-            double startExtension = getCachedExtension();
+            double startAngle = getAngle();
+            double startExtension = getExtension();
 
             setTargetExtension(COLLECTION_EXTENSION);
             runningMacro = (arm -> {
-                if (Math.abs(COLLECTION_ANGLE - arm.getCachedAngle()) < 5) {
+                if (Math.abs(COLLECTION_ANGLE - arm.getAngle()) < 10) {
                     arm.setTargetAngleIgnoreMacro(COLLECTION_ANGLE);
+                    arm.setTargetExtension(arm.getExtension());
                     arm.runningMacro = null;
+                } else if (getExtension() - COLLECTION_EXTENSION < 1.5) {
+                    arm.setTargetAngleIgnoreMacro(COLLECTION_ANGLE);
+                    arm.setTargetExtension(DELIVERY_EXTENSION);
                 } else {
-                    double targetAngle = inchesPerDegree * (arm.getCachedExtension() - COLLECTION_EXTENSION) + COLLECTION_ANGLE;
+                    double targetAngle = inchesPerDegree * (arm.getExtension() - COLLECTION_EXTENSION) + COLLECTION_ANGLE;
                     arm.setTargetAngleIgnoreMacro(targetAngle);
                 }
             });
@@ -306,10 +298,10 @@ public class Arm {
         downwardPID.setConstants(downwardKP, downwardKI, downwardKD,downwardKF, downwardMaxI);
         upwardPID.setConstants(upwardKP, upwardKI, upwardKD, upwardKF, upwardMaxI);
 
-        if(targetAngle < getCachedAngle())
-            lastAnglePower = downwardPID.tick(targetAngle - getCachedAngle());
-        else if (targetAngle > getCachedAngle()){
-            lastAnglePower = upwardPID.tick(targetAngle - getCachedAngle());
+        if(targetAngle < getAngle())
+            lastAnglePower = downwardPID.tick(targetAngle - getAngle());
+        else if (targetAngle > getAngle()){
+            lastAnglePower = upwardPID.tick(targetAngle - getAngle());
         }else{
             lastAnglePower = 0;
         }
@@ -325,10 +317,10 @@ public class Arm {
         extensionPID.setConstants(extensionKP, extensionKI, extensionKD, extensionKF, extensionMaxI);
         retractionPID.setConstants(retractionKP, retractionKI, retractionKD, retractionKF, retractionMaxI);
 
-        if(targetExtension < getCachedExtension())
-            lastExtensionPower = retractionPID.tick(targetExtension - getCachedExtension());
-        else if (targetExtension > getCachedExtension()){
-            lastExtensionPower = extensionPID.tick(targetExtension - getCachedExtension());
+        if(targetExtension < getExtension())
+            lastExtensionPower = retractionPID.tick(targetExtension - getExtension());
+        else if (targetExtension > getExtension()){
+            lastExtensionPower = extensionPID.tick(targetExtension - getExtension());
         }else{
             lastExtensionPower = 0;
         }

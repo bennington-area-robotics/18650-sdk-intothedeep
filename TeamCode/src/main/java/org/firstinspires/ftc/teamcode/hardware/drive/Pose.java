@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.hardware.drive;
 
+import androidx.annotation.NonNull;
+
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -8,6 +10,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
+
+import java.util.Locale;
 
 /**
  * <h3>A class intended to be a simple, universal bridge between different Pose classes.</h3>
@@ -164,6 +168,10 @@ public class Pose {
                 DistanceUnit.INCH,
                 0
         );
+    }
+
+    public Pose(double xInches, double yInches){
+        this(xInches, yInches, 0);
     }
 
     /**
@@ -339,5 +347,12 @@ public class Pose {
 
     public YawPitchRollAngles getAngles(){
         return new YawPitchRollAngles(AngleUnit.DEGREES, yaw, pitch, roll, 0);
+    }
+
+    @NonNull
+    @Override
+    public String toString() {
+        return String.format(Locale.ROOT, "Position(x=%.3f, y=%.3f, z=%.3f, yaw=%.3f, pitch=%.3f, roll=%.3f)",
+                x, y, z, yaw, pitch, roll);
     }
 }

@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.acmerobotics.dashboard.config.Config;
+import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Gamepad;
@@ -17,18 +18,23 @@ import org.firstinspires.ftc.teamcode.hardware.drive.DriveBase;
 import org.firstinspires.ftc.teamcode.hardware.ScoringElementColor;
 import org.firstinspires.ftc.teamcode.hardware.drive.Pose;
 
+import java.util.List;
 import java.util.Locale;
+//todo reset macro
+//todo on initialization, move to limits
 
 /** @noinspection SpellCheckingInspection*/
 @Config
 @TeleOp(name="1 - Main TeleOp")
 public class OpModeCore extends LinearOpMode {
 
+    //<editor-fold desc="Config">
     public static float LOW_POWER_MODIFIER = 0.25f;
     public static float HIGH_POWER_MODIFIER = 0.75f;
+    public static float MAX_INCHES_PER_SECOND = 9f;
+    //</editor-fold>
 
-    public static float MAX_INCHES_PER_SECOND = 300;
-
+    //<editor-fold desc="Fields">
     private static AprilTagReader aprilTagReader;
     private static OpModeCore instance;
     private static Collector collector;
@@ -36,15 +42,19 @@ public class OpModeCore extends LinearOpMode {
     private static Arm arm;
     private static Autopilot autopilot;
     private static TouchSensor touchSensor;
+    
+    private PrettyTelemetry prettyTelem;
 
     private final Gamepad previousGamepad1 = new Gamepad();
     private final Gamepad previousGamepad2 = new Gamepad();
 
-    public static int targetPos = 0;
 
     private boolean collectorArmed = false;
-    ElapsedTime tickTimer;
+    ElapsedTime tickTimer, gamepadTimer;
+    private List<LynxModule> lynxModules;
+    //</editor-fold>
 
+    //<editor-fold desc="Instance Getters">
     public static OpModeCore getInstance(){
         return instance;
     }
@@ -68,11 +78,16 @@ public class OpModeCore extends LinearOpMode {
     public static Autopilot getAutopilot(){
         return autopilot;
     }
+    //</editor-fold>
 
     public void initialize(){
         instance = this;
 
+        lynxModules = hardwareMap.getAll(LynxModule.class);
 
+        for(LynxModule module : lynxModules){
+            module.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
+        }
 
         //initialize hardware
         collector = new Collector(
@@ -91,12 +106,8 @@ public class OpModeCore extends LinearOpMode {
         );
         touchSensor = hardwareMap.get(TouchSensor.class, "touchSensor");
 
-
-
         autopilot = new Autopilot(driveBase, arm, collector);
         autopilot.setTickRunnable(this::tick);
-
-        configureTelemetry();
 
         aprilTagReader = new AprilTagReader(
                 new Camera(
@@ -111,41 +122,47 @@ public class OpModeCore extends LinearOpMode {
         previousGamepad2.copy(gamepad2);
 
         tickTimer = new ElapsedTime();
+        gamepadTimer = new ElapsedTime();
+
+        // always configure telemetry last
+        configureTelemetry();
     }
 
     private void configureTelemetry(){
-        telemetry.setAutoClear(false);
-        telemetry.setDisplayFormat(Telemetry.DisplayFormat.HTML);
-        telemetry.addLine("<b>System Status</b><br>")
-                .addData("Collector Armed?", () -> collectorArmed + "<br>")
-                .addData("Tick Time", () -> Math.round(tickTimer.milliseconds()) + "<br>")
-                .addData("Stage", autopilot.findCurrentStage() + "<br>");
+        prettyTelem = new PrettyTelemetry(telemetry);
+        
+        prettyTelem.addLine("System Status")
+                .addData("Collector Armed?", () -> collectorArmed)
+                .addData("Tick Time", () -> Math.round(tickTimer.milliseconds()))
+                .addData("Stage", () -> autopilot.findCurrentStage())
+                .addData("Localization: ", () -> driveBase.getPoseSimple())
+        ;
 
-        telemetry.addLine("<b>Arm Status</b>" + "<br>")
-                .addData("Current Angle", () -> arm.getCachedAngle() + "<br>")
-                .addData("Target Angle", () -> arm.getTargetAngle() + "<br>")
-                .addData("Current Extension", () -> arm.getCachedExtension() + "<br>")
-                .addData("Target Extension", () -> arm.getTargetExtension() + "<br>")
-                .addData("Last Angle Power", () -> arm.getLastAnglePower() + "<br>")
-                .addData("Last Extension Power", () -> arm.getLastExtensionPower() + "<br>")
-                .addData("Touch Sensor Pressed", () -> touchSensor.isPressed() + "<br>");
+        prettyTelem.addLine("Arm Status")
+                .addData("Current Angle", () -> arm.getAngle())
+                .addData("Target Angle", () -> arm.getTargetAngle())
+                .addData("Current Extension", () -> arm.getExtension())
+                .addData("Target Extension", () -> arm.getTargetExtension())
+                .addData("Last Angle Power", () -> arm.getLastAnglePower())
+                .addData("Last Extension Power", () -> arm.getLastExtensionPower())
+                .addData("Touch Sensor Pressed", () -> touchSensor.isPressed());
 
-        telemetry.addLine("<b>Grip</b>" + "<br>")
-                .addData("Position", () -> collector.getGripPosition() + "<br>")
-                .addData("Open?", () -> collector.isGripOpen() + "<br>")
-                .addData("Closed?", () -> collector.isGripClosed() + "<br>");
+        prettyTelem.addLine("Grip")
+                .addData("Position", () -> collector.getGripPosition())
+                .addData("Open?", () -> collector.isGripOpen())
+                .addData("Closed?", () -> collector.isGripClosed());
 
-        telemetry.addLine("<b>Wrist</b>" + "<br>")
-                .addData("Position", () -> collector.getWristPosition() + "<br>")
-                .addData("Up?", () -> collector.isWristUp() + "<br>")
-                .addData("Down?", () -> collector.isWristDown() + "<br>");
+        prettyTelem.addLine("Wrist")
+                .addData("Position", () -> collector.getWristPosition())
+                .addData("Up?", () -> collector.isWristUp())
+                .addData("Down?", () -> collector.isWristDown());
 
-        telemetry.addLine("<b>Color Sensor</b>" + "<br>")
-                .addData("HSV", () -> this.getHSV()  + "<br>")
-                .addData("RGB", () -> this.getRGB()  + "<br>")
-                .addData("Scoring Color", () -> collector.colorSensor.getScoringElementColor() + "<br>");
+        prettyTelem.addLine("Color Sensor")
+                .addData("HSV", this::getHSV)
+                .addData("RGB", this::getRGB)
+                .addData("Scoring Color", () -> collector.colorSensor.getScoringElementColor());
 
-        telemetry.addData("<b>April Tag</b>", () -> aprilTagReader.getDetectionString() + "<br>");
+        prettyTelem.addData("April Tag", () -> aprilTagReader.getDetectionString());
     }
 
     private String getHSV(){
@@ -168,12 +185,19 @@ public class OpModeCore extends LinearOpMode {
     }
 
     public void tick(){
+        //updateMotorServoCache();
         checkGamepad();
         checkForScoringElement();
         arm.tick();
         collector.tick();
-        telemetry.update();
+        prettyTelem.update();
         tickTimer.reset();
+    }
+
+    public void updateMotorServoCache(){
+        for(LynxModule module : lynxModules){
+            module.clearBulkCache();
+        }
     }
 
     public void checkForScoringElement(){
@@ -203,11 +227,6 @@ public class OpModeCore extends LinearOpMode {
                 }
             }
         }
-        if(gamepad1.right_bumper && !previousGamepad1.right_bumper){
-            if(!previousGamepad1.a) {
-                arm.setTargetAngle(targetPos);
-            }
-        }
 
         //toggle wrist on pressing b, if failed to detect if up or down, default to up.
         if(gamepad1.b && !previousGamepad1.b){
@@ -234,16 +253,16 @@ public class OpModeCore extends LinearOpMode {
 
         if(gamepad1.dpad_down && !previousGamepad1.dpad_down){
             if(manualArm){
-                arm.setTargetAngle(arm.getTargetAngle() - 15);
+                arm.setTargetAngle(Math.max(arm.getTargetAngle() - 15, 0));
             }else{
                 collector.wristUp();
                 arm.collectionPosition();
             }
         }else if(gamepad1.dpad_up && !previousGamepad1.dpad_up){
             if(manualArm){
-                arm.setTargetAngle(arm.getTargetAngle() + 15);
+                arm.setTargetAngle(Math.min(arm.getTargetAngle() + 15, 100));
             }else {
-                if (!arm.setTargetAngle(95))
+                if (!arm.setTargetAngle(100))
                     this.gamepad1.rumbleBlips(100);
             }
         }
@@ -251,8 +270,10 @@ public class OpModeCore extends LinearOpMode {
 
         arm.setTargetExtension(
                 arm.getTargetExtension() +
-                        tickTimer.seconds() * MAX_INCHES_PER_SECOND * (-gamepad1.left_trigger + gamepad1.right_trigger)
+                        gamepadTimer.seconds() * MAX_INCHES_PER_SECOND * (-gamepad1.left_trigger + gamepad1.right_trigger)
         );
+
+        gamepadTimer.reset();
 
         driveBase.move(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x);
 
