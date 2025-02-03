@@ -91,7 +91,7 @@ public class OpModeCore extends LinearOpMode {
         lynxModules = hardwareMap.getAll(LynxModule.class);
 
         for(LynxModule module : lynxModules){
-            module.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
+            module.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
         }
 
         //initialize hardware
@@ -147,7 +147,7 @@ public class OpModeCore extends LinearOpMode {
         ;
         prettyTelem.addLine("Game State")
                 .addData("In Basket Area", () -> autopilot.inBasketArea())
-                .addData("In Submersible Collection Area", () -> autopilot.inBasketArea())
+                .addData("In Submersible Collection Area", () -> autopilot.isInSubmersibleCollectionArea())
                 .addData("In Observation Collection Area", () -> autopilot.inObservationZoneCollectionArea())
                 .addData("In Specimen Delivery Area", () -> autopilot.inSpecimenDeliveryArea())
         ;
@@ -199,7 +199,7 @@ public class OpModeCore extends LinearOpMode {
     }
 
     public void tick(){
-        //updateMotorServoCache();
+        updateMotorServoCache();
         checkGamepad();
         checkForScoringElement();
         arm.tick();
