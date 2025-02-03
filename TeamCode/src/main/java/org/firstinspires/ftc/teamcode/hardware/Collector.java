@@ -32,7 +32,7 @@ public class Collector {
     private final Arm arm;
 
     public enum WristMode {
-        MOVE_TO_TARGET, STAY_PARALLEL
+        MOVE_TO_TARGET, STAY_PARALLEL, STAY_PERPENDICULAR
     }
 
     public Collector(Arm arm, HardwareMap hardwareMap, String colorSensorName, String wristMotorName, String gripServoName){
@@ -163,6 +163,9 @@ public class Collector {
             wristMotor.setPower(PID.calc(getWristAngle() - wristTarget));
         else if(wristMode == WristMode.STAY_PARALLEL)
             wristMotor.setPower(PID.calc(getWristAngle() - (90 - arm.getAngle())));
+        else if (wristMode == WristMode.STAY_PERPENDICULAR) {
+            wristMotor.setPower(PID.calc(getWristAngle() - (arm.getAngle() - 90)));
+        }
     }
 
     private static class Helper {
