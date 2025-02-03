@@ -14,7 +14,6 @@ import org.firstinspires.ftc.teamcode.apriltag.AprilTagReader;
 import org.firstinspires.ftc.teamcode.apriltag.Camera;
 import org.firstinspires.ftc.teamcode.hardware.Arm;
 import org.firstinspires.ftc.teamcode.hardware.Collector;
-import org.firstinspires.ftc.teamcode.hardware.drive.Area;
 import org.firstinspires.ftc.teamcode.hardware.drive.DriveBase;
 import org.firstinspires.ftc.teamcode.hardware.ScoringElementColor;
 import org.firstinspires.ftc.teamcode.hardware.drive.Pose;
@@ -24,7 +23,6 @@ import java.util.List;
 import java.util.Locale;
 //todo reset macro
 //todo on initialization, move to limits
-//todo caching!
 
 /** @noinspection SpellCheckingInspection*/
 @Config
@@ -95,13 +93,8 @@ public class OpModeCore extends LinearOpMode {
         }
 
         //initialize hardware
-        collector = new Collector(
-                hardwareMap,
-                "colorSensor",
-                "wristMotor",
-                "gripServo"
-        );
         driveBase = new DriveBase(hardwareMap);
+
         arm = new Arm(
                 hardwareMap,
                 "tiltMotorLeft",
@@ -109,6 +102,14 @@ public class OpModeCore extends LinearOpMode {
                 "extensionMotor",
                 "touchSensor"
         );
+        collector = new Collector(
+                arm,
+                hardwareMap,
+                "colorSensor",
+                "wristMotor",
+                "gripServo"
+        );
+
         touchSensor = hardwareMap.get(TouchSensor.class, "touchSensor");
 
         autopilot = new Autopilot(driveBase, arm, collector);
@@ -167,7 +168,7 @@ public class OpModeCore extends LinearOpMode {
                 .addData("Closed?", () -> collector.isGripClosed());
 
         prettyTelem.addLine("Wrist")
-                .addData("Position", () -> collector.getWristPosition())
+                .addData("Position", () -> collector.getWristAngle())
                 .addData("Up?", () -> collector.isWristUp())
                 .addData("Down?", () -> collector.isWristDown());
 
@@ -232,6 +233,14 @@ public class OpModeCore extends LinearOpMode {
         Gamepad gamepad2 = new Gamepad();
         gamepad2.copy(this.gamepad2);
 
+        if(gamepad1.left_bumper && !previousGamepad1.left_bumper){
+            manualArm = !manualArm;
+        }
+
+        if(gamepad1.right_bumper && !previousGamepad1.right_bumper){
+            collector.setWristMode(Collector.WristMode.STAY_PARALLEL);
+        }
+
 
         //toggle grip on pressing a, if failed to detect if open or closed, default to close.
         if(gamepad1.a){
@@ -244,16 +253,13 @@ public class OpModeCore extends LinearOpMode {
 
         //toggle wrist on pressing b, if failed to detect if up or down, default to up.
         if(gamepad1.b && !previousGamepad1.b){
+            collector.setWristMode(Collector.WristMode.MOVE_TO_TARGET);
             if(!collector.toggleWrist())
                 collector.wristUp();
         }
 
         if(gamepad1.y && !previousGamepad1.y){
             collectorArmed = !collectorArmed;
-        }
-
-        if(gamepad1.left_bumper && !previousGamepad1.left_bumper){
-            manualArm = !manualArm;
         }
 
         if(gamepad1.x && !previousGamepad1.x) {
