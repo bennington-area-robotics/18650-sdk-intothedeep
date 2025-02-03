@@ -89,7 +89,7 @@ public class OpModeCore extends LinearOpMode {
         lynxModules = hardwareMap.getAll(LynxModule.class);
 
         for(LynxModule module : lynxModules){
-            module.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
+            module.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
         }
 
         //initialize hardware
@@ -200,7 +200,7 @@ public class OpModeCore extends LinearOpMode {
     }
 
     public void tick(){
-        //updateMotorServoCache();
+        updateMotorServoCache();
         checkGamepad();
         checkForScoringElement();
         arm.tick();
