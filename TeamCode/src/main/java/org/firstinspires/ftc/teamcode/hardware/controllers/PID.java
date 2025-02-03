@@ -1,9 +1,6 @@
-package org.firstinspires.ftc.teamcode.hardware;
+package org.firstinspires.ftc.teamcode.hardware.controllers;
 
 import com.qualcomm.robotcore.util.ElapsedTime;
-
-import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 public class PID {
     private final ElapsedTime timer = new ElapsedTime();
@@ -13,6 +10,7 @@ public class PID {
     double tolerance;
     double minimum;
     Direction direction;
+    double lastResult;
 
     public enum Direction {
         FORWARD, REVERSE
@@ -20,19 +18,34 @@ public class PID {
 
 
     /**
-     * Creates a PID controller which can be used to easily apply to most things.
+     * Creates a PIDF controller which can be used to easily apply a control loop to almost anything.
      *
      * @param kP the proportional coefficient. This controls how much the magnitude of the error affects the output.
      * @param kI the integral coefficient. This controls how much the overall change in error affects the output.
      * @param kD the derivative coefficient. This controls how much the change in the error affects the output.
+     * @param kF the feed-forward constant. This is a directly outputted constant which is added to the output.
      * @param maxI the maximum of the integral sum. This controls the maximum amount the integral calculation can affect the output.
+     * @param tolerance the distance at which the controller considers having reached the target.
      */
-    public PID(double kP, double kI, double kD, double kF, double maxI){
+    public PID(double kP, double kI, double kD, double kF, double maxI, double tolerance){
         this.kP = kP;
         this.kI = kI;
         this.kD = kD;
         this.kF = kF;
         this.maxI = maxI;
+        this.direction = Direction.FORWARD;
+        this.tolerance = tolerance;
+    }
+
+    /**
+     * Creates a simple PF controller which can be used to easily apply a control loop to almost anything.
+     *
+     * @param kP the proportional coefficient. This controls how much the magnitude of the error affects the output.
+     * @param kF the feed-forward constant. This is a directly outputted constant which is added to the output.
+     * @param tolerance the distance at which the controller considers having reached the target.
+     */
+    public PID(double kP, double kF, double tolerance){
+        this(kP, 0, 0, kF, 0, tolerance);
     }
 
     public void setDirection(Direction direction) {
@@ -50,7 +63,7 @@ public class PID {
      * @param currentError the current (directional) error value from the target.
      * @return the directional output power of the PID.
      */
-    public double tick(double currentError){
+    public double calc(double currentError){
         if(Math.abs(currentError) > tolerance) {
             double timeChange = timer.milliseconds();
             timer.reset();
@@ -68,35 +81,31 @@ public class PID {
 
             lastError = currentError;
 
-            if(direction == Direction.REVERSE)
-                return -(p + i + d + kF);
-            else
-                return (p + i + d + kF);
+            double output;
+
+            output = (p + i + d + kF);
+
+            if(direction == Direction.REVERSE) {
+                output = -output;
+            }
+
+            lastResult = output;
+
         }else {
-            return 0;
+            lastResult = 0;
         }
+        return lastResult;
     }
 
-    /**
-     * @param errorSupplier a function which supplies the current (directional) error of the motor.
-     * @param outputConsumer a function which executes the necessary operation with the output (directionally).
-     * @param tolerance the acceptable magnitude of error for the PID to have reached the target.
-     * @return the time in milliseconds it took to reach the target.
-     */
-    public double bringToTarget(Supplier<Double> errorSupplier, Consumer<Double> outputConsumer, double tolerance){
-        ElapsedTime time = new ElapsedTime();
-        double error;
-        while(Math.abs(error = errorSupplier.get()) > tolerance){
-            outputConsumer.accept(tick(error));
-        }
-
-        return time.milliseconds();
+    public double result(){
+        return lastResult;
     }
 
     /**
      * @param kP the proportional coefficient. This controls how much the magnitude of the error affects the output.
      * @param kI the integral coefficient. This controls how much the overall change in error affects the output.
      * @param kD the derivative coefficient. This controls how much the change in the error affects the output.
+     * @param kF the feed-forward constant. This is a directly outputted constant which is added to the output.
      * @param maxI the maximum of the integral sum. This controls the maximum amount the integral calculation can affect the output.
      */
     public void setConstants(double kP, double kI, double kD, double kF, double maxI){

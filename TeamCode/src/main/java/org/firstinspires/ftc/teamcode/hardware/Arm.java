@@ -9,13 +9,13 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.TouchSensor;
 
+import org.firstinspires.ftc.teamcode.hardware.controllers.PID;
 import org.firstinspires.ftc.teamcode.util.Encoder;
 
 import java.util.function.Consumer;
 
 @Config
 public class Arm {
-    //todo increase extension tolerances
     //<editor-fold desc="Config">
     public static float ARM_TICKS_PER_DEGREE = 65f; //this is a good estimate as of 1/24/2025
 
@@ -36,12 +36,13 @@ public class Arm {
     public static double extensionKP = 0.2, extensionKI, extensionKD, extensionKF = 0.15, extensionMaxI;
     public static double retractionKP = 0.1, retractionKI, retractionKD, retractionKF = -0.5, retractionMaxI;
 
-    private final PID downwardPID = new PID(downwardKP, downwardKI, downwardKD, downwardKF, downwardMaxI).setTolerance(0.75);
-    private final PID upwardPID = new PID(upwardKP, upwardKI, upwardKD, upwardKF, upwardMaxI).setTolerance(0.75);
-    private final PID extensionPID = new PID(extensionKP, extensionKI, extensionKD, extensionKF, extensionMaxI).setTolerance(0.3);
-    private final PID retractionPID = new PID(retractionKP, retractionKI, retractionKD, retractionKF, retractionMaxI).setTolerance(0.3);
+    private final PID downwardPID = new PID(downwardKP, downwardKI, downwardKD, downwardKF, downwardMaxI, 0.75);
+    private final PID upwardPID = new PID(upwardKP, upwardKI, upwardKD, upwardKF, upwardMaxI, 0.75);
+    private final PID extensionPID = new PID(extensionKP, extensionKI, extensionKD, extensionKF, extensionMaxI, 0.5);
+    private final PID retractionPID = new PID(retractionKP, retractionKI, retractionKD, retractionKF, retractionMaxI, 0.5);
     //</editor-fold>
 
+    //<editor-fold desc="Fields">
     private final DcMotorEx angleMotorRight;
     private final DcMotorEx angleMotorLeft;
     private final DcMotorEx extensionMotor;
@@ -68,8 +69,7 @@ public class Arm {
     private boolean atAngleTarget;
 
     private Consumer<Arm> runningMacro;
-
-    //todo these need actual trained values
+    //</editor-fold>
 
     public Arm(HardwareMap hardwareMap, String tiltMotorLeftName, String tiltMotorRightName, String extensionMotorName, String touchSensorName) {
         //<editor-fold desc="Hardware Config">
@@ -299,9 +299,9 @@ public class Arm {
         upwardPID.setConstants(upwardKP, upwardKI, upwardKD, upwardKF, upwardMaxI);
 
         if(targetAngle < getAngle())
-            lastAnglePower = downwardPID.tick(targetAngle - getAngle());
+            lastAnglePower = downwardPID.calc(targetAngle - getAngle());
         else if (targetAngle > getAngle()){
-            lastAnglePower = upwardPID.tick(targetAngle - getAngle());
+            lastAnglePower = upwardPID.calc(targetAngle - getAngle());
         }else{
             lastAnglePower = 0;
         }
@@ -318,9 +318,9 @@ public class Arm {
         retractionPID.setConstants(retractionKP, retractionKI, retractionKD, retractionKF, retractionMaxI);
 
         if(targetExtension < getExtension())
-            lastExtensionPower = retractionPID.tick(targetExtension - getExtension());
+            lastExtensionPower = retractionPID.calc(targetExtension - getExtension());
         else if (targetExtension > getExtension()){
-            lastExtensionPower = extensionPID.tick(targetExtension - getExtension());
+            lastExtensionPower = extensionPID.calc(targetExtension - getExtension());
         }else{
             lastExtensionPower = 0;
         }

@@ -1,11 +1,12 @@
 package org.firstinspires.ftc.teamcode.hardware;
 
-import android.annotation.SuppressLint;
-
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
+
+import org.firstinspires.ftc.teamcode.hardware.controllers.PID;
+import org.firstinspires.ftc.teamcode.hardware.controllers.PID.Direction;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -13,31 +14,37 @@ import java.math.RoundingMode;
 @Config
 public class Collector {
 
-    //todo add collector mode to always stay parallel with ground
-
     //config
+    public static float WRIST_TICKS_PER_DEGREE = 288f/360f;
     public static float OPEN_POSITION = 0.4f, CLOSED_POSITION = 0; //grip
-    public static int UP_POSITION = 90, DOWN_POSITION = 15; //wrist
+    public static int UP_POSITION = 90, DOWN_POSITION = 0; //wrist
     public static float LENGTH = 5f;
-    public static double wristKP = 0.015, wristKI, wristKD, wristKF = 0.125, wristMaxI;
+    public static double wristKP = 0.012, wristKI, wristKD, wristKF = 0.125, wristMaxI;
 
-    PID pid = new PID(wristKP, wristKI, wristKD, wristKF, wristMaxI);
+    PID PID = new PID(wristKP, wristKI, wristKD, wristKF, wristMaxI, 1);
 
     public int wristTarget;
 
     public final ColorSensor colorSensor;
     final Servo gripServo;
     private final DcMotor wristMotor;
+    private WristMode wristMode;
+    private final Arm arm;
 
-    @SuppressLint("DefaultLocale")
-    public Collector(HardwareMap hardwareMap, String colorSensorName, String wristMotorName, String gripServoName){
+    public enum WristMode {
+        MOVE_TO_TARGET, STAY_PARALLEL
+    }
+
+    public Collector(Arm arm, HardwareMap hardwareMap, String colorSensorName, String wristMotorName, String gripServoName){
         this.colorSensor = new ColorSensor(hardwareMap, colorSensorName);
         this.gripServo = hardwareMap.get(Servo.class, gripServoName);
         this.wristMotor = hardwareMap.get(DcMotor.class, wristMotorName);
+        this.arm = arm;
 
         wristMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         wristMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         wristMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        setWristMode(WristMode.MOVE_TO_TARGET);
         wristUp();
     }
 
@@ -53,11 +60,11 @@ public class Collector {
     }
 
     public boolean isGripOpen(){
-        return Helper.round(gripServo.getPosition(), 1) == Helper.round(OPEN_POSITION, 1);
+        return Helper.errorTolerable(getGripPosition(), OPEN_POSITION, 0.1);
     }
 
     public boolean isGripClosed(){
-        return Helper.round(gripServo.getPosition(), 1) == Helper.round(CLOSED_POSITION, 1);
+        return Helper.errorTolerable(getGripPosition(), CLOSED_POSITION, 0.1);
     }
 
     /**
@@ -92,11 +99,11 @@ public class Collector {
     }
 
     public boolean isWristUp(){
-        return Helper.errorTolerable(wristMotor.getCurrentPosition(), UP_POSITION, 5);
+        return Helper.errorTolerable(getWristAngle(), UP_POSITION, 5);
     }
 
     public boolean isWristDown(){
-        return Helper.errorTolerable(wristMotor.getCurrentPosition(), DOWN_POSITION, 5);
+        return Helper.errorTolerable(getWristAngle(), DOWN_POSITION, 5);
     }
 
     public boolean isWristTargetUp(){
@@ -119,8 +126,16 @@ public class Collector {
         return gripServo.getPosition();
     }
 
-    public double getWristPosition(){
-        return wristMotor.getCurrentPosition();
+    public double getWristAngle(){
+        return wristMotor.getCurrentPosition() / WRIST_TICKS_PER_DEGREE;
+    }
+
+    public WristMode getWristMode(){
+        return wristMode;
+    }
+
+    public void setWristMode(WristMode mode){
+        wristMode = mode;
     }
 
     /**
@@ -140,15 +155,19 @@ public class Collector {
     }
 
     public void tick(){
-        pid.setConstants(wristKP, wristKI, wristKD, wristKF, wristMaxI);
+        PID.setConstants(wristKP, wristKI, wristKD, wristKF, wristMaxI);
 
-        pid.setDirection(PID.Direction.REVERSE);
-        wristMotor.setPower(pid.tick(wristMotor.getCurrentPosition() - wristTarget));
+        PID.setDirection(Direction.REVERSE);
+
+        if(wristMode == WristMode.MOVE_TO_TARGET)
+            wristMotor.setPower(PID.calc(getWristAngle() - wristTarget));
+        else if(wristMode == WristMode.STAY_PARALLEL)
+            wristMotor.setPower(PID.calc(getWristAngle() - (90 - arm.getAngle())));
     }
 
     private static class Helper {
-        private static boolean errorTolerable(int number1, int number2, int tolerance){
-            return Math.abs(number2 - number1) <= tolerance;
+        private static boolean errorTolerable(Number number1, Number number2, Number tolerance){
+            return Math.abs(number2.doubleValue() - number1.doubleValue()) <= tolerance.doubleValue();
         }
 
         public static double round(double value, int precision) {
