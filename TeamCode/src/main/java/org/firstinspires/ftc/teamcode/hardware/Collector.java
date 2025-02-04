@@ -36,7 +36,7 @@ public class Collector {
     private final Arm arm;
 
     public enum WristMode {
-        MOVE_TO_TARGET, STAY_PARALLEL, STAY_PERPENDICULAR
+        MOVE_TO_TARGET, STAY_PARALLEL, STAY_PERPENDICULAR, FLOAT
     }
 
     public Collector(Arm arm, HardwareMap hardwareMap, String colorSensorName, String wristMotorName, String gripServoName){
@@ -46,7 +46,7 @@ public class Collector {
         this.arm = arm;
         this.wristEncoder = new Encoder(hardwareMap.get(DcMotorEx.class, wristMotorName));
 
-        wristMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        //wristMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         wristMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         wristMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         setWristMode(WristMode.MOVE_TO_TARGET);
@@ -141,6 +141,10 @@ public class Collector {
 
     public void setWristMode(WristMode mode){
         wristMode = mode;
+        if(wristMode == WristMode.FLOAT){
+            wristMotor.setPower(0);
+            wristMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        }
     }
 
     /**
@@ -170,21 +174,14 @@ public class Collector {
             wristMotor.setPower(PID.calc(getWristAngle() - (90 - arm.getAngle())));
         else if (wristMode == WristMode.STAY_PERPENDICULAR) {
             wristMotor.setPower(PID.calc(getWristAngle() - (arm.getAngle() - 90)));
+        } else if (wristMode == WristMode.FLOAT) {
+            wristMotor.setPower(0);
         }
     }
 
     private static class Helper {
         private static boolean errorTolerable(Number number1, Number number2, Number tolerance){
             return Math.abs(number2.doubleValue() - number1.doubleValue()) <= tolerance.doubleValue();
-        }
-
-        public static double round(double value, int precision) {
-            if (precision < 0) {
-                throw new IllegalArgumentException("Precision must be a non-negative integer.");
-            }
-            BigDecimal bd = BigDecimal.valueOf(value);
-            bd = bd.setScale(precision, RoundingMode.HALF_UP);
-            return bd.doubleValue();
         }
     }
 }

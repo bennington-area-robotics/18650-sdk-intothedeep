@@ -21,8 +21,6 @@ import org.firstinspires.ftc.teamcode.hardware.drive.StandardTrackingWheelLocali
 
 import java.util.List;
 import java.util.Locale;
-//todo reset macro
-//todo on initialization, move to limits
 
 /** @noinspection SpellCheckingInspection*/
 @Config
@@ -42,7 +40,6 @@ public class OpModeCore extends LinearOpMode {
     private static DriveBase driveBase;
     private static Arm arm;
     private static Autopilot autopilot;
-    private static TouchSensor touchSensor;
 
 
     
@@ -110,8 +107,6 @@ public class OpModeCore extends LinearOpMode {
                 "gripServo"
         );
 
-        touchSensor = hardwareMap.get(TouchSensor.class, "touchSensor");
-
         autopilot = new Autopilot(driveBase, arm, collector);
         autopilot.setTickRunnable(this::tick);
 
@@ -160,7 +155,8 @@ public class OpModeCore extends LinearOpMode {
                 .addData("Target Extension", () -> arm.getTargetExtension())
                 .addData("Last Angle Power", () -> arm.getLastAnglePower())
                 .addData("Last Extension Power", () -> arm.getLastExtensionPower())
-                .addData("Touch Sensor Pressed", () -> touchSensor.isPressed());
+                .addData("Tilt Limit Sensor Pressed?", () -> arm.tiltLimitSensor.isPressed())
+                .addData("Extension Limit Sensor Pressed?", () -> arm.extensionLimitSensor.isPressed());
 
         prettyTelem.addLine("Grip")
                 .addData("Position", () -> collector.getGripPosition())
@@ -274,6 +270,10 @@ public class OpModeCore extends LinearOpMode {
         if (gamepad1.dpad_left && !previousGamepad1.dpad_left){
             collector.setWristMode(Collector.WristMode.STAY_PERPENDICULAR);
         }
+
+        if(gamepad1.dpad_right && !previousGamepad1.dpad_right)
+            collector.setWristMode(Collector.WristMode.FLOAT);
+
         if(gamepad1.dpad_down && !previousGamepad1.dpad_down){
             if(manualArm){
                 arm.setTargetAngle(Math.max(arm.getTargetAngle() - 15, 0));
@@ -303,5 +303,25 @@ public class OpModeCore extends LinearOpMode {
         //save the last gamepad state to compare again later
         previousGamepad1.copy(gamepad1);
         previousGamepad2.copy(gamepad2);
+    }
+
+    public void refreshLocations(){
+        arm.setMode(Arm.ArmMode.SET_POWER);
+        arm.setAnglePower(-0.3);
+        arm.setExtensionPower(-1);
+
+        while(arm.extensionLimitSensor.isPressed() && arm.tiltLimitSensor.isPressed()){
+            if(arm.tiltLimitSensor.isPressed())
+                arm.setAnglePower(0);
+            if(arm.extensionLimitSensor.isPressed())
+                arm.setExtensionPower(0);
+            telemetry.update();
+            idle();
+        }
+
+        arm.resetExtension();
+        arm.resetAngle();
+
+        arm.setMode(Arm.ArmMode.MOVE_TO_TARGET);
     }
 }

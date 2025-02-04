@@ -48,8 +48,8 @@ public class Arm {
     private final DcMotorEx extensionMotor;
 
     private final Encoder angleEncoder;
-    private final TouchSensor tiltLimitSensor;
-    private final TouchSensor extensionLimitSensor;
+    public final TouchSensor tiltLimitSensor;
+    public final TouchSensor extensionLimitSensor;
 
     /**
      * Target extension of the arm in inches past the minimum extension (not extended at all)
@@ -70,7 +70,17 @@ public class Arm {
     private boolean atAngleTarget;
 
     private Consumer<Arm> runningMacro;
+
+    private ArmMode mode = ArmMode.MOVE_TO_TARGET;
+
+    private double anglePower = 0.0;
+
+    private double extensionPower = 0.0;
     //</editor-fold>
+
+    public enum ArmMode {
+        MOVE_TO_TARGET, SET_POWER
+    }
 
     public Arm(HardwareMap hardwareMap, String tiltMotorLeftName, String tiltMotorRightName, String extensionMotorName, String tiltSensorName, String extensionSensorName) {
         //<editor-fold desc="Hardware Config">
@@ -133,6 +143,30 @@ public class Arm {
 
     public double getTargetAngle() {
         return targetAngle;
+    }
+
+    public ArmMode getMode(){
+        return mode;
+    }
+
+    public void setMode(ArmMode mode){
+        this.mode = mode;
+    }
+
+    public void setAnglePower(double anglePower){
+        this.anglePower = anglePower;
+    }
+
+    public double getAnglePower() {
+        return anglePower;
+    }
+
+    public void setExtensionPower(double extensionPower) {
+        this.extensionPower = extensionPower;
+    }
+
+    public double getExtensionPower(){
+        return extensionPower;
     }
 
     /**
@@ -286,10 +320,6 @@ public class Arm {
         if(extensionLimitSensor.isPressed())
             resetExtension();
 
-        //update the caches
-        getAngle();
-        getExtension();
-
         if(runningMacro != null && tickCount % 5 == 0){
             runningMacro.accept(this);
         }
@@ -299,16 +329,20 @@ public class Arm {
     }
 
     private double lastAnglePower;
-    private double getAnglePower(){
-        downwardPID.setConstants(downwardKP, downwardKI, downwardKD,downwardKF, downwardMaxI);
-        upwardPID.setConstants(upwardKP, upwardKI, upwardKD, upwardKF, upwardMaxI);
+    private double calcAnglePower(){
+        if(mode == ArmMode.MOVE_TO_TARGET) {
+            downwardPID.setConstants(downwardKP, downwardKI, downwardKD, downwardKF, downwardMaxI);
+            upwardPID.setConstants(upwardKP, upwardKI, upwardKD, upwardKF, upwardMaxI);
 
-        if(targetAngle < getAngle())
-            lastAnglePower = downwardPID.calc(targetAngle - getAngle());
-        else if (targetAngle > getAngle()){
-            lastAnglePower = upwardPID.calc(targetAngle - getAngle());
-        }else{
-            lastAnglePower = 0;
+            if (targetAngle < getAngle())
+                lastAnglePower = downwardPID.calc(targetAngle - getAngle());
+            else if (targetAngle > getAngle()) {
+                lastAnglePower = upwardPID.calc(targetAngle - getAngle());
+            } else {
+                lastAnglePower = 0;
+            }
+        }else if (mode == ArmMode.SET_POWER){
+            lastAnglePower = anglePower;
         }
         return lastAnglePower;
     }
@@ -318,16 +352,20 @@ public class Arm {
     }
 
     double lastExtensionPower;
-    private double getExtensionPower(){
-        extensionPID.setConstants(extensionKP, extensionKI, extensionKD, extensionKF, extensionMaxI);
-        retractionPID.setConstants(retractionKP, retractionKI, retractionKD, retractionKF, retractionMaxI);
+    private double calcExtensionPower(){
+        if(mode == ArmMode.MOVE_TO_TARGET) {
+            extensionPID.setConstants(extensionKP, extensionKI, extensionKD, extensionKF, extensionMaxI);
+            retractionPID.setConstants(retractionKP, retractionKI, retractionKD, retractionKF, retractionMaxI);
 
-        if(targetExtension < getExtension())
-            lastExtensionPower = retractionPID.calc(targetExtension - getExtension());
-        else if (targetExtension > getExtension()){
-            lastExtensionPower = extensionPID.calc(targetExtension - getExtension());
-        }else{
-            lastExtensionPower = 0;
+            if (targetExtension < getExtension())
+                lastExtensionPower = retractionPID.calc(targetExtension - getExtension());
+            else if (targetExtension > getExtension()) {
+                lastExtensionPower = extensionPID.calc(targetExtension - getExtension());
+            } else {
+                lastExtensionPower = 0;
+            }
+        }else if(mode == ArmMode.SET_POWER){
+            lastExtensionPower = extensionPower;
         }
         return lastExtensionPower;
     }
@@ -340,12 +378,12 @@ public class Arm {
      * Runs a cycle on the PIDF control loop for the arm.
      */
     private void tickPIDF(){
-        double anglePower = getAnglePower();
+        double anglePower = calcAnglePower();
 
         angleMotorRight.setPower(anglePower);
         angleMotorLeft.setPower(anglePower);
 
-        extensionMotor.setPower(getExtensionPower());
+        extensionMotor.setPower(calcExtensionPower());
     }
 
     public boolean isValidAngle(double degrees){
