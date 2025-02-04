@@ -23,6 +23,12 @@ public class MeepMeepTesting {
                 .setConstraints(40.05530633326986, 40.05530633326986, Math.toRadians(163.2), Math.toRadians(166.9090909090909), 12.96)
                 .followTrajectorySequence(drive -> drive.trajectorySequenceBuilder(new Pose2d(0, 63, Math.toRadians(-90)))
                         .splineTo(new Vector2d(0, 45), Math.toRadians(-90))
+                        .splineToConstantHeading(new Vector2d(38, 48), Math.toRadians(-90))
+                        .splineTo(new Vector2d(38,20), Math.toRadians(-90))
+                        .splineToConstantHeading(new Vector2d(48,12), Math.toRadians(90))
+                        .splineToConstantHeading(new Vector2d(-48, 55), Math.toRadians(90))
+                        //pushes to blue observation zone
+                        /*.splineTo(new Vector2d(0, 45), Math.toRadians(-90))
                         .splineToConstantHeading(new Vector2d(-38, 48), Math.toRadians(-90))
                         //.splineToSplineHeading(new Pose2d(-36, 48, Math.toRadians(90)), Math.toRadians(0))
                         .splineTo(new Vector2d(-38,20), Math.toRadians(-90))
@@ -36,7 +42,7 @@ public class MeepMeepTesting {
                         .splineToConstantHeading(new Vector2d(-59, 20), Math.toRadians(-90))
                         .splineToConstantHeading(new Vector2d(-70, 12), Math.toRadians(90))
 
-                        .splineToConstantHeading(new Vector2d(-70, 55), Math.toRadians(-90))
+                        .splineToConstantHeading(new Vector2d(-70, 55), Math.toRadians(-90))*/
                         .build());
 
 

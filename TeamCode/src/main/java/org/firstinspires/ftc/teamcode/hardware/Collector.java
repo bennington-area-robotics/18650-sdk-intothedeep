@@ -2,11 +2,13 @@ package org.firstinspires.ftc.teamcode.hardware;
 
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.hardware.controllers.PID;
 import org.firstinspires.ftc.teamcode.hardware.controllers.PID.Direction;
+import org.firstinspires.ftc.teamcode.util.Encoder;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -15,11 +17,13 @@ import java.math.RoundingMode;
 public class Collector {
 
     //config
-    public static float WRIST_TICKS_PER_DEGREE = 288f/360f;
+    public static float WRIST_TICKS_PER_DEGREE = 8192f/360f;
     public static float OPEN_POSITION = 0.4f, CLOSED_POSITION = 0; //grip
     public static int UP_POSITION = 90, DOWN_POSITION = 0; //wrist
     public static float LENGTH = 5f;
     public static double wristKP = 0.012, wristKI, wristKD, wristKF = 0.125, wristMaxI;
+
+    private final Encoder wristEncoder;
 
     PID PID = new PID(wristKP, wristKI, wristKD, wristKF, wristMaxI, 1);
 
@@ -32,7 +36,7 @@ public class Collector {
     private final Arm arm;
 
     public enum WristMode {
-        MOVE_TO_TARGET, STAY_PARALLEL
+        MOVE_TO_TARGET, STAY_PARALLEL, STAY_PERPENDICULAR
     }
 
     public Collector(Arm arm, HardwareMap hardwareMap, String colorSensorName, String wristMotorName, String gripServoName){
@@ -40,6 +44,7 @@ public class Collector {
         this.gripServo = hardwareMap.get(Servo.class, gripServoName);
         this.wristMotor = hardwareMap.get(DcMotor.class, wristMotorName);
         this.arm = arm;
+        this.wristEncoder = new Encoder(hardwareMap.get(DcMotorEx.class, wristMotorName));
 
         wristMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         wristMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
@@ -127,7 +132,7 @@ public class Collector {
     }
 
     public double getWristAngle(){
-        return wristMotor.getCurrentPosition() / WRIST_TICKS_PER_DEGREE;
+        return wristEncoder.getCurrentPosition() / WRIST_TICKS_PER_DEGREE;
     }
 
     public WristMode getWristMode(){
@@ -163,6 +168,9 @@ public class Collector {
             wristMotor.setPower(PID.calc(getWristAngle() - wristTarget));
         else if(wristMode == WristMode.STAY_PARALLEL)
             wristMotor.setPower(PID.calc(getWristAngle() - (90 - arm.getAngle())));
+        else if (wristMode == WristMode.STAY_PERPENDICULAR) {
+            wristMotor.setPower(PID.calc(getWristAngle() - (arm.getAngle() - 90)));
+        }
     }
 
     private static class Helper {

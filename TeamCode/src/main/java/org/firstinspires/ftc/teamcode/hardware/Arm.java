@@ -357,7 +357,7 @@ public class Arm {
     }
 
     public boolean isValidExtension(double inches){
-        if(inches > MAX_ARM_EXTENSION || inches < 0)
+        if(inches > MAX_ARM_EXTENSION || inches < -0.5)
             return false;
 
         if(inches * Math.cos(Math.toRadians(targetAngle)) > MAX_HORIZONTAL_EXTENSION)

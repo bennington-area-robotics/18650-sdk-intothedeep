@@ -148,7 +148,7 @@ public class OpModeCore extends LinearOpMode {
         ;
         prettyTelem.addLine("Game State")
                 .addData("In Basket Area", () -> autopilot.inBasketArea())
-                .addData("In Submersible Collection Area", () -> autopilot.inBasketArea())
+                .addData("In Submersible Collection Area", () -> autopilot.isInSubmersibleCollectionArea())
                 .addData("In Observation Collection Area", () -> autopilot.inObservationZoneCollectionArea())
                 .addData("In Specimen Delivery Area", () -> autopilot.inSpecimenDeliveryArea())
         ;
@@ -271,6 +271,9 @@ public class OpModeCore extends LinearOpMode {
             }
         }
 
+        if (gamepad1.dpad_left && !previousGamepad1.dpad_left){
+            collector.setWristMode(Collector.WristMode.STAY_PERPENDICULAR);
+        }
         if(gamepad1.dpad_down && !previousGamepad1.dpad_down){
             if(manualArm){
                 arm.setTargetAngle(Math.max(arm.getTargetAngle() - 15, 0));
