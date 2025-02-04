@@ -48,7 +48,8 @@ public class Arm {
     private final DcMotorEx extensionMotor;
 
     private final Encoder angleEncoder;
-    private final TouchSensor touchSensor;
+    private final TouchSensor tiltLimitSensor;
+    private final TouchSensor extensionLimitSensor;
 
     /**
      * Target extension of the arm in inches past the minimum extension (not extended at all)
@@ -71,12 +72,13 @@ public class Arm {
     private Consumer<Arm> runningMacro;
     //</editor-fold>
 
-    public Arm(HardwareMap hardwareMap, String tiltMotorLeftName, String tiltMotorRightName, String extensionMotorName, String touchSensorName) {
+    public Arm(HardwareMap hardwareMap, String tiltMotorLeftName, String tiltMotorRightName, String extensionMotorName, String tiltSensorName, String extensionSensorName) {
         //<editor-fold desc="Hardware Config">
         this.angleMotorRight = hardwareMap.get(DcMotorEx.class, tiltMotorRightName);
         this.angleMotorLeft = hardwareMap.get(DcMotorEx.class, tiltMotorLeftName);
         this.extensionMotor = hardwareMap.get(DcMotorEx.class, extensionMotorName);
-        this.touchSensor = hardwareMap.get(TouchSensor.class, touchSensorName);
+        this.tiltLimitSensor = hardwareMap.get(TouchSensor.class, tiltSensorName);
+        this.extensionLimitSensor = hardwareMap.get(TouchSensor.class, extensionSensorName);
         this.angleEncoder = new Encoder(angleMotorRight);
 
         this.extensionMotor.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -278,8 +280,11 @@ public class Arm {
      * or adjust the arm's position when not at target. This controls both extension and retraction.
      */
     public void tick(){
-        if(touchSensor.isPressed())
+        if(tiltLimitSensor.isPressed())
             resetAngle();
+
+        if(extensionLimitSensor.isPressed())
+            resetExtension();
 
         //update the caches
         getAngle();
