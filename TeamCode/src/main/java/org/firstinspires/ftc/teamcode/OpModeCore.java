@@ -100,7 +100,7 @@ public class OpModeCore extends LinearOpMode {
                 "tiltMotorLeft",
                 "tiltMotorRight",
                 "extensionMotor",
-                "touchSensor"
+                "tiltLimitSensor"
         );
         collector = new Collector(
                 arm,
