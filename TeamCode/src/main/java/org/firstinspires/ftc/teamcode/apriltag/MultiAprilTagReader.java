@@ -8,7 +8,9 @@ import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class MultiAprilTagReader {
@@ -41,6 +43,10 @@ public class MultiAprilTagReader {
         }
     }
 
+    public MultiAprilTagReader(Camera... cameras){
+        this(Arrays.asList(cameras));
+    }
+
     public List<Detection> getAllUniqueDetections(){
         List<Detection> out = new ArrayList<>();
         for (int i = 0; i < processors.size(); i++) {
@@ -48,6 +54,34 @@ public class MultiAprilTagReader {
         }
 
         return out.stream().distinct().collect(Collectors.toList());
+    }
+
+    /**
+     * @return an optional pose based on the first detection found.
+     */
+    public Optional<Pose> getFirstPose(){
+        try{
+            Detection detection = getAllUniqueDetections().get(0);
+            Pose localization = detection.getRobotPose();
+
+            return Optional.of(localization);
+        } catch(IndexOutOfBoundsException e) {
+            return Optional.empty();
+        }
+    }
+
+    /**
+     * @return an optional pose based on the first detection found.
+     */
+    public Optional<Pose> getFirstPose(int cameraNum){
+        try{
+            Detection detection = getDetections(cameraNum).get(0);
+            Pose localization = detection.getRobotPose();
+
+            return Optional.of(localization);
+        } catch(IndexOutOfBoundsException e) {
+            return Optional.empty();
+        }
     }
 
     public List<Detection> getDetections(int cameraNum){

@@ -48,8 +48,7 @@ public class Collector {
         //wristMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         wristMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         wristMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        setWristMode(WristMode.MOVE_TO_TARGET);
-        wristUp();
+        setWristMode(WristMode.FLOAT);
     }
 
 

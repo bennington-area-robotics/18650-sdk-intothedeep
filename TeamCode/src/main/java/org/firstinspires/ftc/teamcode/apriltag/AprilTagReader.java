@@ -61,19 +61,6 @@ public class AprilTagReader {
         }
     }
 
-    public String getDetectionString(){
-        Optional<Pose> poseOptional = getFirstPose();
-        if(poseOptional.isPresent()){
-            Pose pose = poseOptional.get();
-            return String.format(Locale.ENGLISH, "X Y Heading %6.1f %6.1f %6.1f  (inch)",
-                    pose.x(),
-                    pose.y(),
-                    pose.heading());
-        }else{
-            return "No detections";
-        }
-    }
-
 
     /**
      * @return an optional pose based on the first detection found.
