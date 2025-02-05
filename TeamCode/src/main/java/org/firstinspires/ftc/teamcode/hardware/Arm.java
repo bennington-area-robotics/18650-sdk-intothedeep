@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.TouchSensor;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.hardware.controllers.PID;
 import org.firstinspires.ftc.teamcode.util.Encoder;
@@ -274,6 +275,30 @@ public class Arm {
             return;
 
         setTargetAngleIgnoreMacro(SPECIMEN_ANGLE);
+    }
+
+    public double moveToTargetAngleBlocking(double degrees){
+        ElapsedTime timer = new ElapsedTime();
+        if (!setTargetAngle(degrees))
+            return timer.milliseconds();
+
+        while (Math.abs(getAngle() - getTargetAngle()) < 2){
+            tick();
+        }
+
+        return timer.milliseconds();
+    }
+
+    public double moveToTargetExtensionBlocking(double inches){
+        ElapsedTime timer = new ElapsedTime();
+        if (!setTargetExtension(inches))
+            return timer.milliseconds();
+
+        while (Math.abs(getExtension() - getTargetExtension()) < 2){
+            tick();
+        }
+
+        return timer.milliseconds();
     }
 
     /**

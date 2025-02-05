@@ -326,18 +326,11 @@ public class AutonomousCore extends LinearOpMode {
     }
 
     public void placeSample(){
-        arm.setTargetAngle(100);
-        while(Math.abs(arm.getAngle() - arm.getTargetAngle()) > 1 && opModeIsActive()) {
-            //arm.setTargetExtension(Arm.MAX_ARM_EXTENSION);
-            tick();
-        }
+        arm.moveToTargetAngleBlocking(100);
 
         telemetry.addData("arm up", 0);
         telemetry.update();
-        arm.setTargetExtension(36.5);
-        while(Math.abs(arm.getExtension() - arm.getTargetExtension() ) > 0.5 && opModeIsActive()){
-            tick();
-        }
+        arm.moveToTargetExtensionBlocking(36.5);
         telemetry.addData("max extended", 0);
         telemetry.update();
 
