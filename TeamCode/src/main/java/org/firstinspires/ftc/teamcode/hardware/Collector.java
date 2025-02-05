@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.hardware;
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
@@ -19,7 +20,7 @@ public class Collector {
     public static int UP_POSITION = 90, DOWN_POSITION = 0; //wrist
     public static float LENGTH = 5f;
     public static double wristKP = 0.012, wristKI, wristKD, wristKF = 0.125, wristMaxI;
-    public static double WRIST_END_POSITION = 156;
+    public static double WRIST_OFFSET = 156;
 
     private final Encoder wristEncoder;
 
@@ -45,8 +46,8 @@ public class Collector {
         this.arm = arm;
         this.wristEncoder = new Encoder(hardwareMap.get(DcMotorEx.class, wristMotorName));
 
-        //wristMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        wristMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        resetPositionAsTop();
+        wristMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         wristMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         setWristMode(WristMode.FLOAT);
     }
@@ -160,6 +161,10 @@ public class Collector {
         return wristEncoder.getCorrectedVelocity() / WRIST_TICKS_PER_DEGREE;
     }
 
+    public int getWristTarget() {
+        return wristTarget;
+    }
+
     /**
      * Attempts to toggle the wrist target between up and down. If the target is not up or down, the target will not be changed.
      * @return whether the wrist target was changed.
@@ -178,7 +183,12 @@ public class Collector {
 
     public void resetPositionAsTop(){
         wristMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        wristMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        wristMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+    }
+
+    public void resetPositionAs(){
+        wristMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        wristMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     }
 
     public void tick(){

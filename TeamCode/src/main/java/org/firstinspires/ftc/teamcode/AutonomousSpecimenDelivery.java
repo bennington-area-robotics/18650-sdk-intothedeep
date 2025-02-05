@@ -27,8 +27,8 @@ import java.util.List;
  * This is an example of a more complex path to really test the tuning.
  */
 @Config
-@Autonomous(group = "drive", name="AutonomousNetDeliveryPath")
-public class AutonomousNetDelivery extends LinearOpMode {
+@Autonomous(group = "drive", name="AutonomousSpecimenDeliveryPath")
+public class AutonomousSpecimenDelivery extends LinearOpMode {
 
     //TODO FOR EBEN - clean up this code! remove the unnecessary code if its commented, implement the methods I added here
 
@@ -326,36 +326,32 @@ public class AutonomousNetDelivery extends LinearOpMode {
 
     }
 
-    public void sampleDeliveryPath(){
+    public void specimenDeliverPath(){
+        placeSpecimen();
         Trajectory path = drive.trajectoryBuilder(blueStartPose, true)
-                .splineToSplineHeading(new Pose2d(20, 57, Math.toRadians(0)), Math.toRadians(0))
-                .splineToSplineHeading(new Pose2d(55, 57, Math.toRadians(45)), Math.toRadians(45))
+                .splineTo(new Vector2d(0, 27), Math.toRadians(-90))
                 .build();
         drive.followTrajectory(path);
-        placeSample();
     }
 
-    public void placeSample(){
+    public void placeSpecimen(){
         telemetry.addData("MOVING TO ANGLE", "hi");
         telemetry.update();
-        arm.moveToTargetAngleBlocking(100, this::tick);
+        arm.moveToTargetAngleBlocking(45, this::tick);
 
         telemetry.addData("arm up", 0);
         telemetry.update();
-        arm.moveToTargetExtensionBlocking(36.5, this::tick);
+        arm.moveToTargetExtensionBlocking(16.22, this::tick);
         telemetry.addData("max extended", 0);
         telemetry.update();
 
+
+        collector.wristTo(40);
         collector.setWristMode(Collector.WristMode.MOVE_TO_TARGET);
-        while(!collector.isWristUp() && opModeIsActive()) {
-            collector.wristUp();
+        while(Math.abs(collector.getWristAngle()- collector.getWristTarget()) > 2 && opModeIsActive()) {
             tick();
         }
-        collector.openGrip();
-        arm.collectionPosition();
-        while(Math.abs(arm.getAngle()) > 1 && opModeIsActive()) {
-            tick();
-        }
+        //collector.openGrip();
     }
 
     public void tick(){
@@ -374,7 +370,7 @@ public class AutonomousNetDelivery extends LinearOpMode {
         //TODO FOR EBEN - finish implementing this
 
         if (isStopRequested()) return;
-        sampleDeliveryPath();
+        specimenDeliverPath();
 
 
 
