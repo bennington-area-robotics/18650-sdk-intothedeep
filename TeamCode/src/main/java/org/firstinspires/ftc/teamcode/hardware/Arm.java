@@ -276,6 +276,13 @@ public class Arm {
         setTargetAngleIgnoreMacro(SPECIMEN_ANGLE);
     }
 
+    public void specimenPositionBlocking(){
+        if(runningMacro !=null)
+            return;
+
+        moveToTargetAngleBlocking(SPECIMEN_ANGLE);
+    }
+
     public double moveToTargetAngleBlocking(double degrees){
         ElapsedTime timer = new ElapsedTime();
         if (!setTargetAngle(degrees))
