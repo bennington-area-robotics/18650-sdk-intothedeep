@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -9,8 +10,8 @@ import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.teamcode.apriltag.AprilTagReader;
 import org.firstinspires.ftc.teamcode.apriltag.Camera;
+import org.firstinspires.ftc.teamcode.apriltag.MultiAprilTagReader;
 import org.firstinspires.ftc.teamcode.hardware.Arm;
 import org.firstinspires.ftc.teamcode.hardware.Collector;
 import org.firstinspires.ftc.teamcode.hardware.drive.DriveBase;
@@ -34,24 +35,24 @@ public class OpModeCore extends LinearOpMode {
     //</editor-fold>
 
     //<editor-fold desc="Fields">
-    private static AprilTagReader aprilTagReader;
+    //components
+    private static MultiAprilTagReader aprilTagReader;
     private static OpModeCore instance;
     private static Collector collector;
     private static DriveBase driveBase;
     private static Arm arm;
     private static Autopilot autopilot;
 
-
-    
-    private PrettyTelemetry prettyTelem;
-
     private final Gamepad previousGamepad1 = new Gamepad();
     private final Gamepad previousGamepad2 = new Gamepad();
-
+    private ElapsedTime tickTimer, gamepadTimer;
+    private List<LynxModule> lynxModules;
+    private PrettyTelemetry prettyTelem;
+    //private final FtcDashboard dashboard = FtcDashboard.getInstance();
 
     private boolean collectorArmed = false;
-    ElapsedTime tickTimer, gamepadTimer;
-    private List<LynxModule> lynxModules;
+    private boolean isHighPower = false;
+    private boolean manualArm = false;
     //</editor-fold>
 
     //<editor-fold desc="Instance Getters">
@@ -110,10 +111,15 @@ public class OpModeCore extends LinearOpMode {
         autopilot = new Autopilot(driveBase, arm, collector);
         autopilot.setTickRunnable(this::tick);
 
-        aprilTagReader = new AprilTagReader(
+        aprilTagReader = new MultiAprilTagReader(
                 new Camera(
                         hardwareMap,
-                        "Webcam 1",
+                        "Webcam Left",
+                        new Pose(0, 0, 0)
+                ),
+                new Camera(
+                        hardwareMap,
+                        "Webcam Right",
                         new Pose(0, 0, 0)
                 )
         );
@@ -165,6 +171,7 @@ public class OpModeCore extends LinearOpMode {
 
         prettyTelem.addLine("Wrist")
                 .addData("Position", () -> collector.getWristAngle())
+                .addData("Velocity", () -> collector.getWristVelocity())
                 .addData("Up?", () -> collector.isWristUp())
                 .addData("Down?", () -> collector.isWristDown());
 
@@ -173,7 +180,9 @@ public class OpModeCore extends LinearOpMode {
                 .addData("RGB", this::getRGB)
                 .addData("Scoring Color", () -> collector.colorSensor.getScoringElementColor());
 
-        prettyTelem.addData("April Tag", () -> aprilTagReader.getDetectionString());
+        prettyTelem.addLine("April Tags")
+                .addData("Left Camera", () -> aprilTagReader.getFirstPose(0).toString())
+                .addData("Right Camera", () -> aprilTagReader.getFirstPose(1).toString());
     }
 
     private String getHSV(){
@@ -220,8 +229,6 @@ public class OpModeCore extends LinearOpMode {
     }
 
     //this might be moved to a seperate class
-    private boolean isHighPower = false;
-    private boolean manualArm = false;
     public void checkGamepad() {
         //store the current gamepads since this state can change while in a check cycle
         Gamepad gamepad1 = new Gamepad();
@@ -307,7 +314,7 @@ public class OpModeCore extends LinearOpMode {
 
     public void refreshLocations(){
         collector.setWristMode(Collector.WristMode.SET_POWER);
-        collector.setWristPower(0.15);
+        collector.setWristPower(-0.15);
 
         while(collector.getWristVelocity() > MIN_WRIST_VELOCITY){
             collector.tick();
