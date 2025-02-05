@@ -8,7 +8,12 @@ import com.acmerobotics.roadrunner.trajectory.constraints.TrajectoryVelocityCons
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.acmerobotics.dashboard.config.Config;
+import com.qualcomm.robotcore.util.ElapsedTime;
+import com.sun.source.tree.PrimitiveTypeTree;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.teamcode.apriltag.AprilTagReader;
+import org.firstinspires.ftc.teamcode.apriltag.Camera;
 import org.firstinspires.ftc.teamcode.hardware.Arm;
 import org.firstinspires.ftc.teamcode.hardware.Collector;
 import org.firstinspires.ftc.teamcode.hardware.drive.ConfiguredMecanumDrive;
@@ -33,8 +38,20 @@ public class AutonomousCore extends LinearOpMode {
     public static double redStartY = -63;
     public static double redStartAng = -90;
 
+
+    private static AutonomousCore instance;
+    ElapsedTime tickTimer;
     private static Arm arm;
     private static Collector collector;
+    private PrettyTelemetry prettyTelem;
+
+    public static AutonomousCore getInstance(){
+        return instance;
+    }
+
+    public static Telemetry getTelemetry(){
+        return instance.telemetry;
+    }
 
     public static boolean DELIVER_SPECIMEN = true;
     public static AutoTask task = AutoTask.PUSH_SAMPLES_TO_OBSERVATION_ZONE;
@@ -42,7 +59,7 @@ public class AutonomousCore extends LinearOpMode {
     public enum AutoTask {
         PUSH_SAMPLES_TO_OBSERVATION_ZONE, PUSH_SAMPLES_TO_NET_ZONE, PARK_IN_OBSERVATION_ZONE, PARK_LEVEL_1_ASCENT
     }
-
+    private AprilTagReader aprilTagReader;
     private DriveBase drive;
     private final Pose2d blueStartPose = new Pose(blueStartX, blueStartY, blueStartAng).toRR();
     private final Pose2d redStartPose = new Pose(redStartX, redStartY, redStartAng).toRR();
@@ -64,6 +81,39 @@ public class AutonomousCore extends LinearOpMode {
      * If there is some initialization movement that needs to happen to allow the bot to start in a position where it will fit in an 18x18, this is when it should happen.
      * Since we get to define the starting position, this is a good time to reset our encoders if necessary.
      */
+    private void configureTelemetry(){
+        prettyTelem = new PrettyTelemetry(telemetry);
+
+        prettyTelem.addLine("System Status")
+                .addData("Localization: ", () -> drive.getPoseSimple())
+        ;
+        ;
+
+        prettyTelem.addLine("Arm Status")
+                .addData("Current Angle", () -> arm.getAngle())
+                .addData("Target Angle", () -> arm.getTargetAngle())
+                .addData("Current Extension", () -> arm.getExtension())
+                .addData("Target Extension", () -> arm.getTargetExtension())
+                .addData("Last Angle Power", () -> arm.getLastAnglePower())
+                .addData("Last Extension Power", () -> arm.getLastExtensionPower())
+                .addData("Tilt Limit Sensor Pressed?", () -> arm.tiltLimitSensor.isPressed())
+                .addData("Extension Limit Sensor Pressed?", () -> arm.extensionLimitSensor.isPressed());
+
+        prettyTelem.addLine("Grip")
+                .addData("Position", () -> collector.getGripPosition())
+                .addData("Open?", () -> collector.isGripOpen())
+                .addData("Closed?", () -> collector.isGripClosed());
+
+        prettyTelem.addLine("Wrist")
+                .addData("Position", () -> collector.getWristAngle())
+                .addData("Up?", () -> collector.isWristUp())
+                .addData("Down?", () -> collector.isWristDown());
+
+
+        prettyTelem.addData("April Tag", () -> aprilTagReader.getDetectionString());
+    }
+
+
     public void initialize(){
         drive = new DriveBase(hardwareMap);
         drive.setPoseEstimate(blueStartPose);
@@ -81,40 +131,70 @@ public class AutonomousCore extends LinearOpMode {
                 "colorSensor",
                 "wristMotor",
                 "gripServo");
+        tickTimer = new ElapsedTime();
+        aprilTagReader = new AprilTagReader(
+                new Camera(
+                        hardwareMap,
+                        "Webcam 1",
+                        new Pose(0, 0, 0)
+                )
+        );
+        configureTelemetry();
 
         //TODO FOR EBEN - finish implementing this
     }
 
     public void blueNetZoneSamplePushPath(){
+        TrajectoryVelocityConstraint velocityConstraint = ConfiguredMecanumDrive.getVelocityConstraint(
+                25,
+                2,
+                DriveConstants.TRACK_WIDTH);
+
+        TrajectoryAccelerationConstraint accelerationConstraint = ConfiguredMecanumDrive.getAccelerationConstraint(
+                15);
         Trajectory pushSamples = drive.trajectoryBuilder(blueStartPose, true)
-                .splineTo(new Vector2d(0, 45), Math.toRadians(-90))
-                .splineToConstantHeading(new Vector2d(38, 48), Math.toRadians(-90))
-                .splineTo(new Vector2d(38,20), Math.toRadians(-90))
-                .splineToConstantHeading(new Vector2d(48,12), Math.toRadians(90))
-                .splineToConstantHeading(new Vector2d(48, 40), Math.toRadians(90))
-                .splineTo(new Vector2d(54, 60), Math.toRadians(45))
-                .splineToConstantHeading(new Vector2d(48, 40), Math.toRadians(-90))
-                .splineToSplineHeading(new Pose2d(48, 12, Math.toRadians(-90)), Math.toRadians(-90))
-                .splineToConstantHeading(new Vector2d(59, 12), Math.toRadians(90))
-                .splineToConstantHeading(new Vector2d(59, 60), Math.toRadians(90))
-                .splineToConstantHeading(new Vector2d(59, 20), Math.toRadians(-90))
-                .splineToConstantHeading(new Vector2d(68, 12), Math.toRadians(90))
-                .splineToConstantHeading(new Vector2d(68, 60), Math.toRadians(90))
+                //.splineTo(new Vector2d(0, 45), Math.toRadians(-90))
+                //.splineToConstantHeading(new Vector2d(38, 48), Math.toRadians(-90))
+                .splineTo(
+                        new Vector2d(38, 45),
+                        Math.toRadians(-90),
+                        velocityConstraint,
+                        accelerationConstraint)
+                .splineTo(
+                        new Vector2d(38,20),
+                        Math.toRadians(-90),
+                        velocityConstraint,
+                        accelerationConstraint)
+                .splineToConstantHeading(new Vector2d(45,12), Math.toRadians(90), velocityConstraint, accelerationConstraint)
+                .splineToConstantHeading(new Vector2d(45, 40), Math.toRadians(90),velocityConstraint, accelerationConstraint)
+                .splineTo(new Vector2d(52, 57), Math.toRadians(45), velocityConstraint, accelerationConstraint)
                 .build();
-        drive.followTrajectory(pushSamples);
+
+            Trajectory pushSamples2 = drive.trajectoryBuilder(pushSamples.end(), true)
+                .splineToConstantHeading(new Vector2d(45, 40), Math.toRadians(-90), velocityConstraint, accelerationConstraint)
+                .splineToSplineHeading(new Pose2d(45, 12, Math.toRadians(90)), Math.toRadians(90), velocityConstraint, accelerationConstraint)
+                .splineToConstantHeading(new Vector2d(53, 12), Math.toRadians(90), velocityConstraint, accelerationConstraint)
+                .splineToConstantHeading(new Vector2d(53, 60), Math.toRadians(90), velocityConstraint, accelerationConstraint)
+                .build();
+            Trajectory pushSamples3 = drive.trajectoryBuilder(pushSamples2.end(), true)
+                .splineToConstantHeading(new Vector2d(53, 20), Math.toRadians(-90), velocityConstraint, accelerationConstraint)
+                .splineToConstantHeading(new Vector2d(60, 12), Math.toRadians(90), velocityConstraint, accelerationConstraint)
+                .splineToConstantHeading(new Vector2d(60, 57), Math.toRadians(90), velocityConstraint, accelerationConstraint)
+                .build();
+        drive.followTrajectories(pushSamples, pushSamples2, pushSamples3);
     }
 
     public void blueObservationSamplePushPath(){
         TrajectoryVelocityConstraint velocityConstraint = ConfiguredMecanumDrive.getVelocityConstraint(
-                20,
-                1.7,
+                25,
+                2,
                 DriveConstants.TRACK_WIDTH);
 
         TrajectoryAccelerationConstraint accelerationConstraint = ConfiguredMecanumDrive.getAccelerationConstraint(
                 15);
 
         Trajectory moveRobot = drive.trajectoryBuilder(blueStartPose, true)
-                .splineTo(
+                /*.splineTo(
                         new Vector2d(0, 45),
                         Math.toRadians(-90),
                         velocityConstraint,
@@ -123,19 +203,24 @@ public class AutonomousCore extends LinearOpMode {
                         new Vector2d(-40, 45),
                         Math.toRadians(-90),
                         velocityConstraint,
+                        accelerationConstraint)*/
+                .splineTo(
+                        new Vector2d(-39, 45),
+                        Math.toRadians(-90),
+                        velocityConstraint,
                         accelerationConstraint)
                 .splineTo(
-                        new Vector2d(-40,20),
+                        new Vector2d(-39,20),
                         Math.toRadians(-90),
                         velocityConstraint,
                         accelerationConstraint)
                 .splineToConstantHeading(
-                        new Vector2d(-48,12),
+                        new Vector2d(-45,12),
                         Math.toRadians(90),
                         velocityConstraint,
                         accelerationConstraint)
-                .splineToConstantHeading(
-                        new Vector2d(-48, 55),
+                .splineTo(
+                        new Vector2d(-45, 55),
                         Math.toRadians(90),
                         velocityConstraint,
                         accelerationConstraint)
@@ -143,16 +228,16 @@ public class AutonomousCore extends LinearOpMode {
 
         Trajectory moveRobot2 = drive.trajectoryBuilder(moveRobot.end(), true)
 
-                .splineToConstantHeading(new Vector2d(-48, 20), Math.toRadians(-90), velocityConstraint, accelerationConstraint)
-                .splineToConstantHeading(new Vector2d(-59, 12), Math.toRadians(90), velocityConstraint, accelerationConstraint)
+                .splineTo(new Vector2d(-45, 20), Math.toRadians(-90), velocityConstraint, accelerationConstraint)
+                .splineToConstantHeading(new Vector2d(-53, 12), Math.toRadians(90), velocityConstraint, accelerationConstraint)
 
-                .splineToConstantHeading(new Vector2d(-59, 55), Math.toRadians(90), velocityConstraint, accelerationConstraint)
+                .splineTo(new Vector2d(-53, 55), Math.toRadians(90), velocityConstraint, accelerationConstraint)
                 .build();
 
         Trajectory moveRobot3 = drive.trajectoryBuilder(moveRobot2.end(), true)
-                .splineToConstantHeading(new Vector2d(-59, 20), Math.toRadians(-90),velocityConstraint, accelerationConstraint)
-                .splineToConstantHeading(new Vector2d(-68, 12), Math.toRadians(90), velocityConstraint, accelerationConstraint)
-                .splineToConstantHeading(new Vector2d(-68, 55), Math.toRadians(90), velocityConstraint, accelerationConstraint)
+                .splineTo(new Vector2d(-53, 20), Math.toRadians(-90),velocityConstraint, accelerationConstraint)
+                .splineToConstantHeading(new Vector2d(-61, 12), Math.toRadians(90), velocityConstraint, accelerationConstraint)
+                .splineTo(new Vector2d(-62, 60), Math.toRadians(90), velocityConstraint, accelerationConstraint)
                 .build();
         drive.followTrajectory(moveRobot);
         drive.followTrajectory(moveRobot2);
@@ -236,8 +321,50 @@ public class AutonomousCore extends LinearOpMode {
 
     }
 
-    public void placeSample(){
+    public void sampleDeliveryPath(){
+        Trajectory path = drive.trajectoryBuilder(blueStartPose, true)
+            .splineToSplineHeading(new Pose2d(20, 57, Math.toRadians(0)), Math.toRadians(0))
+            .splineToSplineHeading(new Pose2d(55, 57, Math.toRadians(45)), Math.toRadians(45))
+            .build();
+        drive.followTrajectory(path);
+        placeSample();
+    }
 
+    public void placeSample(){
+        arm.setTargetAngle(100);
+        while(Math.abs(arm.getAngle() - arm.getTargetAngle()) > 1 && opModeIsActive()) {
+            //arm.setTargetExtension(Arm.MAX_ARM_EXTENSION);
+            tick();
+        }
+
+        telemetry.addData("arm up", 0);
+        telemetry.update();
+        arm.setTargetExtension(36.5);
+        while(Math.abs(arm.getExtension() - arm.getTargetExtension() ) > 0.5 && opModeIsActive()){
+            tick();
+        }
+        telemetry.addData("max extended", 0);
+        telemetry.update();
+
+        while(!collector.isWristUp() && opModeIsActive()) {
+            collector.wristUp();
+            tick();
+        }
+        collector.openGrip();
+        arm.collectionPosition();
+        while(Math.abs(arm.getAngle()) > 1 && opModeIsActive()) {
+            tick();
+        }
+
+
+    }
+
+    public void tick(){
+
+        arm.tick();
+        collector.tick();
+        //prettyTelem.update();
+        tickTimer.reset();
     }
 
 
@@ -250,7 +377,11 @@ public class AutonomousCore extends LinearOpMode {
 
         if (isStopRequested()) return;
         //linearPushPath();
-        blueObservationSamplePushPath();
+
+        collector.closeGrip();
+        //sampleDeliveryPath();
+        //blueObservationSamplePushPath();
+        blueNetZoneSamplePushPath();
 
 
 
