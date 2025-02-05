@@ -114,12 +114,12 @@ public class OpModeCore extends LinearOpMode {
                 new Camera(
                         hardwareMap,
                         "Webcam Left",
-                        new Pose(-6.5, 2.125, 270)
+                        new Pose(-6.5, 2.125, 90)
                 ),
                 new Camera(
                         hardwareMap,
                         "Webcam Right",
-                        new Pose(6.5, 2.125, 90)
+                        new Pose(6.5, 2.125, -90)
                 )
         );
 
