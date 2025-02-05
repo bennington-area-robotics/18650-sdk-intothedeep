@@ -1,5 +1,25 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.acmerobotics.dashboard.config.Config;
+import com.acmerobotics.roadrunner.geometry.Pose2d;
+import com.acmerobotics.roadrunner.geometry.Vector2d;
+import com.acmerobotics.roadrunner.trajectory.Trajectory;
+import com.acmerobotics.roadrunner.trajectory.constraints.TrajectoryAccelerationConstraint;
+import com.acmerobotics.roadrunner.trajectory.constraints.TrajectoryVelocityConstraint;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.util.ElapsedTime;
+
+import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.teamcode.apriltag.AprilTagReader;
+import org.firstinspires.ftc.teamcode.apriltag.Camera;
+import org.firstinspires.ftc.teamcode.hardware.Arm;
+import org.firstinspires.ftc.teamcode.hardware.Collector;
+import org.firstinspires.ftc.teamcode.hardware.drive.ConfiguredMecanumDrive;
+import org.firstinspires.ftc.teamcode.hardware.drive.DriveBase;
+import org.firstinspires.ftc.teamcode.hardware.drive.DriveConstants;
+import org.firstinspires.ftc.teamcode.hardware.drive.Pose;
+
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.acmerobotics.roadrunner.geometry.Vector2d;
 import com.acmerobotics.roadrunner.trajectory.Trajectory;
@@ -25,8 +45,8 @@ import org.firstinspires.ftc.teamcode.hardware.drive.Pose;
  * This is an example of a more complex path to really test the tuning.
  */
 @Config
-@Autonomous(group = "drive", name = "AutonomousObservationSamplePushPath")
-public class AutonomousCore extends LinearOpMode {
+@Autonomous(group = "drive", name="AutonomousNetDeliveryPath")
+public class AutonomousNetDelivery extends LinearOpMode {
 
     //TODO FOR EBEN - clean up this code! remove the unnecessary code if its commented, implement the methods I added here
 
@@ -38,13 +58,6 @@ public class AutonomousCore extends LinearOpMode {
     public static double redStartY = -63;
     public static double redStartAng = -90;
 
-    public static TrajectoryVelocityConstraint velocityConstraint = ConfiguredMecanumDrive.getVelocityConstraint(
-            30,
-            2,
-            DriveConstants.TRACK_WIDTH);
-
-    public static TrajectoryAccelerationConstraint accelerationConstraint = ConfiguredMecanumDrive.getAccelerationConstraint(
-            20);
 
     private static AutonomousCore instance;
     ElapsedTime tickTimer;
@@ -152,7 +165,13 @@ public class AutonomousCore extends LinearOpMode {
     }
 
     public void blueNetZoneSamplePushPath(){
+        TrajectoryVelocityConstraint velocityConstraint = ConfiguredMecanumDrive.getVelocityConstraint(
+                25,
+                2,
+                DriveConstants.TRACK_WIDTH);
 
+        TrajectoryAccelerationConstraint accelerationConstraint = ConfiguredMecanumDrive.getAccelerationConstraint(
+                15);
         Trajectory pushSamples = drive.trajectoryBuilder(blueStartPose, true)
                 //.splineTo(new Vector2d(0, 45), Math.toRadians(-90))
                 //.splineToConstantHeading(new Vector2d(38, 48), Math.toRadians(-90))
@@ -171,13 +190,13 @@ public class AutonomousCore extends LinearOpMode {
                 .splineTo(new Vector2d(52, 57), Math.toRadians(45), velocityConstraint, accelerationConstraint)
                 .build();
 
-            Trajectory pushSamples2 = drive.trajectoryBuilder(pushSamples.end(), true)
+        Trajectory pushSamples2 = drive.trajectoryBuilder(pushSamples.end(), true)
                 .splineToConstantHeading(new Vector2d(45, 40), Math.toRadians(-90), velocityConstraint, accelerationConstraint)
                 .splineToSplineHeading(new Pose2d(45, 12, Math.toRadians(90)), Math.toRadians(90), velocityConstraint, accelerationConstraint)
                 .splineToConstantHeading(new Vector2d(53, 12), Math.toRadians(90), velocityConstraint, accelerationConstraint)
                 .splineToConstantHeading(new Vector2d(53, 60), Math.toRadians(90), velocityConstraint, accelerationConstraint)
                 .build();
-            Trajectory pushSamples3 = drive.trajectoryBuilder(pushSamples2.end(), true)
+        Trajectory pushSamples3 = drive.trajectoryBuilder(pushSamples2.end(), true)
                 .splineToConstantHeading(new Vector2d(53, 20), Math.toRadians(-90), velocityConstraint, accelerationConstraint)
                 .splineToConstantHeading(new Vector2d(60, 12), Math.toRadians(90), velocityConstraint, accelerationConstraint)
                 .splineToConstantHeading(new Vector2d(60, 57), Math.toRadians(90), velocityConstraint, accelerationConstraint)
@@ -186,7 +205,13 @@ public class AutonomousCore extends LinearOpMode {
     }
 
     public void blueObservationSamplePushPath(){
+        TrajectoryVelocityConstraint velocityConstraint = ConfiguredMecanumDrive.getVelocityConstraint(
+                25,
+                2,
+                DriveConstants.TRACK_WIDTH);
 
+        TrajectoryAccelerationConstraint accelerationConstraint = ConfiguredMecanumDrive.getAccelerationConstraint(
+                15);
 
         Trajectory moveRobot = drive.trajectoryBuilder(blueStartPose, true)
                 /*.splineTo(
@@ -318,9 +343,9 @@ public class AutonomousCore extends LinearOpMode {
 
     public void sampleDeliveryPath(){
         Trajectory path = drive.trajectoryBuilder(blueStartPose, true)
-            .splineToSplineHeading(new Pose2d(20, 57, Math.toRadians(0)), Math.toRadians(0))
-            .splineToSplineHeading(new Pose2d(55, 57, Math.toRadians(45)), Math.toRadians(45))
-            .build();
+                .splineToSplineHeading(new Pose2d(20, 57, Math.toRadians(0)), Math.toRadians(0))
+                .splineToSplineHeading(new Pose2d(55, 57, Math.toRadians(45)), Math.toRadians(45))
+                .build();
         drive.followTrajectory(path);
         placeSample();
     }
@@ -371,9 +396,8 @@ public class AutonomousCore extends LinearOpMode {
         //TODO FOR EBEN - finish implementing this
 
         if (isStopRequested()) return;
+        sampleDeliveryPath();
 
-
-        blueObservationSamplePushPath();
 
 
 
