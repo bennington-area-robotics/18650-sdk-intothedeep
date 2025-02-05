@@ -254,11 +254,10 @@ public class Arm {
     }
 
     /**
-     * Sets the current extension as the target and zero position.
+     * Sets the current extension as the zero position.
      */
     public void resetExtension(){
         extensionMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        targetExtension = 0;
         extensionMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     }
 
