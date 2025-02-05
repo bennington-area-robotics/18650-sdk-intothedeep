@@ -27,13 +27,13 @@ public class MultiAprilTagReader {
             Pose cameraPose = camera.getPose();
             CameraName camName = camera.passable();
 
-            processors.set(i, new AprilTagProcessor.Builder()
+            processors.add(new AprilTagProcessor.Builder()
                     .setCameraPose(cameraPose.getPosition(), cameraPose.getAngles())
                     .setOutputUnits(DistanceUnit.INCH, AngleUnit.DEGREES)
                     .build()
             );
 
-            portals.set(i, new VisionPortal.Builder()
+            portals.add(new VisionPortal.Builder()
                     .setCamera(camName)
                     .setLiveViewContainerId(viewIds[i])
                     .addProcessor(processors.get(i))
