@@ -21,8 +21,10 @@ public class MeepMeepTesting {
         RoadRunnerBotEntity myBot = new DefaultBotBuilder(meepMeep)
                 // Set bot constraints: maxVel, maxAccel, maxAngVel, maxAngAccel, track width
                 .setConstraints(40.05530633326986, 40.05530633326986, Math.toRadians(163.2), Math.toRadians(166.9090909090909), 12.96)
-                .followTrajectorySequence(drive -> drive.trajectorySequenceBuilder(new Pose2d(0, -63, Math.toRadians(-90)))
-                        .splineTo(new Vector2d(0, -45), Math.toRadians(90))
+                .followTrajectorySequence(drive -> drive.trajectorySequenceBuilder(new Pose2d(0, 63, Math.toRadians(-90)))
+                        .splineTo(new Vector2d(60, 63), Math.toRadians(0))
+                        //push to red observation zone
+                        /*.splineTo(new Vector2d(0, -45), Math.toRadians(90))
                         .splineToConstantHeading(new Vector2d(40, -48), Math.toRadians(90))
                         .splineTo(new Vector2d(40,-20), Math.toRadians(90))
                         .splineToConstantHeading(new Vector2d(48,-12), Math.toRadians(-90))
@@ -34,7 +36,7 @@ public class MeepMeepTesting {
                         .splineToConstantHeading(new Vector2d(59, -55), Math.toRadians(-90))
                         .splineToConstantHeading(new Vector2d(59, -20), Math.toRadians(90))
                         .splineToConstantHeading(new Vector2d(70, -12), Math.toRadians(-90))
-                        .splineToConstantHeading(new Vector2d(70, -55), Math.toRadians(-90))
+                        .splineToConstantHeading(new Vector2d(70, -55), Math.toRadians(-90))*/
 
 
                         //push to red net zone
