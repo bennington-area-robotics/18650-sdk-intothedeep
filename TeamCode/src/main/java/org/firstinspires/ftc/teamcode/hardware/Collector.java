@@ -64,6 +64,8 @@ public class Collector {
         gripServo.setPosition(CLOSED_POSITION);
     }
 
+    public void setGripPosition(double position) {gripServo.setPosition(position);}
+
     public boolean isGripOpen(){
         return Helper.errorTolerable(getGripPosition(), OPEN_POSITION, 0.1);
     }
