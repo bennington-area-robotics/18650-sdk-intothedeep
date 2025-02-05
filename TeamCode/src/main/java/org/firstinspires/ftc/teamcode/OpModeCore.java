@@ -6,7 +6,6 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
-import com.qualcomm.robotcore.hardware.TouchSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
@@ -31,6 +30,7 @@ public class OpModeCore extends LinearOpMode {
     public static float LOW_POWER_MODIFIER = 0.25f;
     public static float HIGH_POWER_MODIFIER = 0.75f;
     public static float MAX_INCHES_PER_SECOND = 9f;
+    public static float MIN_WRIST_VELOCITY = 1;
     //</editor-fold>
 
     //<editor-fold desc="Fields">
@@ -234,7 +234,7 @@ public class OpModeCore extends LinearOpMode {
         }
 
         if(gamepad1.right_bumper && !previousGamepad1.right_bumper){
-            collector.setWristMode(Collector.WristMode.STAY_PARALLEL);
+            refreshLocations();
         }
 
 
@@ -306,17 +306,30 @@ public class OpModeCore extends LinearOpMode {
     }
 
     public void refreshLocations(){
+        collector.setWristMode(Collector.WristMode.SET_POWER);
+        collector.setWristPower(0.15);
+
+        while(collector.getWristVelocity() > MIN_WRIST_VELOCITY){
+            collector.tick();
+            telemetry.update();
+        }
+
+        collector.resetPositionAsTop();
+        collector.setWristPower(0);
+        collector.setWristMode(Collector.WristMode.MOVE_TO_TARGET);
+        collector.wristUp();
+
         arm.setMode(Arm.ArmMode.SET_POWER);
         arm.setAnglePower(-0.3);
         arm.setExtensionPower(-1);
 
-        while(arm.extensionLimitSensor.isPressed() && arm.tiltLimitSensor.isPressed()){
+        while(arm.extensionLimitSensor.isPressed() || arm.tiltLimitSensor.isPressed()){
+            arm.tick();
             if(arm.tiltLimitSensor.isPressed())
                 arm.setAnglePower(0);
             if(arm.extensionLimitSensor.isPressed())
                 arm.setExtensionPower(0);
             telemetry.update();
-            idle();
         }
 
         arm.resetExtension();

@@ -10,9 +10,6 @@ import org.firstinspires.ftc.teamcode.hardware.controllers.PID;
 import org.firstinspires.ftc.teamcode.hardware.controllers.PID.Direction;
 import org.firstinspires.ftc.teamcode.util.Encoder;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-
 @Config
 public class Collector {
 
@@ -22,6 +19,7 @@ public class Collector {
     public static int UP_POSITION = 90, DOWN_POSITION = 0; //wrist
     public static float LENGTH = 5f;
     public static double wristKP = 0.012, wristKI, wristKD, wristKF = 0.125, wristMaxI;
+    public static double WRIST_END_POSITION = 156;
 
     private final Encoder wristEncoder;
 
@@ -34,9 +32,10 @@ public class Collector {
     private final DcMotor wristMotor;
     private WristMode wristMode;
     private final Arm arm;
+    private double wristPower = 0.0;
 
     public enum WristMode {
-        MOVE_TO_TARGET, STAY_PARALLEL, STAY_PERPENDICULAR, FLOAT
+        MOVE_TO_TARGET, STAY_PARALLEL, STAY_PERPENDICULAR, FLOAT, SET_POWER
     }
 
     public Collector(Arm arm, HardwareMap hardwareMap, String colorSensorName, String wristMotorName, String gripServoName){
@@ -47,7 +46,7 @@ public class Collector {
         this.wristEncoder = new Encoder(hardwareMap.get(DcMotorEx.class, wristMotorName));
 
         //wristMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        wristMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        wristMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         wristMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         setWristMode(WristMode.MOVE_TO_TARGET);
         wristUp();
@@ -55,6 +54,15 @@ public class Collector {
 
 
     //grip
+
+
+    public void setWristPower(double wristPower) {
+        this.wristPower = wristPower;
+    }
+
+    public double getWristPower() {
+        return wristPower;
+    }
 
     public void openGrip(){
         gripServo.setPosition(OPEN_POSITION);
@@ -132,7 +140,7 @@ public class Collector {
     }
 
     public double getWristAngle(){
-        return wristEncoder.getCurrentPosition() / WRIST_TICKS_PER_DEGREE;
+        return (wristEncoder.getCurrentPosition() / WRIST_TICKS_PER_DEGREE) + 157;
     }
 
     public WristMode getWristMode(){
@@ -145,6 +153,10 @@ public class Collector {
             wristMotor.setPower(0);
             wristMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         }
+    }
+
+    public double getWristVelocity(){
+        return wristEncoder.getCorrectedVelocity() / WRIST_TICKS_PER_DEGREE;
     }
 
     /**
@@ -163,19 +175,32 @@ public class Collector {
         }
     }
 
+    public void resetPositionAsTop(){
+        wristMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        wristMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+    }
+
     public void tick(){
         PID.setConstants(wristKP, wristKI, wristKD, wristKF, wristMaxI);
 
         PID.setDirection(Direction.REVERSE);
 
-        if(wristMode == WristMode.MOVE_TO_TARGET)
-            wristMotor.setPower(PID.calc(getWristAngle() - wristTarget));
-        else if(wristMode == WristMode.STAY_PARALLEL)
-            wristMotor.setPower(PID.calc(getWristAngle() - (90 - arm.getAngle())));
-        else if (wristMode == WristMode.STAY_PERPENDICULAR) {
-            wristMotor.setPower(PID.calc(getWristAngle() - (arm.getAngle() - 90)));
-        } else if (wristMode == WristMode.FLOAT) {
-            wristMotor.setPower(0);
+        switch (wristMode) {
+            case FLOAT:
+                wristMotor.setPower(0);
+                break;
+            case SET_POWER:
+                wristMotor.setPower(wristPower);
+                break;
+            case STAY_PARALLEL:
+                wristMotor.setPower(PID.calc(getWristAngle() - (90 - arm.getAngle())));
+                break;
+            case STAY_PERPENDICULAR:
+                wristMotor.setPower(PID.calc(getWristAngle() - (arm.getAngle() - 90)));
+                break;
+            case MOVE_TO_TARGET:
+                wristMotor.setPower(PID.calc(getWristAngle() - wristTarget));
+                break;
         }
     }
 
