@@ -301,6 +301,32 @@ public class Arm {
         return timer.milliseconds();
     }
 
+    public double moveToTargetAngleBlocking(double degrees, Runnable whileRunning){
+        ElapsedTime timer = new ElapsedTime();
+        if (!setTargetAngle(degrees))
+            return timer.milliseconds();
+
+        while (Math.abs(getAngle() - getTargetAngle()) < 2){
+            tick();
+            whileRunning.run();
+        }
+
+        return timer.milliseconds();
+    }
+
+    public double moveToTargetExtensionBlocking(double inches, Runnable whileRunning){
+        ElapsedTime timer = new ElapsedTime();
+        if (!setTargetExtension(inches))
+            return timer.milliseconds();
+
+        while (Math.abs(getExtension() - getTargetExtension()) < 2){
+            tick();
+            whileRunning.run();
+        }
+
+        return timer.milliseconds();
+    }
+
     /**
      * Moves arm to collection pose.
      */
