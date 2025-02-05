@@ -1,6 +1,5 @@
 package org.firstinspires.ftc.teamcode;
 
-import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -115,7 +114,7 @@ public class OpModeCore extends LinearOpMode {
                 new Camera(
                         hardwareMap,
                         "Webcam Left",
-                        new Pose(0, 0, 0)
+                        new Pose(-6.5, 2.125, 0)
                 ),
                 new Camera(
                         hardwareMap,
