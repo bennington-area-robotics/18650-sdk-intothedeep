@@ -110,7 +110,7 @@ public class AutonomousCore extends LinearOpMode {
                 .addData("Down?", () -> collector.isWristDown());
 
 
-        prettyTelem.addData("April Tag", () -> aprilTagReader.getDetectionString());
+        prettyTelem.addData("April Tag", () -> aprilTagReader.getFirstPose().toString());
     }
 
 
