@@ -45,8 +45,7 @@ public class Collector {
         this.arm = arm;
         this.wristEncoder = new Encoder(hardwareMap.get(DcMotorEx.class, wristMotorName));
 
-        //wristMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        wristMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        resetPositionAsTop();
         wristMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         setWristMode(WristMode.FLOAT);
     }
