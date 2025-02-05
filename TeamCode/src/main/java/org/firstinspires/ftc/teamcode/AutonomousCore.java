@@ -331,7 +331,11 @@ public class AutonomousCore extends LinearOpMode {
     }
 
     public void placeSample(){
-        arm.moveToTargetAngleBlocking(100);
+        arm.moveToTargetAngleBlocking(100, () -> {
+            telemetry.addData("Current Angle", arm.getAngle());
+            telemetry.addData("Target Angle", arm.getTargetAngle());
+            telemetry.update();
+        });
 
         telemetry.addData("arm up", 0);
         telemetry.update();
