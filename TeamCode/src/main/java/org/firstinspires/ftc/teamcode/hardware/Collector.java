@@ -142,7 +142,7 @@ public class Collector {
     }
 
     public double getWristAngle(){
-        return (wristEncoder.getCurrentPosition() / WRIST_TICKS_PER_DEGREE) + 157;
+        return (wristEncoder.getCurrentPosition() / WRIST_TICKS_PER_DEGREE) + 130;
     }
 
     public WristMode getWristMode(){

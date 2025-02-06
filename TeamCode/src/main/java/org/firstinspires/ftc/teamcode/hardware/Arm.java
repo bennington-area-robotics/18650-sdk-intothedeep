@@ -37,6 +37,8 @@ public class Arm {
     public static double extensionKP = 0.2, extensionKI, extensionKD, extensionKF = 0.15, extensionMaxI;
     public static double retractionKP = 0.1, retractionKI, retractionKD, retractionKF = -0.5, retractionMaxI;
 
+    public static double macroKF = 0.27;
+
     private final PID downwardPID = new PID(downwardKP, downwardKI, downwardKD, downwardKF, downwardMaxI, 0.75);
     private final PID upwardPID = new PID(upwardKP, upwardKI, upwardKD, upwardKF, upwardMaxI, 0.75);
     private final PID extensionPID = new PID(extensionKP, extensionKI, extensionKD, extensionKF, extensionMaxI, 0.5);
@@ -257,8 +259,16 @@ public class Arm {
      * Sets the current extension as the zero position.
      */
     public void resetExtension(){
+        if(targetExtension < 0){
+            targetExtension = 0;
+        }
         extensionMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         extensionMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        if (targetExtension == 0) {
+            extensionMotor.setPower(0);
+        }
+
+
     }
 
     public void deliveryPosition(){
@@ -288,7 +298,7 @@ public class Arm {
         if (!setTargetAngle(degrees))
             return timer.milliseconds();
 
-        while (Math.abs(getAngle() - getTargetAngle()) < 2){
+        while (Math.abs(getAngle() - getTargetAngle()) > 2){
             tick();
         }
 
@@ -300,7 +310,7 @@ public class Arm {
         if (!setTargetExtension(inches))
             return timer.milliseconds();
 
-        while (Math.abs(getExtension() - getTargetExtension()) < 2){
+        while (Math.abs(getExtension() - getTargetExtension()) > 2){
             tick();
         }
 
@@ -312,7 +322,7 @@ public class Arm {
         if (!setTargetAngle(degrees))
             return timer.milliseconds();
 
-        while (Math.abs(getAngle() - getTargetAngle()) < 2){
+        while (Math.abs(getAngle() - getTargetAngle()) > 2){
             tick();
             whileRunning.run();
         }
@@ -325,7 +335,7 @@ public class Arm {
         if (!setTargetExtension(inches))
             return timer.milliseconds();
 
-        while (Math.abs(getExtension() - getTargetExtension()) < 2){
+        while (Math.abs(getExtension() - getTargetExtension()) > 2){
             tick();
             whileRunning.run();
         }
@@ -374,9 +384,9 @@ public class Arm {
         if(tiltLimitSensor.isPressed())
             resetAngle();
 
-        if(extensionLimitSensor.isPressed())
+        if(extensionLimitSensor.isPressed()) {
             resetExtension();
-
+        }
         if(runningMacro != null && tickCount % 5 == 0){
             runningMacro.accept(this);
         }
@@ -388,8 +398,15 @@ public class Arm {
     private double lastAnglePower;
     private double calcAnglePower(){
         if(mode == ArmMode.MOVE_TO_TARGET) {
-            downwardPID.setConstants(downwardKP, downwardKI, downwardKD, downwardKF, downwardMaxI);
-            upwardPID.setConstants(upwardKP, upwardKI, upwardKD, upwardKF, upwardMaxI);
+            if(runningMacro!= null && targetAngle == 45){
+                downwardPID.setConstants(downwardKP, downwardKI, downwardKD, downwardKF, downwardMaxI);
+                upwardPID.setConstants(upwardKP, upwardKI, upwardKD, macroKF, upwardMaxI);
+
+            } else {
+                downwardPID.setConstants(downwardKP, downwardKI, downwardKD, downwardKF, downwardMaxI);
+                upwardPID.setConstants(upwardKP, upwardKI, upwardKD, upwardKF, upwardMaxI);
+            }
+
 
             if (targetAngle < getAngle())
                 lastAnglePower = downwardPID.calc(targetAngle - getAngle());
@@ -457,8 +474,12 @@ public class Arm {
     }
 
     public boolean isValidExtension(double inches){
-        if(inches > MAX_ARM_EXTENSION || inches < -0.5)
+        if(inches > MAX_ARM_EXTENSION)
             return false;
+
+        if(targetExtension < getExtension() && extensionLimitSensor.isPressed()){
+            return false;
+        }
 
         if(inches * Math.cos(Math.toRadians(targetAngle)) > MAX_HORIZONTAL_EXTENSION)
             return false;

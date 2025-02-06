@@ -327,6 +327,7 @@ public class AutonomousNetDelivery extends LinearOpMode {
     }
 
     public void sampleDeliveryPath(){
+
         Trajectory path = drive.trajectoryBuilder(blueStartPose, true)
                 .splineToSplineHeading(new Pose2d(20, 57, Math.toRadians(0)), Math.toRadians(0))
                 .splineToSplineHeading(new Pose2d(55, 57, Math.toRadians(45)), Math.toRadians(45))
@@ -336,21 +337,24 @@ public class AutonomousNetDelivery extends LinearOpMode {
     }
 
     public void placeSample(){
-        telemetry.addData("MOVING TO ANGLE", "hi");
-        telemetry.update();
-        arm.moveToTargetAngleBlocking(100, this::tick);
 
-        telemetry.addData("arm up", 0);
-        telemetry.update();
-        arm.moveToTargetExtensionBlocking(36.5, this::tick);
-        telemetry.addData("max extended", 0);
-        telemetry.update();
+            telemetry.addData("MOVING TO ANGLE", "hi");
+            telemetry.update();
+            arm.moveToTargetAngleBlocking(100, this::tick);
+
+            telemetry.addData("arm up", 0);
+            telemetry.update();
+            arm.moveToTargetExtensionBlocking(Arm.MAX_ARM_EXTENSION - 0.25, this::tick);
+            telemetry.addData("max extended", 0);
+            telemetry.update();
+
 
         collector.setWristMode(Collector.WristMode.MOVE_TO_TARGET);
         while(!collector.isWristUp() && opModeIsActive()) {
             collector.wristUp();
             tick();
         }
+        telemetry.addData("wrist up", true);
         collector.openGrip();
         arm.collectionPosition();
         while(Math.abs(arm.getAngle()) > 1 && opModeIsActive()) {

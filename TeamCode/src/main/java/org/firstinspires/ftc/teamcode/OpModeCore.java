@@ -26,8 +26,9 @@ import java.util.Locale;
 @TeleOp(name="1 - Main TeleOp")
 public class OpModeCore extends LinearOpMode {
 
+    public static int posVariable = 40;
     //<editor-fold desc="Config">
-    public static float LOW_POWER_MODIFIER = 0.25f;
+    public static float LOW_POWER_MODIFIER = 0.05f;
     public static float HIGH_POWER_MODIFIER = 0.75f;
     public static float MAX_INCHES_PER_SECOND = 9f;
     public static float MIN_WRIST_VELOCITY = 1;
@@ -274,11 +275,19 @@ public class OpModeCore extends LinearOpMode {
         }
 
         if (gamepad1.dpad_left && !previousGamepad1.dpad_left){
-            collector.setWristMode(Collector.WristMode.STAY_PERPENDICULAR);
+            arm.setTargetAngle(45);
+            arm.setTargetExtension(16.2);
+            collector.setWristMode(Collector.WristMode.MOVE_TO_TARGET);
+            collector.wristTo(posVariable);
+            //collector.setWristMode(Collector.WristMode.STAY_PERPENDICULAR);
         }
 
-        if(gamepad1.dpad_right && !previousGamepad1.dpad_right)
-            collector.setWristMode(Collector.WristMode.FLOAT);
+        if(gamepad1.dpad_right && !previousGamepad1.dpad_right) {
+            arm.setTargetAngle(30);
+            arm.setTargetExtension(9.5);
+            collector.setWristMode(Collector.WristMode.MOVE_TO_TARGET);
+            collector.wristTo(-34);
+        }
 
         if(gamepad1.dpad_down && !previousGamepad1.dpad_down){
             if(manualArm){
