@@ -171,6 +171,7 @@ public class OpModeCore extends LinearOpMode {
 
         prettyTelem.addLine("Wrist")
                 .addData("Position", () -> collector.getWristAngle())
+                .addData("Target", collector::getWristTarget)
                 .addData("Velocity", () -> collector.getWristVelocity())
                 .addData("Up?", () -> collector.isWristUp())
                 .addData("Down?", () -> collector.isWristDown());
@@ -275,8 +276,8 @@ public class OpModeCore extends LinearOpMode {
         }
 
         if (gamepad1.dpad_left && !previousGamepad1.dpad_left){
-            arm.setTargetAngle(45);
-            arm.setTargetExtension(16.2);
+            //arm.setTargetAngle(45);
+            //arm.setTargetExtension(16.2);
             collector.setWristMode(Collector.WristMode.MOVE_TO_TARGET);
             collector.wristTo(posVariable);
             //collector.setWristMode(Collector.WristMode.STAY_PERPENDICULAR);

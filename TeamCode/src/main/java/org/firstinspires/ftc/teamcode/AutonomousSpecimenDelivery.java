@@ -339,7 +339,7 @@ public class AutonomousSpecimenDelivery extends LinearOpMode {
 
         arm.moveToTargetExtensionBlocking(16.22, this::tick);
 
-        collector.moveWristToBlocking(40);
+        collector.moveWristToBlocking(40, this::tick);
         //collector.openGrip();
     }
 

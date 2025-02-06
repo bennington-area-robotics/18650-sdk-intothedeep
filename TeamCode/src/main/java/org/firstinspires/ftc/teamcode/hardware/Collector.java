@@ -19,9 +19,10 @@ public class Collector {
     public static float OPEN_POSITION = 0.4f, CLOSED_POSITION = 0; //grip
     public static int UP_POSITION = 90, DOWN_POSITION = 0; //wrist
     public static float LENGTH = 5f;
-    public static double wristKP = 0.012, wristKI, wristKD, wristKF = 0.125, wristMaxI;
+    public static double wristKP = 0.012, wristKI, wristKD, wristKF = -2.5, wristMaxI;
     public static double WRIST_OFFSET = 156;
 
+    double KF = wristKF;
     private final Encoder wristEncoder;
 
     PID PID = new PID(wristKP, wristKI, wristKD, wristKF, wristMaxI, 1);
@@ -52,12 +53,13 @@ public class Collector {
         setWristMode(WristMode.FLOAT);
     }
 
-    public double moveWristToBlocking(int angle){
+    public double moveWristToBlocking(int angle, Runnable runnable){
         ElapsedTime timer = new ElapsedTime();
         setWristMode(WristMode.MOVE_TO_TARGET);
         wristTo(angle);
         while(Math.abs(getWristAngle() - getWristTarget()) > 2){
             tick();
+            runnable.run();
         }
         return timer.milliseconds();
     }
@@ -202,7 +204,12 @@ public class Collector {
     }
 
     public void tick(){
-        PID.setConstants(wristKP, wristKI, wristKD, wristKF, wristMaxI);
+        if (wristTarget < getWristAngle()){
+             KF = wristKF * -1;
+        } else {
+            KF = wristKF;
+        }
+        PID.setConstants(wristKP, wristKI, wristKD, KF, wristMaxI);
 
         PID.setDirection(Direction.REVERSE);
 
