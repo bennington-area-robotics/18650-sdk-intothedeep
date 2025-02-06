@@ -53,6 +53,8 @@ public class OpModeCore extends LinearOpMode {
     private boolean collectorArmed = false;
     private boolean isHighPower = false;
     private boolean manualArm = false;
+
+    private String testValue = "UNSET";
     //</editor-fold>
 
     //<editor-fold desc="Instance Getters">
@@ -146,6 +148,7 @@ public class OpModeCore extends LinearOpMode {
                 .addData("Tick Time", () -> Math.round(tickTimer.milliseconds()))
                 .addData("Stage", () -> autopilot.findCurrentStage())
                 .addData("Localization: ", () -> driveBase.getPoseSimple())
+                .addData("Test Value", () -> testValue)
         ;
         prettyTelem.addLine("Game State")
                 .addData("In Basket Area", () -> autopilot.inBasketArea())
@@ -307,10 +310,9 @@ public class OpModeCore extends LinearOpMode {
         }
 
 
-        arm.setTargetExtension(
-                arm.getTargetExtension() +
-                        gamepadTimer.seconds() * MAX_INCHES_PER_SECOND * (-gamepad1.left_trigger + gamepad1.right_trigger)
-        );
+        if(Math.abs(-gamepad1.left_trigger + gamepad2.right_trigger) > 0.01){
+            arm.setAnglePower(-gamepad1.left_trigger + gamepad2.right_trigger);
+        }
 
         gamepadTimer.reset();
 
@@ -323,20 +325,25 @@ public class OpModeCore extends LinearOpMode {
 
     public void refreshLocations(){
         collector.setWristMode(Collector.WristMode.SET_POWER);
-        collector.setWristPower(-0.15);
+        collector.setWristPower(0.4);
 
-        while(collector.getWristVelocity() > MIN_WRIST_VELOCITY){
+        testValue = "refresh locations!";
+
+        while(Math.abs(collector.getWristVelocity()) > MIN_WRIST_VELOCITY){
             collector.tick();
-            telemetry.update();
+            testValue = "Collector Moving with velocity " + collector.getWristVelocity();
+            prettyTelem.update();
         }
 
         collector.resetPositionAsTop();
+
+        testValue = "Collector pos reset";
         collector.setWristPower(0);
         collector.setWristMode(Collector.WristMode.MOVE_TO_TARGET);
-        collector.wristUp();
+        collector.moveWristToBlocking(90);
 
-        arm.setMode(Arm.ArmMode.SET_POWER);
-        arm.setAnglePower(-0.3);
+        arm.setAngleMode(Arm.AngleMode.SET_POWER);
+        arm.setAnglePower(-0.2);
         arm.setExtensionPower(-1);
 
         while(arm.extensionLimitSensor.isPressed() || arm.tiltLimitSensor.isPressed()){
@@ -345,12 +352,16 @@ public class OpModeCore extends LinearOpMode {
                 arm.setAnglePower(0);
             if(arm.extensionLimitSensor.isPressed())
                 arm.setExtensionPower(0);
-            telemetry.update();
+            testValue = "Moving arm";
+            prettyTelem.update();
         }
+
+        testValue = "Moved arm";
+        prettyTelem.update();
 
         arm.resetExtension();
         arm.resetAngle();
 
-        arm.setMode(Arm.ArmMode.MOVE_TO_TARGET);
+        arm.setAngleMode(Arm.AngleMode.MOVE_TO_TARGET);
     }
 }

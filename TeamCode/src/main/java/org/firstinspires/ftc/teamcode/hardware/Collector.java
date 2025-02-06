@@ -20,7 +20,7 @@ public class Collector {
     public static int UP_POSITION = 90, DOWN_POSITION = 0; //wrist
     public static float LENGTH = 5f;
     public static double wristKP = 0.012, wristKI, wristKD, wristKF = -2.5, wristMaxI;
-    public static double WRIST_OFFSET = 156;
+    public static double wristOffset = 0;
 
     double KF = wristKF;
     private final Encoder wristEncoder;
@@ -154,7 +154,7 @@ public class Collector {
     }
 
     public double getWristAngle(){
-        return (wristEncoder.getCurrentPosition() / WRIST_TICKS_PER_DEGREE) + 130;
+        return (wristEncoder.getCurrentPosition() / WRIST_TICKS_PER_DEGREE) + wristOffset;
     }
 
     public WristMode getWristMode(){
@@ -196,11 +196,13 @@ public class Collector {
     public void resetPositionAsTop(){
         wristMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         wristMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        wristOffset = 156;
     }
 
-    public void resetPositionAs(){
+    public void resetPositionAs(double angle){
         wristMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         wristMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        wristOffset = angle;
     }
 
     public void tick(){

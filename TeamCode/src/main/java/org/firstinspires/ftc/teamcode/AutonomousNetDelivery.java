@@ -6,7 +6,6 @@ import com.acmerobotics.roadrunner.geometry.Vector2d;
 import com.acmerobotics.roadrunner.trajectory.Trajectory;
 import com.acmerobotics.roadrunner.trajectory.constraints.TrajectoryAccelerationConstraint;
 import com.acmerobotics.roadrunner.trajectory.constraints.TrajectoryVelocityConstraint;
-import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -20,8 +19,6 @@ import org.firstinspires.ftc.teamcode.hardware.drive.ConfiguredMecanumDrive;
 import org.firstinspires.ftc.teamcode.hardware.drive.DriveBase;
 import org.firstinspires.ftc.teamcode.hardware.drive.DriveConstants;
 import org.firstinspires.ftc.teamcode.hardware.drive.Pose;
-
-import java.util.List;
 
 /*
  * This is an example of a more complex path to really test the tuning.

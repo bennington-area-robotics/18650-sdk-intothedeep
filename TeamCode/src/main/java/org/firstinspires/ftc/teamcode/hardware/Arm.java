@@ -37,8 +37,6 @@ public class Arm {
     public static double extensionKP = 0.2, extensionKI, extensionKD, extensionKF = 0.15, extensionMaxI;
     public static double retractionKP = 0.1, retractionKI, retractionKD, retractionKF = -0.5, retractionMaxI;
 
-    public static double macroKF = 0.27;
-
     private final PID downwardPID = new PID(downwardKP, downwardKI, downwardKD, downwardKF, downwardMaxI, 0.75);
     private final PID upwardPID = new PID(upwardKP, upwardKI, upwardKD, upwardKF, upwardMaxI, 0.75);
     private final PID extensionPID = new PID(extensionKP, extensionKI, extensionKD, extensionKF, extensionMaxI, 0.5);
@@ -74,14 +72,19 @@ public class Arm {
 
     private Consumer<Arm> runningMacro;
 
-    private ArmMode mode = ArmMode.MOVE_TO_TARGET;
+    private AngleMode angleMode = AngleMode.MOVE_TO_TARGET;
+    private ExtensionMode extensionMode = ExtensionMode.MOVE_TO_TARGET;
 
     private double anglePower = 0.0;
 
     private double extensionPower = 0.0;
     //</editor-fold>
 
-    public enum ArmMode {
+    public enum AngleMode {
+        MOVE_TO_TARGET, SET_POWER
+    }
+
+    public enum ExtensionMode {
         MOVE_TO_TARGET, SET_POWER
     }
 
@@ -148,15 +151,24 @@ public class Arm {
         return targetAngle;
     }
 
-    public ArmMode getMode(){
-        return mode;
+    public AngleMode getAngleMode(){
+        return angleMode;
     }
 
-    public void setMode(ArmMode mode){
-        this.mode = mode;
+    public void setAngleMode(AngleMode angleMode){
+        this.angleMode = angleMode;
+    }
+
+    public ExtensionMode getExtensionMode(){
+        return extensionMode;
+    }
+
+    public void setExtensionMode(ExtensionMode extensionMode) {
+        this.extensionMode = extensionMode;
     }
 
     public void setAnglePower(double anglePower){
+        setAngleMode(AngleMode.SET_POWER);
         this.anglePower = anglePower;
     }
 
@@ -165,6 +177,7 @@ public class Arm {
     }
 
     public void setExtensionPower(double extensionPower) {
+        setExtensionMode(ExtensionMode.SET_POWER);
         this.extensionPower = extensionPower;
     }
 
@@ -180,6 +193,7 @@ public class Arm {
      * @return whether the operation was successful (whether it passed the checks).
      */
     public boolean setTargetAngle(@FloatRange(from=0, to=100) double degrees){
+        setAngleMode(AngleMode.MOVE_TO_TARGET);
         if(runningMacro != null){
             return false;
         }
@@ -200,6 +214,7 @@ public class Arm {
      * @return whether the operation was successful (whether it passed the checks).
      */
     private boolean setTargetAngleIgnoreMacro(@FloatRange(from=0, to=100) double degrees){
+        setAngleMode(AngleMode.MOVE_TO_TARGET);
         if(isValidAngle(degrees)){
             targetAngle = degrees;
             return true;
@@ -216,6 +231,7 @@ public class Arm {
      * @return whether the operation was successful (whether it passed the checks).
      */
     public boolean setTargetExtension(double inches){
+        setExtensionMode(ExtensionMode.MOVE_TO_TARGET);
         if(runningMacro != null){
             return false;
         }
@@ -236,6 +252,7 @@ public class Arm {
      * @return whether the operation was successful (whether it passed the checks).
      */
     private boolean setTargetExtensionIgnoreMacro(double inches){
+        setExtensionMode(ExtensionMode.MOVE_TO_TARGET);
         if(runningMacro != null){
             return false;
         }
@@ -259,16 +276,8 @@ public class Arm {
      * Sets the current extension as the zero position.
      */
     public void resetExtension(){
-        if(targetExtension < 0){
-            targetExtension = 0;
-        }
         extensionMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         extensionMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        if (targetExtension == 0) {
-            extensionMotor.setPower(0);
-        }
-
-
     }
 
     public void deliveryPosition(){
@@ -298,7 +307,7 @@ public class Arm {
         if (!setTargetAngle(degrees))
             return timer.milliseconds();
 
-        while (Math.abs(getAngle() - getTargetAngle()) > 2){
+        while (Math.abs(getAngle() - getTargetAngle()) < 2){
             tick();
         }
 
@@ -310,7 +319,7 @@ public class Arm {
         if (!setTargetExtension(inches))
             return timer.milliseconds();
 
-        while (Math.abs(getExtension() - getTargetExtension()) > 2){
+        while (Math.abs(getExtension() - getTargetExtension()) < 2){
             tick();
         }
 
@@ -322,7 +331,7 @@ public class Arm {
         if (!setTargetAngle(degrees))
             return timer.milliseconds();
 
-        while (Math.abs(getAngle() - getTargetAngle()) > 2){
+        while (Math.abs(getAngle() - getTargetAngle()) < 2){
             tick();
             whileRunning.run();
         }
@@ -335,7 +344,7 @@ public class Arm {
         if (!setTargetExtension(inches))
             return timer.milliseconds();
 
-        while (Math.abs(getExtension() - getTargetExtension()) > 2){
+        while (Math.abs(getExtension() - getTargetExtension()) < 2){
             tick();
             whileRunning.run();
         }
@@ -384,9 +393,9 @@ public class Arm {
         if(tiltLimitSensor.isPressed())
             resetAngle();
 
-        if(extensionLimitSensor.isPressed()) {
+        if(extensionLimitSensor.isPressed())
             resetExtension();
-        }
+
         if(runningMacro != null && tickCount % 5 == 0){
             runningMacro.accept(this);
         }
@@ -397,16 +406,9 @@ public class Arm {
 
     private double lastAnglePower;
     private double calcAnglePower(){
-        if(mode == ArmMode.MOVE_TO_TARGET) {
-            if(runningMacro!= null && targetAngle == 45){
-                downwardPID.setConstants(downwardKP, downwardKI, downwardKD, downwardKF, downwardMaxI);
-                upwardPID.setConstants(upwardKP, upwardKI, upwardKD, macroKF, upwardMaxI);
-
-            } else {
-                downwardPID.setConstants(downwardKP, downwardKI, downwardKD, downwardKF, downwardMaxI);
-                upwardPID.setConstants(upwardKP, upwardKI, upwardKD, upwardKF, upwardMaxI);
-            }
-
+        if(angleMode == AngleMode.MOVE_TO_TARGET) {
+            downwardPID.setConstants(downwardKP, downwardKI, downwardKD, downwardKF, downwardMaxI);
+            upwardPID.setConstants(upwardKP, upwardKI, upwardKD, upwardKF, upwardMaxI);
 
             if (targetAngle < getAngle())
                 lastAnglePower = downwardPID.calc(targetAngle - getAngle());
@@ -415,7 +417,7 @@ public class Arm {
             } else {
                 lastAnglePower = 0;
             }
-        }else if (mode == ArmMode.SET_POWER){
+        }else if (angleMode == AngleMode.SET_POWER){
             lastAnglePower = anglePower;
         }
         return lastAnglePower;
@@ -427,7 +429,7 @@ public class Arm {
 
     double lastExtensionPower;
     private double calcExtensionPower(){
-        if(mode == ArmMode.MOVE_TO_TARGET) {
+        if(extensionMode == ExtensionMode.MOVE_TO_TARGET) {
             extensionPID.setConstants(extensionKP, extensionKI, extensionKD, extensionKF, extensionMaxI);
             retractionPID.setConstants(retractionKP, retractionKI, retractionKD, retractionKF, retractionMaxI);
 
@@ -438,7 +440,7 @@ public class Arm {
             } else {
                 lastExtensionPower = 0;
             }
-        }else if(mode == ArmMode.SET_POWER){
+        }else if(extensionMode == ExtensionMode.SET_POWER){
             lastExtensionPower = extensionPower;
         }
         return lastExtensionPower;
@@ -474,12 +476,8 @@ public class Arm {
     }
 
     public boolean isValidExtension(double inches){
-        if(inches > MAX_ARM_EXTENSION)
+        if(inches > MAX_ARM_EXTENSION || inches < -0.5)
             return false;
-
-        if(targetExtension < getExtension() && extensionLimitSensor.isPressed()){
-            return false;
-        }
 
         if(inches * Math.cos(Math.toRadians(targetAngle)) > MAX_HORIZONTAL_EXTENSION)
             return false;
