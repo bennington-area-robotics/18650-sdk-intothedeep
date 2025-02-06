@@ -39,14 +39,20 @@ public class AutonomousSpecimenDelivery extends LinearOpMode {
     public static double redStartX = 0;
     public static double redStartY = -63;
     public static double redStartAng = -90;
+    public static TrajectoryVelocityConstraint velocityConstraint = ConfiguredMecanumDrive.getVelocityConstraint(
+            30,
+            2,
+            DriveConstants.TRACK_WIDTH);
 
+    public static TrajectoryAccelerationConstraint accelerationConstraint = ConfiguredMecanumDrive.getAccelerationConstraint(
+            20);
 
     private static AutonomousCore instance;
     ElapsedTime tickTimer;
     private static Arm arm;
     private static Collector collector;
     private PrettyTelemetry prettyTelem;
-
+    public static double extensionVar = 16.22;
     public static AutonomousCore getInstance(){
         return instance;
     }
@@ -328,16 +334,22 @@ public class AutonomousSpecimenDelivery extends LinearOpMode {
 
     public void specimenDeliverPath(){
         placeSpecimen();
+        collector.closeGrip();
+
         Trajectory path = drive.trajectoryBuilder(blueStartPose, true)
-                .splineTo(new Vector2d(0, 27), Math.toRadians(-90))
+                .splineTo(new Vector2d(0, 35), Math.toRadians(-90), velocityConstraint, accelerationConstraint)
                 .build();
-        drive.followTrajectory(path);
+        drive.followTrajectoryAsync(path);
+        while(drive.isBusy()) {
+            drive.update();
+            tick();
+        }
     }
 
     public void placeSpecimen(){
         arm.moveToTargetAngleBlocking(45, this::tick);
 
-        arm.moveToTargetExtensionBlocking(16.22, this::tick);
+        arm.moveToTargetExtensionBlocking(extensionVar, this::tick);
 
         collector.moveWristToBlocking(40, this::tick);
         //collector.openGrip();

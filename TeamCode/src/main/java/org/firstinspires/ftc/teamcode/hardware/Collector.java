@@ -19,7 +19,7 @@ public class Collector {
     public static float OPEN_POSITION = 0.4f, CLOSED_POSITION = 0; //grip
     public static int UP_POSITION = 90, DOWN_POSITION = 0; //wrist
     public static float LENGTH = 5f;
-    public static double wristKP = 0.012, wristKI, wristKD, wristKF = -2.5, wristMaxI;
+    public static double wristKP = 0.009, wristKI, wristKD = 0.02, wristKF = -0.05, wristMaxI, wristKCOS =5.5;
     public static double wristOffset = 0;
 
     double KF = wristKF;
@@ -60,6 +60,9 @@ public class Collector {
         while(Math.abs(getWristAngle() - getWristTarget()) > 2){
             tick();
             runnable.run();
+            if (timer.seconds() > 1){
+                return timer.milliseconds();
+            }
         }
         return timer.milliseconds();
     }
@@ -196,7 +199,7 @@ public class Collector {
     public void resetPositionAsTop(){
         wristMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         wristMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        wristOffset = 156;
+        wristOffset = 130;
     }
 
     public void resetPositionAs(double angle){
@@ -208,9 +211,11 @@ public class Collector {
     public void tick(){
         if (wristTarget < getWristAngle()){
              KF = wristKF * -1;
+             KF*=0.25;
         } else {
-            KF = wristKF;
+            KF = wristKF * Math.sin(Math.toRadians(getWristAngle())) * wristKCOS;
         }
+
         PID.setConstants(wristKP, wristKI, wristKD, KF, wristMaxI);
 
         PID.setDirection(Direction.REVERSE);

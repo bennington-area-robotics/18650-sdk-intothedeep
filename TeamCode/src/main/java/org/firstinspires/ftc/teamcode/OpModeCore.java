@@ -340,13 +340,13 @@ public class OpModeCore extends LinearOpMode {
         testValue = "Collector pos reset";
         collector.setWristPower(0);
         collector.setWristMode(Collector.WristMode.MOVE_TO_TARGET);
-        collector.moveWristToBlocking(90);
+        collector.moveWristToBlocking(90, this::tick);
 
         arm.setAngleMode(Arm.AngleMode.SET_POWER);
         arm.setAnglePower(-0.2);
-        arm.setExtensionPower(-1);
+        arm.setExtensionPower(-0.5);
 
-        while(arm.extensionLimitSensor.isPressed() || arm.tiltLimitSensor.isPressed()){
+        while((arm.extensionLimitSensor.isPressed() || arm.tiltLimitSensor.isPressed()) && opModeIsActive()){
             arm.tick();
             if(arm.tiltLimitSensor.isPressed())
                 arm.setAnglePower(0);

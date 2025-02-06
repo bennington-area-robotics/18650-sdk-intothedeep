@@ -307,7 +307,7 @@ public class Arm {
         if (!setTargetAngle(degrees))
             return timer.milliseconds();
 
-        while (Math.abs(getAngle() - getTargetAngle()) < 2){
+        while (Math.abs(getAngle() - getTargetAngle()) > 2){
             tick();
         }
 
@@ -319,7 +319,7 @@ public class Arm {
         if (!setTargetExtension(inches))
             return timer.milliseconds();
 
-        while (Math.abs(getExtension() - getTargetExtension()) < 2){
+        while (Math.abs(getExtension() - getTargetExtension()) > 2){
             tick();
         }
 
@@ -331,7 +331,7 @@ public class Arm {
         if (!setTargetAngle(degrees))
             return timer.milliseconds();
 
-        while (Math.abs(getAngle() - getTargetAngle()) < 2){
+        while (Math.abs(getAngle() - getTargetAngle()) > 2){
             tick();
             whileRunning.run();
         }
@@ -344,7 +344,7 @@ public class Arm {
         if (!setTargetExtension(inches))
             return timer.milliseconds();
 
-        while (Math.abs(getExtension() - getTargetExtension()) < 2){
+        while (Math.abs(getExtension() - getTargetExtension()) > 2){
             tick();
             whileRunning.run();
         }

@@ -36,7 +36,13 @@ public class AutonomousNetDelivery extends LinearOpMode {
     public static double redStartX = 0;
     public static double redStartY = -63;
     public static double redStartAng = -90;
+    public static TrajectoryVelocityConstraint velocityConstraint = ConfiguredMecanumDrive.getVelocityConstraint(
+            30,
+            2,
+            DriveConstants.TRACK_WIDTH);
 
+    public static TrajectoryAccelerationConstraint accelerationConstraint = ConfiguredMecanumDrive.getAccelerationConstraint(
+            20);
 
     private static AutonomousCore instance;
     ElapsedTime tickTimer;
@@ -331,8 +337,22 @@ public class AutonomousNetDelivery extends LinearOpMode {
                 .splineToSplineHeading(new Pose2d(20, 57, Math.toRadians(0)), Math.toRadians(0))
                 .splineToSplineHeading(new Pose2d(55, 57, Math.toRadians(45)), Math.toRadians(45))
                 .build();
+
+        Trajectory path2 = drive.trajectoryBuilder(path.end(), true)
+                .splineToConstantHeading(new Vector2d(45, 40), Math.toRadians(-90), velocityConstraint, accelerationConstraint)
+                .splineToSplineHeading(new Pose2d(45, 12, Math.toRadians(90)), Math.toRadians(90), velocityConstraint, accelerationConstraint)
+                .splineToConstantHeading(new Vector2d(53, 12), Math.toRadians(90), velocityConstraint, accelerationConstraint)
+                .splineToConstantHeading(new Vector2d(53, 60), Math.toRadians(90), velocityConstraint, accelerationConstraint)
+                .build();
+        Trajectory path3 = drive.trajectoryBuilder(path2.end(), true)
+                .splineToConstantHeading(new Vector2d(53, 20), Math.toRadians(-90), velocityConstraint, accelerationConstraint)
+                .splineToConstantHeading(new Vector2d(60, 12), Math.toRadians(90), velocityConstraint, accelerationConstraint)
+                .splineToConstantHeading(new Vector2d(60, 57), Math.toRadians(90), velocityConstraint, accelerationConstraint)
+                .build();
+
         drive.followTrajectory(path);
         placeSample();
+        drive.followTrajectories(path2, path3);
     }
 
     public void placeSample(){
@@ -344,6 +364,8 @@ public class AutonomousNetDelivery extends LinearOpMode {
         prettyTelem.addLine("what the fuck 2");
 
         collector.openGrip();
+        sleep(2000);
+        collector.moveWristToBlocking(Collector.DOWN_POSITION, this::tick);
         arm.collectionPosition();
         while(Math.abs(arm.getAngle()) > 1 && opModeIsActive()) {
             tick();
