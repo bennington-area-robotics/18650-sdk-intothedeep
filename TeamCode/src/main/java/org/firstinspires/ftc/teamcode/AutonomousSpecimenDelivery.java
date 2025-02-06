@@ -335,22 +335,11 @@ public class AutonomousSpecimenDelivery extends LinearOpMode {
     }
 
     public void placeSpecimen(){
-        telemetry.addData("MOVING TO ANGLE", "hi");
-        telemetry.update();
         arm.moveToTargetAngleBlocking(45, this::tick);
 
-        telemetry.addData("arm up", 0);
-        telemetry.update();
         arm.moveToTargetExtensionBlocking(16.22, this::tick);
-        telemetry.addData("max extended", 0);
-        telemetry.update();
 
-
-        collector.wristTo(40);
-        collector.setWristMode(Collector.WristMode.MOVE_TO_TARGET);
-        while(Math.abs(collector.getWristAngle()- collector.getWristTarget()) > 2 && opModeIsActive()) {
-            tick();
-        }
+        collector.moveWristToBlocking(40);
         //collector.openGrip();
     }
 

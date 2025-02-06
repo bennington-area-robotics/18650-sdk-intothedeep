@@ -3,9 +3,9 @@ package org.firstinspires.ftc.teamcode.hardware;
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.hardware.controllers.PID;
 import org.firstinspires.ftc.teamcode.hardware.controllers.PID.Direction;
@@ -50,6 +50,16 @@ public class Collector {
         wristMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         wristMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         setWristMode(WristMode.FLOAT);
+    }
+
+    public double moveWristToBlocking(int angle){
+        ElapsedTime timer = new ElapsedTime();
+        setWristMode(WristMode.MOVE_TO_TARGET);
+        wristTo(angle);
+        while(Math.abs(getWristAngle() - getWristTarget()) > 2){
+            tick();
+        }
+        return timer.milliseconds();
     }
 
 
