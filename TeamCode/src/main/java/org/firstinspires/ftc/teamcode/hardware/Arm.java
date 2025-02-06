@@ -72,14 +72,19 @@ public class Arm {
 
     private Consumer<Arm> runningMacro;
 
-    private ArmMode mode = ArmMode.MOVE_TO_TARGET;
+    private AngleMode angleMode = AngleMode.MOVE_TO_TARGET;
+    private ExtensionMode extensionMode = ExtensionMode.MOVE_TO_TARGET;
 
     private double anglePower = 0.0;
 
     private double extensionPower = 0.0;
     //</editor-fold>
 
-    public enum ArmMode {
+    public enum AngleMode {
+        MOVE_TO_TARGET, SET_POWER
+    }
+
+    public enum ExtensionMode {
         MOVE_TO_TARGET, SET_POWER
     }
 
@@ -146,15 +151,24 @@ public class Arm {
         return targetAngle;
     }
 
-    public ArmMode getMode(){
-        return mode;
+    public AngleMode getAngleMode(){
+        return angleMode;
     }
 
-    public void setMode(ArmMode mode){
-        this.mode = mode;
+    public void setAngleMode(AngleMode angleMode){
+        this.angleMode = angleMode;
+    }
+
+    public ExtensionMode getExtensionMode(){
+        return extensionMode;
+    }
+
+    public void setExtensionMode(ExtensionMode extensionMode) {
+        this.extensionMode = extensionMode;
     }
 
     public void setAnglePower(double anglePower){
+        setAngleMode(AngleMode.SET_POWER);
         this.anglePower = anglePower;
     }
 
@@ -163,6 +177,7 @@ public class Arm {
     }
 
     public void setExtensionPower(double extensionPower) {
+        setExtensionMode(ExtensionMode.SET_POWER);
         this.extensionPower = extensionPower;
     }
 
@@ -178,6 +193,7 @@ public class Arm {
      * @return whether the operation was successful (whether it passed the checks).
      */
     public boolean setTargetAngle(@FloatRange(from=0, to=100) double degrees){
+        setAngleMode(AngleMode.MOVE_TO_TARGET);
         if(runningMacro != null){
             return false;
         }
@@ -198,6 +214,7 @@ public class Arm {
      * @return whether the operation was successful (whether it passed the checks).
      */
     private boolean setTargetAngleIgnoreMacro(@FloatRange(from=0, to=100) double degrees){
+        setAngleMode(AngleMode.MOVE_TO_TARGET);
         if(isValidAngle(degrees)){
             targetAngle = degrees;
             return true;
@@ -214,6 +231,7 @@ public class Arm {
      * @return whether the operation was successful (whether it passed the checks).
      */
     public boolean setTargetExtension(double inches){
+        setExtensionMode(ExtensionMode.MOVE_TO_TARGET);
         if(runningMacro != null){
             return false;
         }
@@ -234,6 +252,7 @@ public class Arm {
      * @return whether the operation was successful (whether it passed the checks).
      */
     private boolean setTargetExtensionIgnoreMacro(double inches){
+        setExtensionMode(ExtensionMode.MOVE_TO_TARGET);
         if(runningMacro != null){
             return false;
         }
@@ -387,7 +406,7 @@ public class Arm {
 
     private double lastAnglePower;
     private double calcAnglePower(){
-        if(mode == ArmMode.MOVE_TO_TARGET) {
+        if(angleMode == AngleMode.MOVE_TO_TARGET) {
             downwardPID.setConstants(downwardKP, downwardKI, downwardKD, downwardKF, downwardMaxI);
             upwardPID.setConstants(upwardKP, upwardKI, upwardKD, upwardKF, upwardMaxI);
 
@@ -398,7 +417,7 @@ public class Arm {
             } else {
                 lastAnglePower = 0;
             }
-        }else if (mode == ArmMode.SET_POWER){
+        }else if (angleMode == AngleMode.SET_POWER){
             lastAnglePower = anglePower;
         }
         return lastAnglePower;
@@ -410,7 +429,7 @@ public class Arm {
 
     double lastExtensionPower;
     private double calcExtensionPower(){
-        if(mode == ArmMode.MOVE_TO_TARGET) {
+        if(extensionMode == ExtensionMode.MOVE_TO_TARGET) {
             extensionPID.setConstants(extensionKP, extensionKI, extensionKD, extensionKF, extensionMaxI);
             retractionPID.setConstants(retractionKP, retractionKI, retractionKD, retractionKF, retractionMaxI);
 
@@ -421,7 +440,7 @@ public class Arm {
             } else {
                 lastExtensionPower = 0;
             }
-        }else if(mode == ArmMode.SET_POWER){
+        }else if(extensionMode == ExtensionMode.SET_POWER){
             lastExtensionPower = extensionPower;
         }
         return lastExtensionPower;
