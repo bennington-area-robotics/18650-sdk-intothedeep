@@ -6,7 +6,7 @@ This repository contains the public FTC SDK for the INTO THE DEEP (2024-2025) co
 This GitHub repository contains the source code that is used to build an Android app to control a *FIRST* Tech Challenge competition robot.  To use this SDK, download/clone the entire project to your local computer.
 
 ## Requirements
-To use this Android Studio project, you will need Android Studio 2021.2 (codename Chipmunk) or later.
+To use this Android Studio project, you will need Android Studio Ladybug (2024.2) or later.
 
 To program your robot in Blocks or OnBot Java, you do not need Android Studio.
 
@@ -58,6 +58,37 @@ Samples Folder: &nbsp;&nbsp; [/FtcRobotController/src/main/java/org/firstinspire
 The readme.md file located in the [/TeamCode/src/main/java/org/firstinspires/ftc/teamcode](TeamCode/src/main/java/org/firstinspires/ftc/teamcode) folder contains an explanation of the sample naming convention, and instructions on how to copy them to your own project space.
 
 # Release Information
+
+## Version 10.2 (20250121-174034)
+
+### Enhancements
+* Add ability to upload the pipeline for Limelight3A which allows teams to version control their limelight pipelines.
+
+
+### Bug Fixes
+
+* Fix an internal bug where if the RUN_TO_POSITION run mode was specified before a target position, recovery would require a power cycle. A side effect of this fix is that a stack trace identifying the location of the error is always produced in the log. Fixes issue [1345](https://github.com/FIRST-Tech-Challenge/FtcRobotController/issues/1345).
+* Throws a helpful exception if region of interest is set to null when building a PredominantColorProcessor. Also sets the default RoI to the full frame. Addresses issue [1076](FIRST-Tech-Challenge/FtcRobotController#1076)
+* Throws a helpful exception if user tries to construct an ImageRegion with malformed boundaries.  Addresses issue [1078](FIRST-Tech-Challenge/FtcRobotController#1078)
+
+## Version 10.1.1 (20241102-092223)
+
+### Breaking Changes
+
+* Support for Android Studio Ladybug.  Requires Android Studio Ladybug.  
+
+### Known Issues
+
+* Android Studio Ladybug's bundled JDK is version 21.  JDK 21 has deprecated support for Java 1.8, and Ladybug will warn on this deprecation.
+  OnBotJava only supports Java 1.8, therefore, in order to ensure that software developed using Android Studio will 
+  run within the OnBotJava environment, the targetCompatibility and sourceCompatibility versions for the SDK have been left at VERSION_1_8.
+  FIRST has decided that until it can devote the resources to migrating OnBotJava to a newer version of Java, the deprecation is the 
+  lesser of two non-optimal situations.
+
+### Enhancements
+
+* Added `toString()` method to Pose2D
+* Added `toString()` method to SparkFunOTOS.Pose2D
 
 ## Version 10.1 (20240919-122750)
 
@@ -1117,7 +1148,7 @@ Changes with verion 3.3 include:
     - Update to latest Google Blockly release.
     - Sample OpModes can be selected as a template when creating new OpMode.
     - Fixed bug where the blocks would disappear temporarily when mouse button is held down.
-    - Added blocks for org.firstinspires.ftc.teamcode.hardware.Range.clip and org.firstinspires.ftc.teamcode.hardware.Range.scale.
+    - Added blocks for Range.clip and Range.scale.
     - User can now disable/enable Block OpModes.
     - Fix to prevent occasional Blocks deadlock.
  * OnBot Java
@@ -1355,7 +1386,7 @@ Changes include:
 
 ## Version 2.20 (released on 16.09.08)
   * Support for Modern Robotics Compass Sensor.
-  * Support for Modern Robotics org.firstinspires.ftc.teamcode.hardware.Range Sensor.
+  * Support for Modern Robotics Range Sensor.
   * Revise device names for Pushbot templates to match the names used in Pushbot guide.
   * Fixed bug so that IrSeekerSensorV3 device is accessible as IrSeekerSensor in hardwareMap.
   * Modified computer vision code to require an individual Vuforia license (per legal requirement from PTC).
@@ -1397,7 +1428,7 @@ Changes include:
  * setChannelMode and getChannelMode were REMOVED from the DcMotorController class.  This is important - we no longer set the motor modes through the motor controller.
  * setMode and getMode were added to the DcMotor class.
  * ContinuousRotationServo class has been added to the FTC SDK.
- * org.firstinspires.ftc.teamcode.hardware.Range.clip() method has been overloaded so it can support this operation for int, short and byte integers.
+ * Range.clip() method has been overloaded so it can support this operation for int, short and byte integers.
  * Some changes have been made (new methods added) on how a user can access items from the hardware map.
  * Users can now set the zero power behavior for a DC motor so that the motor will brake or float when power is zero.
  * Prototype Blockly Programming Mode has been added to FTC Robot Controller.  Users can place the Robot Controller into this mode, and then use a device (such as a laptop) that has a Javascript enabled browser to write Blockly-based OpModes directly onto the Robot Controller.
