@@ -32,7 +32,7 @@ public class OpModeCore extends LinearOpMode {
     public static float LOW_POWER_MODIFIER = 0.05f;
     public static float HIGH_POWER_MODIFIER = 0.75f;
     public static float MAX_INCHES_PER_SECOND = 9f;
-    public static float MIN_WRIST_VELOCITY = 10;
+    public static float MIN_WRIST_VELOCITY = 8;
     //</editor-fold>
 
     //<editor-fold desc="Fields">
@@ -335,7 +335,7 @@ public class OpModeCore extends LinearOpMode {
         testValue = "refresh locations!";
 
         ElapsedTime timer = new ElapsedTime();
-        while(timer.milliseconds() < 500 || Math.abs(collector.getWristVelocity()) > MIN_WRIST_VELOCITY){
+        while(timer.milliseconds() < 1250 || Math.abs(collector.getWristVelocity()) > MIN_WRIST_VELOCITY){
             collector.tick();
             testValue = "Collector Moving with velocity " + collector.getWristVelocity();
             prettyTelem.update();
