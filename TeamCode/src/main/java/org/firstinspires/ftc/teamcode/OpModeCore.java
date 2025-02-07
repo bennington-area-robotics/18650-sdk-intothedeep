@@ -335,7 +335,7 @@ public class OpModeCore extends LinearOpMode {
         testValue = "refresh locations!";
 
         ElapsedTime timer = new ElapsedTime();
-        while(timer.milliseconds() < 1250 || Math.abs(collector.getWristVelocity()) > MIN_WRIST_VELOCITY){
+        while(timer.milliseconds() < 1250){
             collector.tick();
             testValue = "Collector Moving with velocity " + collector.getWristVelocity();
             prettyTelem.update();

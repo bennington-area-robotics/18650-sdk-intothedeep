@@ -124,6 +124,7 @@ public class AutonomousNetZoneSamplePushPath extends LinearOpMode {
         arm.moveToTargetAngleBlocking(45, this::tick);
         collector.moveWristToBlocking(-45, this::tick);
         collector.closeGrip();
+        arm.setAnglePower(0);
     }
 
     public void initialize(){
@@ -188,8 +189,8 @@ public class AutonomousNetZoneSamplePushPath extends LinearOpMode {
                 .splineToConstantHeading(new Vector2d(60, 57), Math.toRadians(90), velocityConstraint, accelerationConstraint)
                 .build();
         Trajectory moveToAscent = drive.trajectoryBuilder(pushSamples3.end(), true)
-                .splineToSplineHeading(new Pose2d(48, 24, Math.toRadians(135)), Math.toRadians(135), velocityConstraint, accelerationConstraint)
-                .splineToSplineHeading(new Pose2d(36, 12, Math.toRadians(180)), Math.toRadians(180), velocityConstraint, accelerationConstraint)
+                .splineToSplineHeading(new Pose2d(48, 24, Math.toRadians(225)), Math.toRadians(225), velocityConstraint, accelerationConstraint)
+                .splineToSplineHeading(new Pose2d(15, 12, Math.toRadians(180)), Math.toRadians(180), velocityConstraint, accelerationConstraint)
                 .build();
 
         drive.followTrajectories(pushSamples, pushSamples2, pushSamples3);

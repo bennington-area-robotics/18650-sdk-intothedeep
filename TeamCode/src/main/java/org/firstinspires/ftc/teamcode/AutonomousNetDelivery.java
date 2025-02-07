@@ -76,6 +76,7 @@ public class AutonomousNetDelivery extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
         initialize();
+        initializeStartingPosition();
 
         waitForStart();
 
@@ -125,6 +126,7 @@ public class AutonomousNetDelivery extends LinearOpMode {
         arm.moveToTargetAngleBlocking(45, this::tick);
         collector.moveWristToBlocking(-45, this::tick);
         collector.closeGrip();
+        arm.setAnglePower(0);
     }
     public void initialize(){
         drive = new DriveBase(hardwareMap);
@@ -151,7 +153,7 @@ public class AutonomousNetDelivery extends LinearOpMode {
                         new Pose(0, 0, 0)
                 )
         );
-        initializeStartingPosition();
+
         configureTelemetry();
 
         //TODO FOR EBEN - finish implementing this
