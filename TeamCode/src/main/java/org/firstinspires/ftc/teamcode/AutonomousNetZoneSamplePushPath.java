@@ -187,10 +187,19 @@ public class AutonomousNetZoneSamplePushPath extends LinearOpMode {
                 .splineToConstantHeading(new Vector2d(60, 12), Math.toRadians(90), velocityConstraint, accelerationConstraint)
                 .splineToConstantHeading(new Vector2d(60, 57), Math.toRadians(90), velocityConstraint, accelerationConstraint)
                 .build();
-//        Trajectory moveToAscent = drive.trajectoryBuilder(pushSamples3.end(), true)
-//                .splineToSplineHeading(new Pose2d())
+        Trajectory moveToAscent = drive.trajectoryBuilder(pushSamples3.end(), true)
+                .splineToSplineHeading(new Pose2d(48, 24, Math.toRadians(135)), Math.toRadians(135), velocityConstraint, accelerationConstraint)
+                .splineToSplineHeading(new Pose2d(36, 12, Math.toRadians(180)), Math.toRadians(180), velocityConstraint, accelerationConstraint)
+                .build();
 
-        //drive.followTrajectories(pushSamples, pushSamples2, pushSamples3);
+        drive.followTrajectories(pushSamples, pushSamples2, pushSamples3);
+        drive.followTrajectoryAsync(moveToAscent);
+        arm.setTargetAngle(100);
+        while(drive.isBusy()){
+            drive.update();
+            tick();
+        }
+
     }
 
     public void blueObservationSamplePushPath(){
