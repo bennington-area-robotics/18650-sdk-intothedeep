@@ -150,6 +150,7 @@ public class OpModeCore extends LinearOpMode {
                 .addData("Stage", () -> autopilot.findCurrentStage())
                 .addData("Localization: ", () -> driveBase.getPoseSimple())
                 .addData("Test Value", () -> testValue)
+                .addData("Combined Angle", () -> arm.getAngle() + collector.getWristAngle())
         ;
         prettyTelem.addLine("Game State")
                 .addData("In Basket Area", () -> autopilot.inBasketArea())
@@ -311,8 +312,11 @@ public class OpModeCore extends LinearOpMode {
         }
 
 
-        if(Math.abs(-gamepad1.left_trigger + gamepad2.right_trigger) > 0.01){
-            arm.setAnglePower(-gamepad1.left_trigger + gamepad2.right_trigger);
+        if(Math.abs(-gamepad1.left_trigger + gamepad1.right_trigger) > 0.01){
+            arm.killMacro();
+            arm.setExtensionPower(-gamepad1.left_trigger + gamepad1.right_trigger);
+        }else if (!arm.isRunningMacro()){
+            arm.setExtensionPower(0);
         }
 
         gamepadTimer.reset();
@@ -348,7 +352,7 @@ public class OpModeCore extends LinearOpMode {
         arm.setAnglePower(-0.2);
         arm.setExtensionPower(-0.5);
 
-        while((arm.extensionLimitSensor.isPressed() || arm.tiltLimitSensor.isPressed()) && opModeIsActive()){
+        while((!arm.extensionLimitSensor.isPressed() || !arm.tiltLimitSensor.isPressed()) && opModeIsActive()){
             arm.tick();
             if(arm.tiltLimitSensor.isPressed())
                 arm.setAnglePower(0);

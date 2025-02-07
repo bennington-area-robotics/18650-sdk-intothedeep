@@ -145,9 +145,16 @@ public class AutonomousCore extends LinearOpMode {
                         new Pose(0, 0, 0)
                 )
         );
+        initializeStartingPosition();
         configureTelemetry();
 
         //TODO FOR EBEN - finish implementing this
+    }
+
+    public void initializeStartingPosition(){
+        arm.moveToTargetAngleBlocking(45, this::tick);
+        collector.moveWristToBlocking(-45, this::tick);
+        collector.closeGrip();
     }
 
     public void blueNetZoneSamplePushPath(){

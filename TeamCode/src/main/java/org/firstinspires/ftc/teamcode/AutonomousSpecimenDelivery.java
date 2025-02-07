@@ -124,7 +124,11 @@ public class AutonomousSpecimenDelivery extends LinearOpMode {
         prettyTelem.addData("April Tag", () -> aprilTagReader.getFirstPose().toString());
     }
 
-
+    public void initializeStartingPosition(){
+        arm.moveToTargetAngleBlocking(45, this::tick);
+        collector.moveWristToBlocking(-45, this::tick);
+        collector.closeGrip();
+    }
     public void initialize(){
         drive = new DriveBase(hardwareMap);
         drive.setPoseEstimate(blueStartPose);
@@ -150,6 +154,7 @@ public class AutonomousSpecimenDelivery extends LinearOpMode {
                         new Pose(0, 0, 0)
                 )
         );
+        initializeStartingPosition();
         configureTelemetry();
 
         //TODO FOR EBEN - finish implementing this

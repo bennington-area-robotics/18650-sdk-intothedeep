@@ -19,7 +19,7 @@ public class Collector {
     public static float OPEN_POSITION = 0.4f, CLOSED_POSITION = 0; //grip
     public static int UP_POSITION = 90, DOWN_POSITION = 0; //wrist
     public static float LENGTH = 5f;
-    public static double wristKP = 0.009, wristKI, wristKD = 0.02, wristKF = -0.05, wristMaxI, wristKCOS =5.5;
+    public static double wristKP = 0.009, wristKI, wristKD = 0.02, wristKF = -0.035, wristMaxI, wristKCOS =6;
     public static double wristOffset = 0;
 
     double KF = wristKF;
@@ -213,7 +213,7 @@ public class Collector {
              KF = wristKF * -1;
              KF*=0.25;
         } else {
-            KF = wristKF * Math.sin(Math.toRadians(getWristAngle())) * wristKCOS;
+            KF = wristKF * Math.sin(Math.toRadians(getWristAngle() + arm.getAngle())) * wristKCOS;
         }
 
         PID.setConstants(wristKP, wristKI, wristKD, KF, wristMaxI);

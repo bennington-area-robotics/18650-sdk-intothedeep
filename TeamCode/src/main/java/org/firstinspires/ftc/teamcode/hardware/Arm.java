@@ -107,6 +107,7 @@ public class Arm {
         this.angleMotorLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         this.angleMotorRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         this.angleEncoder.setDirection(Encoder.Direction.FORWARD);
+        this.extensionMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         //</editor-fold>
 
         resetExtension();
@@ -129,6 +130,8 @@ public class Arm {
     public double getAngleVelocity(){
         return angleEncoder.getCorrectedVelocity() / ARM_TICKS_PER_DEGREE;
     }
+
+    public boolean isRunningMacro(){return runningMacro!=null;}
 
     /**
      * Get the current extension of the end of the arm past the minimum extension (fully retracted).
@@ -165,6 +168,10 @@ public class Arm {
 
     public void setExtensionMode(ExtensionMode extensionMode) {
         this.extensionMode = extensionMode;
+    }
+
+    public void killMacro(){
+        this.runningMacro = null;
     }
 
     public void setAnglePower(double anglePower){
@@ -369,11 +376,11 @@ public class Arm {
             runningMacro = (arm -> {
                 if (Math.abs(COLLECTION_ANGLE - arm.getAngle()) < 10) {
                     arm.setTargetAngleIgnoreMacro(COLLECTION_ANGLE);
-                    arm.setTargetExtension(arm.getExtension());
+                    arm.setTargetExtensionIgnoreMacro(arm.getExtension());
                     arm.runningMacro = null;
                 } else if (getExtension() - COLLECTION_EXTENSION < 1.5) {
                     arm.setTargetAngleIgnoreMacro(COLLECTION_ANGLE);
-                    arm.setTargetExtension(DELIVERY_EXTENSION);
+                    arm.setTargetExtensionIgnoreMacro(DELIVERY_EXTENSION);
                 } else {
                     double targetAngle = inchesPerDegree * (arm.getExtension() - COLLECTION_EXTENSION) + COLLECTION_ANGLE;
                     arm.setTargetAngleIgnoreMacro(targetAngle);

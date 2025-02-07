@@ -120,7 +120,11 @@ public class AutonomousNetZoneSamplePushPath extends LinearOpMode {
 
         prettyTelem.addData("April Tag", () -> aprilTagReader.getFirstPose().toString());
     }
-
+    public void initializeStartingPosition(){
+        arm.moveToTargetAngleBlocking(45, this::tick);
+        collector.moveWristToBlocking(-45, this::tick);
+        collector.closeGrip();
+    }
 
     public void initialize(){
         drive = new DriveBase(hardwareMap);
@@ -147,6 +151,7 @@ public class AutonomousNetZoneSamplePushPath extends LinearOpMode {
                         new Pose(0, 0, 0)
                 )
         );
+        initializeStartingPosition();
         configureTelemetry();
 
         //TODO FOR EBEN - finish implementing this
@@ -182,7 +187,10 @@ public class AutonomousNetZoneSamplePushPath extends LinearOpMode {
                 .splineToConstantHeading(new Vector2d(60, 12), Math.toRadians(90), velocityConstraint, accelerationConstraint)
                 .splineToConstantHeading(new Vector2d(60, 57), Math.toRadians(90), velocityConstraint, accelerationConstraint)
                 .build();
-        drive.followTrajectories(pushSamples, pushSamples2, pushSamples3);
+//        Trajectory moveToAscent = drive.trajectoryBuilder(pushSamples3.end(), true)
+//                .splineToSplineHeading(new Pose2d())
+
+        //drive.followTrajectories(pushSamples, pushSamples2, pushSamples3);
     }
 
     public void blueObservationSamplePushPath(){
