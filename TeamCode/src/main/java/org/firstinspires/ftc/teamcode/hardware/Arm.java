@@ -264,9 +264,6 @@ public class Arm {
      */
     private boolean setTargetExtensionIgnoreMacro(double inches){
         setExtensionMode(ExtensionMode.MOVE_TO_TARGET);
-        if(runningMacro != null){
-            return false;
-        }
 
         if(isValidExtension(inches)) {
             targetExtension = inches;
