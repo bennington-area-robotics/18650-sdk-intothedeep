@@ -320,7 +320,10 @@ public class OpModeCore extends LinearOpMode {
             arm.killMacro();
             arm.setExtensionPower(-gamepad1.left_trigger + gamepad1.right_trigger);
         }else if (!arm.isRunningMacro()){
-            arm.setExtensionPower(0);
+            if(arm.getExtensionMode() != Arm.ExtensionMode.MOVE_TO_TARGET) {
+                arm.setExtensionPower(0);
+                arm.setExtensionMode(Arm.ExtensionMode.MOVE_TO_TARGET);
+            }
         }
 
         gamepadTimer.reset();
