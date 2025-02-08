@@ -30,7 +30,7 @@ public class AutonomousNetZoneSamplePushPath extends LinearOpMode {
 
     //TODO FOR EBEN - clean up this code! remove the unnecessary code if its commented, implement the methods I added here
 
-    public static double blueStartX = 0;
+    public static double blueStartX = 23.5;
     public static double blueStartY = 63;
     public static double blueStartAng = 90;
 
@@ -121,9 +121,10 @@ public class AutonomousNetZoneSamplePushPath extends LinearOpMode {
         prettyTelem.addData("April Tag", () -> aprilTagReader.getFirstPose().toString());
     }
     public void initializeStartingPosition(){
+        collector.closeGrip();
         arm.moveToTargetAngleBlocking(45, this::tick);
         collector.moveWristToBlocking(-45, this::tick);
-        collector.closeGrip();
+
         arm.setAnglePower(0);
     }
 
@@ -159,16 +160,23 @@ public class AutonomousNetZoneSamplePushPath extends LinearOpMode {
     }
 
     public void blueNetZoneSamplePushPath(){
-        Trajectory pushSamples = drive.trajectoryBuilder(blueStartPose, true)
-                //.splineTo(new Vector2d(0, 45), Math.toRadians(-90))
-                //.splineToConstantHeading(new Vector2d(38, 48), Math.toRadians(-90))
-                .splineTo(
-                        new Vector2d(38, 45),
+        Trajectory deliverFirstSample = drive.trajectoryBuilder(blueStartPose, true)
+                .splineToSplineHeading(new Pose2d(24, 55, Math.toRadians(0)), Math.toRadians(0), velocityConstraint, accelerationConstraint)
+                .splineTo(new Vector2d(55, 55), Math.toRadians(45))
+                .build();
+
+                /*delivers sample to net zone
+                .splineTo(new Vector2d(52, 52), Math.toRadians(45), velocityConstraint, accelerationConstraint)
+                .build();*/
+
+        Trajectory pushSamples = drive.trajectoryBuilder(deliverFirstSample.end(), true)
+                .splineToSplineHeading(
+                        new Pose2d(38, 45, Math.toRadians(90)),
                         Math.toRadians(-90),
                         velocityConstraint,
                         accelerationConstraint)
-                .splineTo(
-                        new Vector2d(38,20),
+                .splineToSplineHeading(
+                        new Pose2d(38,20, Math.toRadians(90)),
                         Math.toRadians(-90),
                         velocityConstraint,
                         accelerationConstraint)
@@ -186,14 +194,31 @@ public class AutonomousNetZoneSamplePushPath extends LinearOpMode {
         Trajectory pushSamples3 = drive.trajectoryBuilder(pushSamples2.end(), true)
                 .splineToConstantHeading(new Vector2d(53, 20), Math.toRadians(-90), velocityConstraint, accelerationConstraint)
                 .splineToConstantHeading(new Vector2d(60, 12), Math.toRadians(90), velocityConstraint, accelerationConstraint)
-                .splineToConstantHeading(new Vector2d(60, 57), Math.toRadians(90), velocityConstraint, accelerationConstraint)
+                .splineToConstantHeading(new Vector2d(60, 55), Math.toRadians(90), velocityConstraint, accelerationConstraint)
                 .build();
         Trajectory moveToAscent = drive.trajectoryBuilder(pushSamples3.end(), true)
                 .splineToSplineHeading(new Pose2d(48, 24, Math.toRadians(225)), Math.toRadians(225), velocityConstraint, accelerationConstraint)
-                .splineToSplineHeading(new Pose2d(15, 12, Math.toRadians(180)), Math.toRadians(180), velocityConstraint, accelerationConstraint)
+                .splineToSplineHeading(new Pose2d(20, 12, Math.toRadians(180)), Math.toRadians(180), velocityConstraint, accelerationConstraint)
                 .build();
-
-        drive.followTrajectories(pushSamples, pushSamples2, pushSamples3);
+        //drive.followTrajectory(deliverFirstSample);
+        drive.followTrajectoryAsync(deliverFirstSample);
+        arm.setTargetExtension(9.7);
+        arm.setTargetAngle(90);
+        collector.wristTo(Collector.UP_POSITION);
+        while(drive.isBusy()){
+            drive.update();
+            tick();
+        }
+        collector.openGrip();
+        sleep(1000);
+        drive.followTrajectoryAsync(pushSamples);
+        arm.setTargetAngle(45);
+        arm.setTargetExtension(0);
+        while(drive.isBusy()){
+            drive.update();
+            tick();
+        }
+        drive.followTrajectories(pushSamples2, pushSamples3);
         drive.followTrajectoryAsync(moveToAscent);
         arm.setTargetAngle(100);
         while(drive.isBusy()){

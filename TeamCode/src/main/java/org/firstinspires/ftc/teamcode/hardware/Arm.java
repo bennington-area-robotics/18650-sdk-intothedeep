@@ -21,7 +21,7 @@ public class Arm {
     public static float ARM_TICKS_PER_DEGREE = 65f; //this is a good estimate as of 1/24/2025
 
     public static float ARM_TICKS_PER_INCH = 190f;
-    public static double MAX_ARM_EXTENSION = 37.0;
+    public static double MAX_ARM_EXTENSION = 38.5;
 
     public static double MAX_HORIZONTAL_EXTENSION = 38.0;
 
@@ -32,10 +32,12 @@ public class Arm {
     public static double COLLECTION_ANGLE = 0.0;
     public static double SPECIMEN_ANGLE = 55;
 
-    public static double downwardKP = 0.005, downwardKI = 0, downwardKD = 0, downwardKF = -0.15, downwardMaxI = 0;
-    public static double upwardKP = 0.02, upwardKI = 0.00001, upwardKD = 0.2, upwardKF = 0.15, upwardMaxI = 0.09;
+    public static double downwardKP = 0.02, downwardKI = 0, downwardKD = 0.01, downwardKF = 0.2, downwardMaxI = 0;
+    public static double upwardKP = 0, upwardKI = 0.0000, upwardKD = 0.75, upwardKF = 0.23, upwardMaxI = 0;
     public static double extensionKP = 0.2, extensionKI, extensionKD, extensionKF = 0.15, extensionMaxI;
     public static double retractionKP = 0.1, retractionKI, retractionKD, retractionKF = -0.5, retractionMaxI;
+    public static double rotationKF = 0.23, rotationKCOS = 1;
+    public static double downwardKFMultiplier = 1;
 
     private final PID downwardPID = new PID(downwardKP, downwardKI, downwardKD, downwardKF, downwardMaxI, 0.75);
     private final PID upwardPID = new PID(upwardKP, upwardKI, upwardKD, upwardKF, upwardMaxI, 0.75);
@@ -51,6 +53,8 @@ public class Arm {
     private final Encoder angleEncoder;
     public final TouchSensor tiltLimitSensor;
     public final TouchSensor extensionLimitSensor;
+
+    public boolean extensionRunningToPosition = false;
 
     /**
      * Target extension of the arm in inches past the minimum extension (not extended at all)
@@ -278,6 +282,9 @@ public class Arm {
     public void resetAngle(){
         tickOffsetToZero = angleEncoder.getCurrentPosition();
     }
+    public void resetAngleAfterAscent(){
+        tickOffsetToZero -= 100 * ARM_TICKS_PER_DEGREE;
+    }
 
     /**
      * Sets the current extension as the zero position.
@@ -414,6 +421,8 @@ public class Arm {
     private double lastAnglePower;
     private double calcAnglePower(){
         if(angleMode == AngleMode.MOVE_TO_TARGET) {
+            upwardKF = rotationKF * Math.cos(Math.toRadians(getAngle())) * rotationKCOS;
+            downwardKF = rotationKF * Math.cos(Math.toRadians(getAngle())) * rotationKCOS * downwardKFMultiplier;
             downwardPID.setConstants(downwardKP, downwardKI, downwardKD, downwardKF, downwardMaxI);
             upwardPID.setConstants(upwardKP, upwardKI, upwardKD, upwardKF, upwardMaxI);
 

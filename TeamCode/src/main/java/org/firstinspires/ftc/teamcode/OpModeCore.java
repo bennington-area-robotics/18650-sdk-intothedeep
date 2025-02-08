@@ -35,6 +35,8 @@ public class OpModeCore extends LinearOpMode {
     public static float MIN_WRIST_VELOCITY = 8;
     //</editor-fold>
 
+    public static boolean startAfterAscent = false;
+
     //<editor-fold desc="Fields">
     //components
     private static MultiAprilTagReader aprilTagReader;
@@ -126,7 +128,9 @@ public class OpModeCore extends LinearOpMode {
                         new Pose(6.5, 2.125, -90)
                 )
         );
-
+        if(startAfterAscent){
+            arm.resetAngleAfterAscent();
+        }
         //save the current gamepad states to compare against to avoid errors
         previousGamepad1.copy(gamepad1);
         previousGamepad2.copy(gamepad2);
@@ -281,8 +285,8 @@ public class OpModeCore extends LinearOpMode {
         }
 
         if (gamepad1.dpad_left && !previousGamepad1.dpad_left){
-            //arm.setTargetAngle(45);
-            //arm.setTargetExtension(16.2);
+            arm.setTargetAngle(45);
+            arm.setTargetExtension(16.2);
             collector.setWristMode(Collector.WristMode.MOVE_TO_TARGET);
             collector.wristTo(posVariable);
             //collector.setWristMode(Collector.WristMode.STAY_PERPENDICULAR);

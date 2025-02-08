@@ -29,11 +29,11 @@ public class AutonomousNetDelivery extends LinearOpMode {
 
     //TODO FOR EBEN - clean up this code! remove the unnecessary code if its commented, implement the methods I added here
 
-    public static double blueStartX = 0;
+    public static double blueStartX = 23.5;
     public static double blueStartY = 63;
     public static double blueStartAng = 90;
 
-    public static double redStartX = 0;
+    public static double redStartX = 12;
     public static double redStartY = -63;
     public static double redStartAng = -90;
     public static TrajectoryVelocityConstraint velocityConstraint = ConfiguredMecanumDrive.getVelocityConstraint(
@@ -76,7 +76,7 @@ public class AutonomousNetDelivery extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
         initialize();
-        initializeStartingPosition();
+
 
         waitForStart();
 
@@ -155,6 +155,7 @@ public class AutonomousNetDelivery extends LinearOpMode {
         );
 
         configureTelemetry();
+        initializeStartingPosition();
 
         //TODO FOR EBEN - finish implementing this
     }
@@ -341,25 +342,56 @@ public class AutonomousNetDelivery extends LinearOpMode {
         prettyTelem.addLine("what the fuck");
         prettyTelem.update();
         Trajectory path = drive.trajectoryBuilder(blueStartPose, true)
-                .splineToSplineHeading(new Pose2d(20, 57, Math.toRadians(0)), Math.toRadians(0))
-                .splineToSplineHeading(new Pose2d(55, 57, Math.toRadians(45)), Math.toRadians(45))
+                .splineToSplineHeading(new Pose2d(40, 57, Math.toRadians(0)), Math.toRadians(0))
+                .splineToSplineHeading(new Pose2d(57, 57, Math.toRadians(45)), Math.toRadians(45))
                 .build();
 
-        Trajectory path2 = drive.trajectoryBuilder(path.end(), true)
+        Trajectory pushSamples = drive.trajectoryBuilder(path.end(), true)
+                .splineToSplineHeading(
+                        new Pose2d(38, 45, Math.toRadians(90)),
+                        Math.toRadians(-90),
+                        velocityConstraint,
+                        accelerationConstraint)
+                .splineToSplineHeading(
+                        new Pose2d(38,20, Math.toRadians(90)),
+                        Math.toRadians(-90),
+                        velocityConstraint,
+                        accelerationConstraint)
+                .splineToConstantHeading(new Vector2d(45,12), Math.toRadians(90), velocityConstraint, accelerationConstraint)
+                .splineToConstantHeading(new Vector2d(45, 40), Math.toRadians(90),velocityConstraint, accelerationConstraint)
+                .splineTo(new Vector2d(52, 57), Math.toRadians(45), velocityConstraint, accelerationConstraint)
+                .build();
+
+        Trajectory pushSamples2 = drive.trajectoryBuilder(pushSamples.end(), true)
                 .splineToConstantHeading(new Vector2d(45, 40), Math.toRadians(-90), velocityConstraint, accelerationConstraint)
                 .splineToSplineHeading(new Pose2d(45, 12, Math.toRadians(90)), Math.toRadians(90), velocityConstraint, accelerationConstraint)
                 .splineToConstantHeading(new Vector2d(53, 12), Math.toRadians(90), velocityConstraint, accelerationConstraint)
                 .splineToConstantHeading(new Vector2d(53, 60), Math.toRadians(90), velocityConstraint, accelerationConstraint)
                 .build();
-        Trajectory path3 = drive.trajectoryBuilder(path2.end(), true)
-                .splineToConstantHeading(new Vector2d(53, 20), Math.toRadians(-90), velocityConstraint, accelerationConstraint)
-                .splineToConstantHeading(new Vector2d(60, 12), Math.toRadians(90), velocityConstraint, accelerationConstraint)
-                .splineToConstantHeading(new Vector2d(60, 57), Math.toRadians(90), velocityConstraint, accelerationConstraint)
+        Trajectory moveToAscent = drive.trajectoryBuilder(pushSamples2.end(), true)
+                .splineToSplineHeading(new Pose2d(48, 24, Math.toRadians(225)), Math.toRadians(225), velocityConstraint, accelerationConstraint)
+                .splineToSplineHeading(new Pose2d(21, 10, Math.toRadians(180)), Math.toRadians(180), velocityConstraint, accelerationConstraint)
                 .build();
 
         drive.followTrajectory(path);
         placeSample();
-        drive.followTrajectories(path2, path3);
+        arm.moveToTargetExtensionBlocking(20, this::tick);
+        drive.followTrajectoryAsync(pushSamples);
+        arm.moveToTargetAngleBlocking(45, this::tick);
+        arm.setTargetExtension(0);
+        while(drive.isBusy()){
+            drive.update();
+            tick();
+        }
+
+        //drive.followTrajectories(pushSamples2);
+        drive.followTrajectoryAsync(moveToAscent);
+        arm.setTargetAngle(100);
+        collector.wristTo(130);
+        while(drive.isBusy()){
+            drive.update();
+            tick();
+        }
     }
 
     public void placeSample(){
@@ -370,13 +402,10 @@ public class AutonomousNetDelivery extends LinearOpMode {
         collector.moveWristToBlocking(Collector.UP_POSITION, this::tick);
         prettyTelem.addLine("what the fuck 2");
 
-        collector.openGrip();
-        sleep(2000);
+        collector.setGripPosition(0.6);
+        sleep(1250);
         collector.moveWristToBlocking(Collector.DOWN_POSITION, this::tick);
-        arm.collectionPosition();
-        while(Math.abs(arm.getAngle()) > 1 && opModeIsActive()) {
-            tick();
-        }
+
     }
 
     public void tick(){

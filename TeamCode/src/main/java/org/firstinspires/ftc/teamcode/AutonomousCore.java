@@ -29,7 +29,7 @@ public class AutonomousCore extends LinearOpMode {
 
     //TODO FOR EBEN - clean up this code! remove the unnecessary code if its commented, implement the methods I added here
 
-    public static double blueStartX = 0;
+    public static double blueStartX = -23.5;
     public static double blueStartY = 63;
     public static double blueStartAng = 90;
 
@@ -152,9 +152,11 @@ public class AutonomousCore extends LinearOpMode {
     }
 
     public void initializeStartingPosition(){
+        collector.closeGrip();
         arm.moveToTargetAngleBlocking(45, this::tick);
         collector.moveWristToBlocking(-45, this::tick);
-        collector.closeGrip();
+
+        arm.setAnglePower(0);
     }
 
     public void blueNetZoneSamplePushPath(){
