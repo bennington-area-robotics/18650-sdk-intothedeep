@@ -2,7 +2,7 @@ package org.firstinspires.ftc.teamcode.apriltag;
 
 import androidx.annotation.Nullable;
 
-import org.firstinspires.ftc.teamcode.hardware.implemented.drive.Pose;
+import org.firstinspires.ftc.teamcode.components.drive.Pose;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 
 /**

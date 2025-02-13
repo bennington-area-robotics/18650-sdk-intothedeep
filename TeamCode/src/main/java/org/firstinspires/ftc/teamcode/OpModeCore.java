@@ -11,13 +11,13 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.apriltag.AprilTagReader;
-import org.firstinspires.ftc.teamcode.apriltag.Camera;
-import org.firstinspires.ftc.teamcode.hardware.implemented.Arm;
-import org.firstinspires.ftc.teamcode.hardware.implemented.Collector;
-import org.firstinspires.ftc.teamcode.hardware.implemented.drive.DriveBase;
-import org.firstinspires.ftc.teamcode.hardware.implemented.ScoringElementColor;
-import org.firstinspires.ftc.teamcode.hardware.implemented.drive.Pose;
-import org.firstinspires.ftc.teamcode.hardware.implemented.drive.StandardTrackingWheelLocalizer;
+import org.firstinspires.ftc.teamcode.hardware.Hardware;
+import org.firstinspires.ftc.teamcode.components.Arm;
+import org.firstinspires.ftc.teamcode.components.Collector;
+import org.firstinspires.ftc.teamcode.components.drive.DriveBase;
+import org.firstinspires.ftc.teamcode.hardware.ScoringElementColor;
+import org.firstinspires.ftc.teamcode.components.drive.Pose;
+import org.firstinspires.ftc.teamcode.components.drive.StandardTrackingWheelLocalizer;
 
 import java.util.List;
 import java.util.Locale;
@@ -86,13 +86,8 @@ public class OpModeCore extends LinearOpMode {
     public void initialize(){
         instance = this;
 
-        lynxModules = hardwareMap.getAll(LynxModule.class);
-
-        for(LynxModule module : lynxModules){
-            module.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
-        }
-
         //initialize hardware
+        Hardware.init(hardwareMap);
         collector = new Collector(
                 hardwareMap,
                 "colorSensor",
@@ -113,8 +108,7 @@ public class OpModeCore extends LinearOpMode {
         autopilot.setTickRunnable(this::tick);
 
         aprilTagReader = new AprilTagReader(
-                new Camera(
-                        hardwareMap,
+                Hardware.getCamera(
                         "Webcam 1",
                         new Pose(0, 0, 0)
                 )
@@ -172,18 +166,18 @@ public class OpModeCore extends LinearOpMode {
         prettyTelem.addLine("Color Sensor")
                 .addData("HSV", this::getHSV)
                 .addData("RGB", this::getRGB)
-                .addData("Scoring Color", () -> collector.colorSensor.getScoringElementColor());
+                .addData("Scoring Color", () -> collector.smartColorSensor.getScoringElementColor());
 
         prettyTelem.addData("April Tag", () -> aprilTagReader.getDetectionString());
     }
 
     private String getHSV(){
-        float[] hsv = collector.colorSensor.getHSV();
+        float[] hsv = collector.smartColorSensor.getHSV();
         return String.format(Locale.ENGLISH,"Hue: %.3f Saturation: %.3f Value: %.3f", hsv[0], hsv[1], hsv[2]);
     }
 
     private String getRGB(){
-        NormalizedRGBA rgba = collector.colorSensor.getRGBA();
+        NormalizedRGBA rgba = collector.smartColorSensor.getNormalizedColors();
         return String.format(Locale.ENGLISH,"Red: %.3f Green: %.3f Blue: %.3f", rgba.red, rgba.green, rgba.blue);
     }
 
@@ -214,7 +208,7 @@ public class OpModeCore extends LinearOpMode {
 
     public void checkForScoringElement(){
         if(collectorArmed){
-            if(collector.colorSensor.getScoringElementColor() != ScoringElementColor.NONE){
+            if(collector.smartColorSensor.getScoringElementColor() != ScoringElementColor.NONE){
                 collector.closeGrip();
             }
         }

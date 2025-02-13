@@ -3,7 +3,8 @@ package org.firstinspires.ftc.teamcode.apriltag;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.CameraName;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.firstinspires.ftc.teamcode.hardware.implemented.drive.Pose;
+import org.firstinspires.ftc.teamcode.components.drive.Pose;
+import org.firstinspires.ftc.teamcode.hardware.SmartCamera;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
@@ -15,13 +16,13 @@ public class MultiAprilTagReader {
     private final List<AprilTagProcessor> processors;
     private final List<VisionPortal> portals;
 
-    public MultiAprilTagReader(List<Camera> cameras){
+    public MultiAprilTagReader(List<SmartCamera> cameras){
         processors = new ArrayList<>(cameras.size());
         portals = new ArrayList<>(cameras.size());
         int[] viewIds = VisionPortal.makeMultiPortalView(cameras.size(), VisionPortal.MultiPortalLayout.VERTICAL);
 
         for (int i = 0; i < cameras.size(); i++) {
-            Camera camera = cameras.get(i);
+            SmartCamera camera = cameras.get(i);
             Pose cameraPose = camera.getPose();
             CameraName camName = camera.passable();
 

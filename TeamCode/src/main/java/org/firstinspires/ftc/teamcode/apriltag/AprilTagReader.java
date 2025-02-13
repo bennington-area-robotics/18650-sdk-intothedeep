@@ -3,7 +3,8 @@ package org.firstinspires.ftc.teamcode.apriltag;
 import com.acmerobotics.dashboard.config.Config;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
-import org.firstinspires.ftc.teamcode.hardware.implemented.drive.Pose;
+import org.firstinspires.ftc.teamcode.components.drive.Pose;
+import org.firstinspires.ftc.teamcode.hardware.SmartCamera;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
@@ -33,7 +34,7 @@ public class AprilTagReader {
 
 
 
-    public AprilTagReader(Camera camera){
+    public AprilTagReader(SmartCamera camera){
 
         if(!isInitialized){
             aprilTag = new AprilTagProcessor.Builder()

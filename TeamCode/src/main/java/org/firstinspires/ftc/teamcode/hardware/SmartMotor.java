@@ -7,7 +7,14 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.configuration.typecontainers.MotorConfigurationType;
 
 public class SmartMotor implements DcMotor {
-    DcMotor motor;
+    private DcMotor motor;
+
+    private int cachedPosition = 0;
+    private boolean isCacheValid = false;
+
+    public void invalidateCache(){
+        this.isCacheValid = false;
+    }
 
     public SmartMotor(DcMotor motor){
         this.motor = motor;
@@ -182,7 +189,7 @@ public class SmartMotor implements DcMotor {
     }
 
     /**
-     * Returns the current reading of the encoder for this motor. The units for this reading,
+     * Returns the last bulk-read position of the encoder for this motor. The units for this reading,
      * that is, the number of ticks per revolution, are specific to the motor/encoder in question,
      * and thus are not specified here.
      *
@@ -192,7 +199,11 @@ public class SmartMotor implements DcMotor {
      */
     @Override
     public int getCurrentPosition() {
-        return motor.getCurrentPosition();
+        if(!isCacheValid) {
+            cachedPosition = motor.getCurrentPosition();
+            isCacheValid = true;
+        }
+        return cachedPosition;
     }
 
     /**

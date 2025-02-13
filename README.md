@@ -583,7 +583,7 @@ This is a bug fix only release to address the following four issues.
   6.1 causes a soft reboot on the Motorola E5 Play
 * Fixes issue where the Control Hub OS's watchdog would restart the Robot Controller app if
   the Control Hub was not able to communicate with its internal Expansion Hub
-* Fixes certain I2C devices not showing up in the appropriate `HardwareMap` fields (such as `hardwareMap.colorSensor`)
+* Fixes certain I2C devices not showing up in the appropriate `HardwareMap` fields (such as `hardwareMap.smartColorSensor`)
 * Fixes issue where performing a Wi-Fi factory reset on the Control Hub would not set the Wi-Fi band to 2.4 GHz
 * Fixes issue where OnBotJava might fail to create a new file if the option to "Setup Code for Configured Hardware" was selected
 * Fixes issue where performing certain operations after an OpMode crashes would temporarily break Control/Expansion Hub communication

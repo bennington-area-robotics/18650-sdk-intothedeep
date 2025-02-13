@@ -2,11 +2,11 @@ package org.firstinspires.ftc.teamcode;
 
 import com.acmerobotics.dashboard.config.Config;
 
-import org.firstinspires.ftc.teamcode.hardware.implemented.Arm;
-import org.firstinspires.ftc.teamcode.hardware.implemented.Collector;
-import org.firstinspires.ftc.teamcode.hardware.implemented.drive.Area;
-import org.firstinspires.ftc.teamcode.hardware.implemented.drive.DriveBase;
-import org.firstinspires.ftc.teamcode.hardware.implemented.drive.Pose;
+import org.firstinspires.ftc.teamcode.components.Arm;
+import org.firstinspires.ftc.teamcode.components.Collector;
+import org.firstinspires.ftc.teamcode.components.drive.Area;
+import org.firstinspires.ftc.teamcode.components.drive.DriveBase;
+import org.firstinspires.ftc.teamcode.components.drive.Pose;
 @Config
 public class Autopilot {
     //todo these will be different per-side (these are for blue)

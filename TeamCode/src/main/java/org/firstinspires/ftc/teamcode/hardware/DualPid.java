@@ -2,22 +2,17 @@ package org.firstinspires.ftc.teamcode.hardware;
 
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import java.util.LinkedList;
-import java.util.Queue;
-import java.util.concurrent.SynchronousQueue;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-//todo make a two-directional PID, with seperate constants for pos/neg
-public class PID {
-    Queue<Boolean> queue = new LinkedList<>();
+public class DualPid {
     private final ElapsedTime timer = new ElapsedTime();
     double kP, kI, kD, kF;
     double i, maxI;
     double lastError;
     double tolerance;
     double minimum;
-    Direction direction;
+    PID.Direction direction;
 
     public enum Direction {
         FORWARD, REVERSE
@@ -32,7 +27,7 @@ public class PID {
      * @param kD the derivative coefficient. This controls how much the change in the error affects the output.
      * @param maxI the maximum of the integral sum. This controls the maximum amount the integral calculation can affect the output.
      */
-    public PID(double kP, double kI, double kD, double kF, double maxI){
+    public DualPid(double kP, double kI, double kD, double kF, double maxI){
         this.kP = kP;
         this.kI = kI;
         this.kD = kD;
@@ -40,11 +35,11 @@ public class PID {
         this.maxI = maxI;
     }
 
-    public void setDirection(Direction direction) {
+    public void setDirection(PID.Direction direction) {
         this.direction = direction;
     }
 
-    public Direction getDirection() {
+    public PID.Direction getDirection() {
         return direction;
     }
 
@@ -73,7 +68,7 @@ public class PID {
 
             lastError = currentError;
 
-            if(direction == Direction.REVERSE)
+            if(direction == PID.Direction.REVERSE)
                 return -(p + i + d + kF);
             else
                 return (p + i + d + kF);
@@ -112,7 +107,7 @@ public class PID {
         this.maxI = maxI;
     }
 
-    public PID setTolerance(double tolerance){
+    public DualPid setTolerance(double tolerance){
         this.tolerance = tolerance;
         return this;
     }
