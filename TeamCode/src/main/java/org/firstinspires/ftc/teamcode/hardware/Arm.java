@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.hardware;
 import androidx.annotation.FloatRange;
 
 import com.acmerobotics.dashboard.config.Config;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -32,11 +33,11 @@ public class Arm {
     public static double COLLECTION_ANGLE = 0.0;
     public static double SPECIMEN_ANGLE = 55;
 
-    public static double downwardKP = 0.004, downwardKI = 0, downwardKD = 0.01, downwardKF = 0.2, downwardMaxI = 0;
-    public static double upwardKP = 0.05, upwardKI = 0.0000, upwardKD = 0.65, upwardKF = 0.23, upwardMaxI = 0;
+    public static double downwardKP = 0.05, downwardKI = 0, downwardKD = 0.15, downwardKF = 0.2, downwardMaxI = 0;
+    public static double upwardKP = 0.06, upwardKI = 0.0000, upwardKD = 0.1, upwardKF = 0.23, upwardMaxI = 0;
     public static double extensionKP = 0.2, extensionKI, extensionKD, extensionKF = 0.15, extensionMaxI;
     public static double retractionKP = 0.1, retractionKI, retractionKD, retractionKF = -0.5, retractionMaxI;
-    public static double rotationKF = 0.23, rotationKCOS = 1;
+    public static double rotationKF = 0.1, rotationKCOS = 1;
     public static double downwardKFMultiplier = 0.01;
 
     private final PID downwardPID = new PID(downwardKP, downwardKI, downwardKD, downwardKF, downwardMaxI, 0.75);
@@ -55,6 +56,8 @@ public class Arm {
     public final TouchSensor extensionLimitSensor;
 
     public boolean extensionRunningToPosition = false;
+
+    LinearOpMode opMode;
 
     /**
      * Target extension of the arm in inches past the minimum extension (not extended at all)
@@ -92,7 +95,7 @@ public class Arm {
         MOVE_TO_TARGET, SET_POWER
     }
 
-    public Arm(HardwareMap hardwareMap, String tiltMotorLeftName, String tiltMotorRightName, String extensionMotorName, String tiltSensorName, String extensionSensorName) {
+    public Arm(HardwareMap hardwareMap, String tiltMotorLeftName, String tiltMotorRightName, String extensionMotorName, String tiltSensorName, String extensionSensorName, LinearOpMode opMode) {
         //<editor-fold desc="Hardware Config">
         this.angleMotorRight = hardwareMap.get(DcMotorEx.class, tiltMotorRightName);
         this.angleMotorLeft = hardwareMap.get(DcMotorEx.class, tiltMotorLeftName);
@@ -113,6 +116,7 @@ public class Arm {
         this.angleEncoder.setDirection(Encoder.Direction.FORWARD);
         this.extensionMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         //</editor-fold>
+
 
         resetExtension();
         resetAngle();
@@ -419,7 +423,7 @@ public class Arm {
     private double calcAnglePower(){
         if(angleMode == AngleMode.MOVE_TO_TARGET) {
             upwardKF = rotationKF * Math.cos(Math.toRadians(getAngle())) * rotationKCOS;
-            if (getAngle() < 45) {
+            if (getAngle() < 60) {
                 downwardKF = rotationKF * Math.cos(Math.toRadians(getAngle())) * rotationKCOS * downwardKFMultiplier;
             }
             else {downwardKF = rotationKF * -1 * Math.cos(Math.toRadians(getAngle()));}

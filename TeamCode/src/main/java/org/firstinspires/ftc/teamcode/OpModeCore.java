@@ -35,7 +35,7 @@ public class OpModeCore extends LinearOpMode {
     public static float MIN_WRIST_VELOCITY = 8;
     //</editor-fold>
 
-    public static boolean startAfterAscent = false;
+    public static boolean startAfterAscent = true;
 
     //<editor-fold desc="Fields">
     //components
@@ -104,7 +104,8 @@ public class OpModeCore extends LinearOpMode {
                 "tiltMotorRight",
                 "extensionMotor",
                 "tiltLimitSensor",
-                "extensionLimitSensor");
+                "extensionLimitSensor",
+                this);
         collector = new Collector(
                 arm,
                 hardwareMap,
@@ -316,13 +317,13 @@ public class OpModeCore extends LinearOpMode {
         }
 
 
-        if(Math.abs(-gamepad1.left_trigger + gamepad1.right_trigger) > 0.01){
+        if(Math.abs(-gamepad1.left_trigger + gamepad1.right_trigger) > 0.1){
             arm.killMacro();
             arm.setExtensionPower(-gamepad1.left_trigger + gamepad1.right_trigger);
         }else if (!arm.isRunningMacro()){
             if(arm.getExtensionMode() != Arm.ExtensionMode.MOVE_TO_TARGET) {
                 arm.setExtensionPower(0);
-                arm.setExtensionMode(Arm.ExtensionMode.MOVE_TO_TARGET);
+                arm.setTargetExtension(arm.getExtension());
             }
         }
 
@@ -353,7 +354,7 @@ public class OpModeCore extends LinearOpMode {
         testValue = "Collector pos reset";
         collector.setWristPower(0);
         collector.setWristMode(Collector.WristMode.MOVE_TO_TARGET);
-        collector.moveWristToBlocking(90, this::tick);
+        collector.moveWristToBlocking(90, this::tick, false);
 
         arm.setAngleMode(Arm.AngleMode.SET_POWER);
         arm.setAnglePower(-0.2);

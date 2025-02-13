@@ -130,7 +130,8 @@ public class AutonomousCore extends LinearOpMode {
                 "tiltMotorRight",
                 "extensionMotor",
                 "tiltLimitSensor",
-                "extensionLimitSensor");
+                "extensionLimitSensor"
+        , this);
         collector = new Collector(
                 arm,
                 hardwareMap,
@@ -152,10 +153,9 @@ public class AutonomousCore extends LinearOpMode {
     }
 
     public void initializeStartingPosition(){
+        arm.moveToTargetAngleBlocking(36, this::tick);
+        collector.moveWristToBlocking(240, this::tick, true);
         collector.closeGrip();
-        arm.moveToTargetAngleBlocking(45, this::tick);
-        collector.moveWristToBlocking(-45, this::tick);
-
         arm.setAnglePower(0);
     }
 
@@ -208,12 +208,12 @@ public class AutonomousCore extends LinearOpMode {
                         velocityConstraint,
                         accelerationConstraint)*/
                 .splineTo(
-                        new Vector2d(-39, 45),
+                        new Vector2d(-37, 45),
                         Math.toRadians(-90),
                         velocityConstraint,
                         accelerationConstraint)
                 .splineTo(
-                        new Vector2d(-39,20),
+                        new Vector2d(-37,20),
                         Math.toRadians(-90),
                         velocityConstraint,
                         accelerationConstraint)
@@ -379,6 +379,7 @@ public class AutonomousCore extends LinearOpMode {
 
 
         blueObservationSamplePushPath();
+        collector.moveWristToBlocking(0, this::tick, false);
 
 
 

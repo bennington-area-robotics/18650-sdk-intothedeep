@@ -123,8 +123,8 @@ public class AutonomousNetDelivery extends LinearOpMode {
     }
 
     public void initializeStartingPosition(){
-        arm.moveToTargetAngleBlocking(45, this::tick);
-        collector.moveWristToBlocking(-45, this::tick);
+        arm.moveToTargetAngleBlocking(36, this::tick);
+        collector.moveWristToBlocking(240, this::tick, true);
         collector.closeGrip();
         arm.setAnglePower(0);
     }
@@ -138,7 +138,8 @@ public class AutonomousNetDelivery extends LinearOpMode {
                 "tiltMotorRight",
                 "extensionMotor",
                 "tiltLimitSensor",
-                "extensionLimitSensor");
+                "extensionLimitSensor",
+                this);
         collector = new Collector(
                 arm,
                 hardwareMap,
@@ -338,7 +339,7 @@ public class AutonomousNetDelivery extends LinearOpMode {
     }
 
     public void sampleDeliveryPath(){
-        collector.moveWristToBlocking(0, this::tick);
+        collector.moveWristToBlocking(0, this::tick, false);
         prettyTelem.addLine("what the fuck");
         prettyTelem.update();
         Trajectory path = drive.trajectoryBuilder(blueStartPose, true)
@@ -387,7 +388,7 @@ public class AutonomousNetDelivery extends LinearOpMode {
         //drive.followTrajectories(pushSamples2);
         drive.followTrajectoryAsync(moveToAscent);
         arm.setTargetAngle(100);
-        collector.wristTo(130);
+        collector.wristTo(0);
         while(drive.isBusy()){
             drive.update();
             tick();
@@ -399,12 +400,12 @@ public class AutonomousNetDelivery extends LinearOpMode {
         arm.moveToTargetExtensionBlocking(Arm.MAX_ARM_EXTENSION - 0.25, this::tick);
         prettyTelem.addLine("arm in place");
 
-        collector.moveWristToBlocking(Collector.UP_POSITION, this::tick);
+        collector.moveWristToBlocking(Collector.UP_POSITION, this::tick, false);
         prettyTelem.addLine("what the fuck 2");
 
         collector.setGripPosition(0.6);
         sleep(1250);
-        collector.moveWristToBlocking(Collector.DOWN_POSITION, this::tick);
+        collector.moveWristToBlocking(Collector.DOWN_POSITION, this::tick, false);
 
     }
 

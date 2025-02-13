@@ -71,7 +71,7 @@ public class AutonomousNetZoneSamplePushPath extends LinearOpMode {
     private DriveBase drive;
     private final Pose2d blueStartPose = new Pose(blueStartX, blueStartY, blueStartAng).toRR();
     private final Pose2d redStartPose = new Pose(redStartX, redStartY, redStartAng).toRR();
-
+    public static int startCollectorPos = 250;
     //private final Pose2d lastEndPose = startPose;
 
     @Override
@@ -121,11 +121,12 @@ public class AutonomousNetZoneSamplePushPath extends LinearOpMode {
         prettyTelem.addData("April Tag", () -> aprilTagReader.getFirstPose().toString());
     }
     public void initializeStartingPosition(){
-        collector.closeGrip();
-        arm.moveToTargetAngleBlocking(45, this::tick);
-        collector.moveWristToBlocking(-45, this::tick);
+        arm.moveToTargetAngleBlocking(38, this::tick);
 
+        collector.moveWristToBlocking(startCollectorPos, this::tick, true);
+        collector.closeGrip();
         arm.setAnglePower(0);
+
     }
 
     public void initialize(){
@@ -138,7 +139,8 @@ public class AutonomousNetZoneSamplePushPath extends LinearOpMode {
                 "tiltMotorRight",
                 "extensionMotor",
                 "tiltLimitSensor",
-                "extensionLimitSensor");
+                "extensionLimitSensor",
+                this);
         collector = new Collector(
                 arm,
                 hardwareMap,
@@ -153,8 +155,9 @@ public class AutonomousNetZoneSamplePushPath extends LinearOpMode {
                         new Pose(0, 0, 0)
                 )
         );
-        initializeStartingPosition();
         configureTelemetry();
+        initializeStartingPosition();
+
 
         //TODO FOR EBEN - finish implementing this
     }
@@ -203,7 +206,7 @@ public class AutonomousNetZoneSamplePushPath extends LinearOpMode {
         //drive.followTrajectory(deliverFirstSample);
         drive.followTrajectoryAsync(deliverFirstSample);
         arm.setTargetExtension(9.7);
-        arm.setTargetAngle(90);
+        arm.setTargetAngle(95);
         collector.wristTo(Collector.UP_POSITION);
         while(drive.isBusy()){
             drive.update();
@@ -407,7 +410,7 @@ public class AutonomousNetZoneSamplePushPath extends LinearOpMode {
 
         arm.tick();
         collector.tick();
-        //prettyTelem.update();
+        prettyTelem.update();
         tickTimer.reset();
     }
 

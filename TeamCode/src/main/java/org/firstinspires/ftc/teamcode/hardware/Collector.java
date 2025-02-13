@@ -16,10 +16,10 @@ public class Collector {
 
     //config
     public static float WRIST_TICKS_PER_DEGREE = 8192f/360f;
-    public static float OPEN_POSITION = 0.4f, CLOSED_POSITION = 0; //grip
+    public static float OPEN_POSITION = 0.9f, CLOSED_POSITION = 0; //grip
     public static int UP_POSITION = 90, DOWN_POSITION = -20; //wrist
     public static float LENGTH = 5f;
-    public static double wristKP = 0.009, wristKI, wristKD = 0.02, wristKF = -0.035, wristMaxI, wristKCOS =6;
+    public static double wristKP = 0.009, wristKI, wristKD = 0, wristKF = -0.035, wristMaxI, wristKCOS =6;
     public static double wristOffset = 0;
 
     double KF = wristKF;
@@ -47,20 +47,23 @@ public class Collector {
         this.arm = arm;
         this.wristEncoder = new Encoder(hardwareMap.get(DcMotorEx.class, wristMotorName));
 
-        resetPositionAsTop();
+        resetPositionAs(0);
         wristMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         wristMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         setWristMode(WristMode.FLOAT);
     }
 
-    public double moveWristToBlocking(int angle, Runnable runnable){
+    public double moveWristToBlocking(int angle, Runnable runnable, boolean timerOverride){
         ElapsedTime timer = new ElapsedTime();
         setWristMode(WristMode.MOVE_TO_TARGET);
         wristTo(angle);
         while(Math.abs(getWristAngle() - getWristTarget()) > 2){
             tick();
             runnable.run();
-            if (timer.seconds() > 0.5){
+            if (timer.seconds() > 0.5 && !timerOverride){
+                return timer.milliseconds();
+            }
+            if(timer.seconds() > 2 && timerOverride){
                 return timer.milliseconds();
             }
         }

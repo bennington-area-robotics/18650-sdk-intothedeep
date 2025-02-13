@@ -128,7 +128,7 @@ public class AutonomousSpecimenDelivery extends LinearOpMode {
 
     public void initializeStartingPosition(){
         arm.moveToTargetAngleBlocking(45, this::tick);
-        collector.moveWristToBlocking(-45, this::tick);
+        collector.moveWristToBlocking(-45, this::tick, true);
         collector.closeGrip();
     }
     public void initialize(){
@@ -141,7 +141,8 @@ public class AutonomousSpecimenDelivery extends LinearOpMode {
                 "tiltMotorRight",
                 "extensionMotor",
                 "tiltLimitSensor",
-                "extensionLimitSensor");
+                "extensionLimitSensor",
+                this);
         collector = new Collector(
                 arm,
                 hardwareMap,
@@ -358,7 +359,7 @@ public class AutonomousSpecimenDelivery extends LinearOpMode {
 
         arm.moveToTargetExtensionBlocking(extensionVar, this::tick);
 
-        collector.moveWristToBlocking(40, this::tick);
+        collector.moveWristToBlocking(40, this::tick, false);
         //collector.openGrip();
     }
 
