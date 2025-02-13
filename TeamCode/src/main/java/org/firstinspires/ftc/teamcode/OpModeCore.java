@@ -11,18 +11,21 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.apriltag.AprilTagReader;
+import org.firstinspires.ftc.teamcode.apriltag.Camera;
+import org.firstinspires.ftc.teamcode.hardware.Arm;
+import org.firstinspires.ftc.teamcode.hardware.Collector;
 import org.firstinspires.ftc.teamcode.hardware.Hardware;
-import org.firstinspires.ftc.teamcode.components.Arm;
-import org.firstinspires.ftc.teamcode.components.Collector;
-import org.firstinspires.ftc.teamcode.components.drive.DriveBase;
+import org.firstinspires.ftc.teamcode.hardware.drive.Area;
+import org.firstinspires.ftc.teamcode.hardware.drive.DriveBase;
 import org.firstinspires.ftc.teamcode.hardware.ScoringElementColor;
-import org.firstinspires.ftc.teamcode.components.drive.Pose;
-import org.firstinspires.ftc.teamcode.components.drive.StandardTrackingWheelLocalizer;
+import org.firstinspires.ftc.teamcode.hardware.drive.Pose;
+import org.firstinspires.ftc.teamcode.hardware.drive.StandardTrackingWheelLocalizer;
 
 import java.util.List;
 import java.util.Locale;
 //todo reset macro
 //todo on initialization, move to limits
+//todo caching!
 
 /** @noinspection SpellCheckingInspection*/
 @Config
@@ -36,7 +39,8 @@ public class OpModeCore extends LinearOpMode {
     //</editor-fold>
 
     //<editor-fold desc="Fields">
-    private static AprilTagReader aprilTagReader;
+    //components
+    private static MultiAprilTagReader aprilTagReader;
     private static OpModeCore instance;
     private static Collector collector;
     private static DriveBase driveBase;
@@ -50,11 +54,16 @@ public class OpModeCore extends LinearOpMode {
 
     private final Gamepad previousGamepad1 = new Gamepad();
     private final Gamepad previousGamepad2 = new Gamepad();
-
+    private ElapsedTime tickTimer, gamepadTimer;
+    private List<LynxModule> lynxModules;
+    private PrettyTelemetry prettyTelem;
+    //private final FtcDashboard dashboard = FtcDashboard.getInstance();
 
     private boolean collectorArmed = false;
-    ElapsedTime tickTimer, gamepadTimer;
-    private List<LynxModule> lynxModules;
+    private boolean isHighPower = false;
+    private boolean manualArm = false;
+
+    private String testValue = "UNSET";
     //</editor-fold>
 
     //<editor-fold desc="Instance Getters">
@@ -86,31 +95,42 @@ public class OpModeCore extends LinearOpMode {
     public void initialize(){
         instance = this;
 
+        lynxModules = hardwareMap.getAll(LynxModule.class);
+
+        for(LynxModule module : lynxModules){
+            module.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
+        }
+
         //initialize hardware
-        Hardware.init(hardwareMap);
-        collector = new Collector(
-                hardwareMap,
-                "colorSensor",
-                "wristMotor",
-                "gripServo"
-        );
         driveBase = new DriveBase(hardwareMap);
+
         arm = new Arm(
                 hardwareMap,
                 "tiltMotorLeft",
                 "tiltMotorRight",
                 "extensionMotor",
-                "touchSensor"
+                "tiltLimitSensor",
+                "extensionLimitSensor");
+        collector = new Collector(
+                arm,
+                hardwareMap,
+                "colorSensor",
+                "wristMotor",
+                "gripServo"
         );
         touchSensor = hardwareMap.get(TouchSensor.class, "touchSensor");
 
         autopilot = new Autopilot(driveBase, arm, collector);
         autopilot.setTickRunnable(this::tick);
 
-        aprilTagReader = new AprilTagReader(
+        aprilTagReader = new MultiAprilTagReader(
                 Hardware.getCamera(
-                        "Webcam 1",
-                        new Pose(0, 0, 0)
+                        "Webcam Left",
+                        new Pose(-6.5, 2.125, 90)
+                ),
+                Hardware.getCamera(
+                        "Webcam Right",
+                        new Pose(6.5, 2.125, -90)
                 )
         );
 
@@ -139,7 +159,7 @@ public class OpModeCore extends LinearOpMode {
         ;
         prettyTelem.addLine("Game State")
                 .addData("In Basket Area", () -> autopilot.inBasketArea())
-                .addData("In Submersible Collection Area", () -> autopilot.inBasketArea())
+                .addData("In Submersible Collection Area", () -> autopilot.isInSubmersibleCollectionArea())
                 .addData("In Observation Collection Area", () -> autopilot.inObservationZoneCollectionArea())
                 .addData("In Specimen Delivery Area", () -> autopilot.inSpecimenDeliveryArea())
         ;
@@ -151,7 +171,8 @@ public class OpModeCore extends LinearOpMode {
                 .addData("Target Extension", () -> arm.getTargetExtension())
                 .addData("Last Angle Power", () -> arm.getLastAnglePower())
                 .addData("Last Extension Power", () -> arm.getLastExtensionPower())
-                .addData("Touch Sensor Pressed", () -> touchSensor.isPressed());
+                .addData("Tilt Limit Sensor Pressed?", () -> arm.tiltLimitSensor.isPressed())
+                .addData("Extension Limit Sensor Pressed?", () -> arm.extensionLimitSensor.isPressed());
 
         prettyTelem.addLine("Grip")
                 .addData("Position", () -> collector.getGripPosition())
@@ -159,25 +180,28 @@ public class OpModeCore extends LinearOpMode {
                 .addData("Closed?", () -> collector.isGripClosed());
 
         prettyTelem.addLine("Wrist")
-                .addData("Position", () -> collector.getWristPosition())
+                .addData("Position", () -> collector.getWristAngle())
+                .addData("Target", collector::getWristTarget)
                 .addData("Up?", () -> collector.isWristUp())
                 .addData("Down?", () -> collector.isWristDown());
 
         prettyTelem.addLine("Color Sensor")
                 .addData("HSV", this::getHSV)
                 .addData("RGB", this::getRGB)
-                .addData("Scoring Color", () -> collector.smartColorSensor.getScoringElementColor());
+                .addData("Scoring Color", () -> collector.colorSensor.getScoringElementColor());
 
-        prettyTelem.addData("April Tag", () -> aprilTagReader.getDetectionString());
+        prettyTelem.addLine("April Tags")
+                .addData("Left Camera", () -> aprilTagReader.getFirstPose(0).toString())
+                .addData("Right Camera", () -> aprilTagReader.getFirstPose(1).toString());
     }
 
     private String getHSV(){
-        float[] hsv = collector.smartColorSensor.getHSV();
+        float[] hsv = collector.colorSensor.getHSV();
         return String.format(Locale.ENGLISH,"Hue: %.3f Saturation: %.3f Value: %.3f", hsv[0], hsv[1], hsv[2]);
     }
 
     private String getRGB(){
-        NormalizedRGBA rgba = collector.smartColorSensor.getNormalizedColors();
+        NormalizedRGBA rgba = collector.colorSensor.getRGBA();
         return String.format(Locale.ENGLISH,"Red: %.3f Green: %.3f Blue: %.3f", rgba.red, rgba.green, rgba.blue);
     }
 
@@ -191,7 +215,7 @@ public class OpModeCore extends LinearOpMode {
     }
 
     public void tick(){
-        //updateMotorServoCache();
+        updateMotorServoCache();
         checkGamepad();
         checkForScoringElement();
         arm.tick();
@@ -208,7 +232,7 @@ public class OpModeCore extends LinearOpMode {
 
     public void checkForScoringElement(){
         if(collectorArmed){
-            if(collector.smartColorSensor.getScoringElementColor() != ScoringElementColor.NONE){
+            if(collector.colorSensor.getScoringElementColor() != ScoringElementColor.NONE){
                 collector.closeGrip();
             }
         }
@@ -236,16 +260,13 @@ public class OpModeCore extends LinearOpMode {
 
         //toggle wrist on pressing b, if failed to detect if up or down, default to up.
         if(gamepad1.b && !previousGamepad1.b){
+            collector.setWristMode(Collector.WristMode.MOVE_TO_TARGET);
             if(!collector.toggleWrist())
                 collector.wristUp();
         }
 
         if(gamepad1.y && !previousGamepad1.y){
             collectorArmed = !collectorArmed;
-        }
-
-        if(gamepad1.left_bumper && !previousGamepad1.left_bumper){
-            manualArm = !manualArm;
         }
 
         if(gamepad1.x && !previousGamepad1.x) {
@@ -255,6 +276,21 @@ public class OpModeCore extends LinearOpMode {
             } else {
                 driveBase.setPowerFactor(LOW_POWER_MODIFIER);
             }
+        }
+
+        if (gamepad1.dpad_left && !previousGamepad1.dpad_left){
+            arm.setTargetAngle(45);
+            arm.setTargetExtension(16.2);
+            collector.setWristMode(Collector.WristMode.MOVE_TO_TARGET);
+            collector.wristTo(posVariable);
+            //collector.setWristMode(Collector.WristMode.STAY_PERPENDICULAR);
+        }
+
+        if(gamepad1.dpad_right && !previousGamepad1.dpad_right) {
+            arm.setTargetAngle(30);
+            arm.setTargetExtension(9.5);
+            collector.setWristMode(Collector.WristMode.MOVE_TO_TARGET);
+            collector.wristTo(-34);
         }
 
         if(gamepad1.dpad_down && !previousGamepad1.dpad_down){
@@ -274,10 +310,15 @@ public class OpModeCore extends LinearOpMode {
         }
 
 
-        arm.setTargetExtension(
-                arm.getTargetExtension() +
-                        gamepadTimer.seconds() * MAX_INCHES_PER_SECOND * (-gamepad1.left_trigger + gamepad1.right_trigger)
-        );
+        if(Math.abs(-gamepad1.left_trigger + gamepad1.right_trigger) > 0.01){
+            arm.killMacro();
+            arm.setExtensionPower(-gamepad1.left_trigger + gamepad1.right_trigger);
+        }else if (!arm.isRunningMacro()){
+            if(arm.getExtensionMode() != Arm.ExtensionMode.MOVE_TO_TARGET) {
+                arm.setExtensionPower(0);
+                arm.setExtensionMode(Arm.ExtensionMode.MOVE_TO_TARGET);
+            }
+        }
 
         gamepadTimer.reset();
 

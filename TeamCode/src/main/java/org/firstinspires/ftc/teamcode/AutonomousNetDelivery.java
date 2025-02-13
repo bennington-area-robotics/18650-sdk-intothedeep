@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.acmerobotics.roadrunner.geometry.Vector2d;
 import com.acmerobotics.roadrunner.trajectory.Trajectory;
@@ -7,7 +8,6 @@ import com.acmerobotics.roadrunner.trajectory.constraints.TrajectoryAcceleration
 import com.acmerobotics.roadrunner.trajectory.constraints.TrajectoryVelocityConstraint;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
@@ -24,19 +24,18 @@ import org.firstinspires.ftc.teamcode.hardware.drive.Pose;
  * This is an example of a more complex path to really test the tuning.
  */
 @Config
-@Autonomous(group = "drive", name = "AutonomousObservationSamplePushPath")
-public class AutonomousCore extends LinearOpMode {
+@Autonomous(group = "drive", name="AutonomousNetDeliveryPath")
+public class AutonomousNetDelivery extends LinearOpMode {
 
     //TODO FOR EBEN - clean up this code! remove the unnecessary code if its commented, implement the methods I added here
 
-    public static double blueStartX = -23.5;
+    public static double blueStartX = 23.5;
     public static double blueStartY = 63;
     public static double blueStartAng = 90;
 
-    public static double redStartX = 0;
+    public static double redStartX = 12;
     public static double redStartY = -63;
     public static double redStartAng = -90;
-
     public static TrajectoryVelocityConstraint velocityConstraint = ConfiguredMecanumDrive.getVelocityConstraint(
             30,
             2,
@@ -70,11 +69,14 @@ public class AutonomousCore extends LinearOpMode {
     private final Pose2d blueStartPose = new Pose(blueStartX, blueStartY, blueStartAng).toRR();
     private final Pose2d redStartPose = new Pose(redStartX, redStartY, redStartAng).toRR();
 
+
+
     //private final Pose2d lastEndPose = startPose;
 
     @Override
     public void runOpMode() throws InterruptedException {
         initialize();
+
 
         waitForStart();
 
@@ -112,6 +114,7 @@ public class AutonomousCore extends LinearOpMode {
 
         prettyTelem.addLine("Wrist")
                 .addData("Position", () -> collector.getWristAngle())
+                .addData("Target", collector::getWristTarget)
                 .addData("Up?", () -> collector.isWristUp())
                 .addData("Down?", () -> collector.isWristDown());
 
@@ -119,7 +122,12 @@ public class AutonomousCore extends LinearOpMode {
         prettyTelem.addData("April Tag", () -> aprilTagReader.getFirstPose().toString());
     }
 
-
+    public void initializeStartingPosition(){
+        arm.moveToTargetAngleBlocking(45, this::tick);
+        collector.moveWristToBlocking(-45, this::tick);
+        collector.closeGrip();
+        arm.setAnglePower(0);
+    }
     public void initialize(){
         drive = new DriveBase(hardwareMap);
         drive.setPoseEstimate(blueStartPose);
@@ -145,22 +153,21 @@ public class AutonomousCore extends LinearOpMode {
                         new Pose(0, 0, 0)
                 )
         );
-        initializeStartingPosition();
+
         configureTelemetry();
+        initializeStartingPosition();
 
         //TODO FOR EBEN - finish implementing this
     }
 
-    public void initializeStartingPosition(){
-        collector.closeGrip();
-        arm.moveToTargetAngleBlocking(45, this::tick);
-        collector.moveWristToBlocking(-45, this::tick);
-
-        arm.setAnglePower(0);
-    }
-
     public void blueNetZoneSamplePushPath(){
+        TrajectoryVelocityConstraint velocityConstraint = ConfiguredMecanumDrive.getVelocityConstraint(
+                25,
+                2,
+                DriveConstants.TRACK_WIDTH);
 
+        TrajectoryAccelerationConstraint accelerationConstraint = ConfiguredMecanumDrive.getAccelerationConstraint(
+                15);
         Trajectory pushSamples = drive.trajectoryBuilder(blueStartPose, true)
                 //.splineTo(new Vector2d(0, 45), Math.toRadians(-90))
                 //.splineToConstantHeading(new Vector2d(38, 48), Math.toRadians(-90))
@@ -179,13 +186,13 @@ public class AutonomousCore extends LinearOpMode {
                 .splineTo(new Vector2d(52, 57), Math.toRadians(45), velocityConstraint, accelerationConstraint)
                 .build();
 
-            Trajectory pushSamples2 = drive.trajectoryBuilder(pushSamples.end(), true)
+        Trajectory pushSamples2 = drive.trajectoryBuilder(pushSamples.end(), true)
                 .splineToConstantHeading(new Vector2d(45, 40), Math.toRadians(-90), velocityConstraint, accelerationConstraint)
                 .splineToSplineHeading(new Pose2d(45, 12, Math.toRadians(90)), Math.toRadians(90), velocityConstraint, accelerationConstraint)
                 .splineToConstantHeading(new Vector2d(53, 12), Math.toRadians(90), velocityConstraint, accelerationConstraint)
                 .splineToConstantHeading(new Vector2d(53, 60), Math.toRadians(90), velocityConstraint, accelerationConstraint)
                 .build();
-            Trajectory pushSamples3 = drive.trajectoryBuilder(pushSamples2.end(), true)
+        Trajectory pushSamples3 = drive.trajectoryBuilder(pushSamples2.end(), true)
                 .splineToConstantHeading(new Vector2d(53, 20), Math.toRadians(-90), velocityConstraint, accelerationConstraint)
                 .splineToConstantHeading(new Vector2d(60, 12), Math.toRadians(90), velocityConstraint, accelerationConstraint)
                 .splineToConstantHeading(new Vector2d(60, 57), Math.toRadians(90), velocityConstraint, accelerationConstraint)
@@ -194,7 +201,13 @@ public class AutonomousCore extends LinearOpMode {
     }
 
     public void blueObservationSamplePushPath(){
+        TrajectoryVelocityConstraint velocityConstraint = ConfiguredMecanumDrive.getVelocityConstraint(
+                25,
+                2,
+                DriveConstants.TRACK_WIDTH);
 
+        TrajectoryAccelerationConstraint accelerationConstraint = ConfiguredMecanumDrive.getAccelerationConstraint(
+                15);
 
         Trajectory moveRobot = drive.trajectoryBuilder(blueStartPose, true)
                 /*.splineTo(
@@ -325,45 +338,80 @@ public class AutonomousCore extends LinearOpMode {
     }
 
     public void sampleDeliveryPath(){
+        collector.moveWristToBlocking(0, this::tick);
+        prettyTelem.addLine("what the fuck");
+        prettyTelem.update();
         Trajectory path = drive.trajectoryBuilder(blueStartPose, true)
-            .splineToSplineHeading(new Pose2d(20, 57, Math.toRadians(0)), Math.toRadians(0))
-            .splineToSplineHeading(new Pose2d(55, 57, Math.toRadians(45)), Math.toRadians(45))
-            .build();
+                .splineToSplineHeading(new Pose2d(40, 57, Math.toRadians(0)), Math.toRadians(0))
+                .splineToSplineHeading(new Pose2d(57, 57, Math.toRadians(45)), Math.toRadians(45))
+                .build();
+
+        Trajectory pushSamples = drive.trajectoryBuilder(path.end(), true)
+                .splineToSplineHeading(
+                        new Pose2d(38, 45, Math.toRadians(90)),
+                        Math.toRadians(-90),
+                        velocityConstraint,
+                        accelerationConstraint)
+                .splineToSplineHeading(
+                        new Pose2d(38,20, Math.toRadians(90)),
+                        Math.toRadians(-90),
+                        velocityConstraint,
+                        accelerationConstraint)
+                .splineToConstantHeading(new Vector2d(45,12), Math.toRadians(90), velocityConstraint, accelerationConstraint)
+                .splineToConstantHeading(new Vector2d(45, 40), Math.toRadians(90),velocityConstraint, accelerationConstraint)
+                .splineTo(new Vector2d(52, 57), Math.toRadians(45), velocityConstraint, accelerationConstraint)
+                .build();
+
+        Trajectory pushSamples2 = drive.trajectoryBuilder(pushSamples.end(), true)
+                .splineToConstantHeading(new Vector2d(45, 40), Math.toRadians(-90), velocityConstraint, accelerationConstraint)
+                .splineToSplineHeading(new Pose2d(45, 12, Math.toRadians(90)), Math.toRadians(90), velocityConstraint, accelerationConstraint)
+                .splineToConstantHeading(new Vector2d(53, 12), Math.toRadians(90), velocityConstraint, accelerationConstraint)
+                .splineToConstantHeading(new Vector2d(53, 60), Math.toRadians(90), velocityConstraint, accelerationConstraint)
+                .build();
+        Trajectory moveToAscent = drive.trajectoryBuilder(pushSamples2.end(), true)
+                .splineToSplineHeading(new Pose2d(48, 24, Math.toRadians(225)), Math.toRadians(225), velocityConstraint, accelerationConstraint)
+                .splineToSplineHeading(new Pose2d(21, 10, Math.toRadians(180)), Math.toRadians(180), velocityConstraint, accelerationConstraint)
+                .build();
+
         drive.followTrajectory(path);
         placeSample();
+        arm.moveToTargetExtensionBlocking(20, this::tick);
+        drive.followTrajectoryAsync(pushSamples);
+        arm.moveToTargetAngleBlocking(45, this::tick);
+        arm.setTargetExtension(0);
+        while(drive.isBusy()){
+            drive.update();
+            tick();
+        }
+
+        //drive.followTrajectories(pushSamples2);
+        drive.followTrajectoryAsync(moveToAscent);
+        arm.setTargetAngle(100);
+        collector.wristTo(130);
+        while(drive.isBusy()){
+            drive.update();
+            tick();
+        }
     }
 
     public void placeSample(){
-        arm.moveToTargetAngleBlocking(100, () -> {
-            telemetry.addData("Current Angle", arm.getAngle());
-            telemetry.addData("Target Angle", arm.getTargetAngle());
-            telemetry.update();
-        });
+        arm.moveToTargetAngleBlocking(100, this::tick);
+        arm.moveToTargetExtensionBlocking(Arm.MAX_ARM_EXTENSION - 0.25, this::tick);
+        prettyTelem.addLine("arm in place");
 
-        telemetry.addData("arm up", 0);
-        telemetry.update();
-        arm.moveToTargetExtensionBlocking(36.5);
-        telemetry.addData("max extended", 0);
-        telemetry.update();
+        collector.moveWristToBlocking(Collector.UP_POSITION, this::tick);
+        prettyTelem.addLine("what the fuck 2");
 
-        while(!collector.isWristUp() && opModeIsActive()) {
-            collector.wristUp();
-            tick();
-        }
-        collector.openGrip();
-        arm.collectionPosition();
-        while(Math.abs(arm.getAngle()) > 1 && opModeIsActive()) {
-            tick();
-        }
-
+        collector.setGripPosition(0.6);
+        sleep(1250);
+        collector.moveWristToBlocking(Collector.DOWN_POSITION, this::tick);
 
     }
 
     public void tick(){
-
         arm.tick();
         collector.tick();
-        //prettyTelem.update();
+        prettyTelem.update();
         tickTimer.reset();
     }
 
@@ -376,9 +424,8 @@ public class AutonomousCore extends LinearOpMode {
         //TODO FOR EBEN - finish implementing this
 
         if (isStopRequested()) return;
+        sampleDeliveryPath();
 
-
-        blueObservationSamplePushPath();
 
 
 
