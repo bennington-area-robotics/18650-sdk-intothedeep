@@ -4,18 +4,21 @@ import androidx.annotation.FloatRange;
 
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.TouchSensor;
 
-import org.firstinspires.ftc.teamcode.hardware.PID;
+import org.firstinspires.ftc.teamcode.hardware.Hardware;
+import org.firstinspires.ftc.teamcode.hardware.SmartMotor;
+import org.firstinspires.ftc.teamcode.hardware.SmartTouchSensor;
+import org.firstinspires.ftc.teamcode.hardware.controllers.PID;
 import org.firstinspires.ftc.teamcode.util.Encoder;
 
 import java.util.function.Consumer;
 
 @Config
 public class Arm {
+
+    //todo split this into a wrapper for two separate wrappers, one wrapper controls the rotation base, the other the telescoping arm
 
     //<editor-fold desc="Config">
     public static float ARM_TICKS_PER_DEGREE = 65f; //this is a good estimate as of 1/24/2025
@@ -37,18 +40,19 @@ public class Arm {
     public static double extensionKP = 0.2, extensionKI, extensionKD, extensionKF = 0.15, extensionMaxI;
     public static double retractionKP = 0.1, retractionKI, retractionKD, retractionKF = -0.5, retractionMaxI;
 
-    private final PID downwardPID = new PID(downwardKP, downwardKI, downwardKD, downwardKF, downwardMaxI).setTolerance(0.75);
-    private final PID upwardPID = new PID(upwardKP, upwardKI, upwardKD, upwardKF, upwardMaxI).setTolerance(0.75);
-    private final PID extensionPID = new PID(extensionKP, extensionKI, extensionKD, extensionKF, extensionMaxI).setTolerance(0.4);
-    private final PID retractionPID = new PID(retractionKP, retractionKI, retractionKD, retractionKF, retractionMaxI).setTolerance(0.4);
+    private final PID downwardPID = new PID(downwardKP, downwardKI, downwardKD, downwardKF, downwardMaxI, 0.75);
+    private final PID upwardPID = new PID(upwardKP, upwardKI, upwardKD, upwardKF, upwardMaxI, 0.75);
+    private final PID extensionPID = new PID(extensionKP, extensionKI, extensionKD, extensionKF, extensionMaxI, 0.4);
+    private final PID retractionPID = new PID(retractionKP, retractionKI, retractionKD, retractionKF, retractionMaxI,0.4);
     //</editor-fold>
 
-    private final DcMotorEx angleMotorRight;
-    private final DcMotorEx angleMotorLeft;
-    private final DcMotorEx extensionMotor;
+    private final SmartMotor angleMotorRight;
+    private final SmartMotor angleMotorLeft;
+    private final SmartMotor extensionMotor;
 
     private final Encoder angleEncoder;
-    private final TouchSensor touchSensor;
+    public final SmartTouchSensor tiltLimitSensor;
+    public final SmartTouchSensor extensionLimitSensor;
 
     /**
      * Target extension of the arm in inches past the minimum extension (not extended at all)
@@ -72,13 +76,14 @@ public class Arm {
 
     //todo these need actual trained values
 
-    public Arm(HardwareMap hardwareMap, String tiltMotorLeftName, String tiltMotorRightName, String extensionMotorName, String touchSensorName) {
+    public Arm(HardwareMap hardwareMap, String tiltMotorLeftName, String tiltMotorRightName, String extensionMotorName, String tiltSensorName, String extensionSensorName) {
         //<editor-fold desc="Hardware Config">
-        this.angleMotorRight = hardwareMap.get(DcMotorEx.class, tiltMotorRightName);
-        this.angleMotorLeft = hardwareMap.get(DcMotorEx.class, tiltMotorLeftName);
-        this.extensionMotor = hardwareMap.get(DcMotorEx.class, extensionMotorName);
-        this.touchSensor = hardwareMap.get(TouchSensor.class, touchSensorName);
-        this.angleEncoder = new Encoder(angleMotorRight);
+        this.angleMotorRight = Hardware.getMotor(tiltMotorLeftName);
+        this.angleMotorLeft = Hardware.getMotor(tiltMotorRightName);
+        this.extensionMotor = Hardware.getMotor(extensionMotorName);
+        this.tiltLimitSensor = Hardware.getTouchSensor(tiltSensorName);
+        this.extensionLimitSensor = Hardware.getTouchSensor(extensionSensorName);
+        this.angleEncoder = new Encoder(angleMotorRight.getMotorEx());
 
         this.extensionMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         this.angleMotorLeft.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -279,7 +284,7 @@ public class Arm {
      * or adjust the arm's position when not at target. This controls both extension and retraction.
      */
     public void tick(){
-        if(touchSensor.isPressed())
+        if(tiltLimitSensor.isPressed())
             resetAngle();
 
         //update the caches
@@ -300,9 +305,9 @@ public class Arm {
         upwardPID.setConstants(upwardKP, upwardKI, upwardKD, upwardKF, upwardMaxI);
 
         if(targetAngle < getAngle())
-            lastAnglePower = downwardPID.tick(targetAngle - getAngle());
+            lastAnglePower = downwardPID.calc(targetAngle - getAngle());
         else if (targetAngle > getAngle()){
-            lastAnglePower = upwardPID.tick(targetAngle - getAngle());
+            lastAnglePower = upwardPID.calc(targetAngle - getAngle());
         }else{
             lastAnglePower = 0;
         }
@@ -319,9 +324,9 @@ public class Arm {
         retractionPID.setConstants(retractionKP, retractionKI, retractionKD, retractionKF, retractionMaxI);
 
         if(targetExtension < getExtension())
-            lastExtensionPower = retractionPID.tick(targetExtension - getExtension());
+            lastExtensionPower = retractionPID.calc(targetExtension - getExtension());
         else if (targetExtension > getExtension()){
-            lastExtensionPower = extensionPID.tick(targetExtension - getExtension());
+            lastExtensionPower = extensionPID.calc(targetExtension - getExtension());
         }else{
             lastExtensionPower = 0;
         }

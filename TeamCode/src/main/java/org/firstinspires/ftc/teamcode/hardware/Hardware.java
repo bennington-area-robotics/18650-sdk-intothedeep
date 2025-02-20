@@ -6,9 +6,10 @@ import com.qualcomm.robotcore.hardware.HardwareDevice;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.TouchSensor;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.CameraName;
-import org.firstinspires.ftc.teamcode.components.drive.Pose;
+import org.firstinspires.ftc.teamcode.utilities.Pose;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,6 +20,7 @@ public class Hardware {
     private static final List<SmartCamera> cameras = new ArrayList<>();
     private static final List<SmartMotor> motors = new ArrayList<>();
     private static final List<SmartColorSensor> colorSensors = new ArrayList<>();
+    private static final List<SmartTouchSensor> touchSensors = new ArrayList<>();
     private static final List<SmartServo> servos = new ArrayList<>();
 
     private static HardwareMap hardwareMap;
@@ -83,6 +85,16 @@ public class Hardware {
         SmartServo servo = new SmartServo(hardwareMap.get(Servo.class, name));
         servos.add(servo);
         return servo;
+    }
+
+    public static SmartTouchSensor getTouchSensor(String name){
+        Optional<?> hardwareOptional = getHardwareOptional(touchSensors, name);
+        if(hardwareOptional.isPresent())
+            return (SmartTouchSensor) hardwareOptional.get();
+
+        SmartTouchSensor smartTouchSensor = new SmartTouchSensor(hardwareMap.get(TouchSensor.class, name));
+        touchSensors.add(smartTouchSensor);
+        return smartTouchSensor;
     }
 
     /**

@@ -5,7 +5,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-public class DualPid {
+public class BidirectionalPID {
     private final ElapsedTime timer = new ElapsedTime();
     double kP, kI, kD, kF;
     double i, maxI;
@@ -27,7 +27,7 @@ public class DualPid {
      * @param kD the derivative coefficient. This controls how much the change in the error affects the output.
      * @param maxI the maximum of the integral sum. This controls the maximum amount the integral calculation can affect the output.
      */
-    public DualPid(double kP, double kI, double kD, double kF, double maxI){
+    public BidirectionalPID(double kP, double kI, double kD, double kF, double maxI){
         this.kP = kP;
         this.kI = kI;
         this.kD = kD;
@@ -107,7 +107,7 @@ public class DualPid {
         this.maxI = maxI;
     }
 
-    public DualPid setTolerance(double tolerance){
+    public BidirectionalPID setTolerance(double tolerance){
         this.tolerance = tolerance;
         return this;
     }

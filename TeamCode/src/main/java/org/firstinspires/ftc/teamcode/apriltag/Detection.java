@@ -3,7 +3,7 @@ package org.firstinspires.ftc.teamcode.apriltag;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import org.firstinspires.ftc.teamcode.components.drive.Pose;
+import org.firstinspires.ftc.teamcode.utilities.Pose;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 
 import java.util.Locale;

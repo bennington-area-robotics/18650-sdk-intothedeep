@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.hardware;
+package org.firstinspires.ftc.teamcode.hardware.controllers;
 
 import com.qualcomm.robotcore.util.ElapsedTime;
 

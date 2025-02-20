@@ -1,14 +1,13 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.utilities;
 
 import com.acmerobotics.dashboard.config.Config;
 
 import org.firstinspires.ftc.teamcode.components.Arm;
 import org.firstinspires.ftc.teamcode.components.Collector;
-import org.firstinspires.ftc.teamcode.components.drive.Area;
 import org.firstinspires.ftc.teamcode.components.drive.DriveBase;
-import org.firstinspires.ftc.teamcode.components.drive.Pose;
+
 @Config
-public class Autopilot {
+public class GameState {
     //todo these will be different per-side (these are for blue)
     private static final Pose basketPose = new Pose( 53, 57, 0);
     private static final Pose submersiblePoseA = new Pose(0, 30, 0);
@@ -25,47 +24,14 @@ public class Autopilot {
     private final DriveBase driveBase;
     private final Arm arm;
     private final Collector collector;
-    private boolean isRunning;
     private Runnable tickRunnable;
 
     private Stage currentStage;
 
-    public Autopilot(DriveBase driveBase, Arm arm, Collector collector){
+    public GameState(DriveBase driveBase, Arm arm, Collector collector) {
         this.driveBase = driveBase;
         this.arm = arm;
         this.collector = collector;
-        this.isRunning = false;
-    }
-
-    public void setTickRunnable(Runnable runnable){
-        tickRunnable = runnable;
-    }
-
-    public void start(){
-        currentStage = findCurrentStage();
-        isRunning = true;
-    }
-
-    public void stop(){
-        isRunning = false;
-    }
-
-    public void tick(){
-        if(isRunning){
-            switch (currentStage){
-                case FINALIZE_COLLECTION:
-                    //ensure wrist is up
-                    //once wrist is up check that we still have a sample (if not then await user intervention
-                    //retract arm fully
-                    //update state to MOVE_TO_BASKET
-                break;
-                case MOVE_TO_BASKET:
-                    //check that we still have a sample (if not then await user intervention
-                    //begin pathing to the basket
-                    //once you are approaching the basket, move to PREPARE_DELIVERY
-                break;
-            }
-        }
     }
 
     public Stage findCurrentStage(){
@@ -137,7 +103,7 @@ public class Autopilot {
          */
         MOVE_TO_SUBMERSIBLE,
         /**
-         * Prepare the robot so the user can collect a peace easily.
+         * Prepare the robot to collect a sample from the submersible.
          */
         PREPARE_TO_COLLECT
     }
@@ -190,7 +156,7 @@ public class Autopilot {
     }
 
     private boolean holdingSample(){
-        return collector.holdingSample();
+        return collector.isHoldingSample();
     }
 
     private boolean errorTolerable(double number1, double number2, double tolerance){

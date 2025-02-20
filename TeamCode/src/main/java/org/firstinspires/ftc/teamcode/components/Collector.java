@@ -1,12 +1,16 @@
-package org.firstinspires.ftc.teamcode.hardware;
+package org.firstinspires.ftc.teamcode.components;
 
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.teamcode.hardware.Hardware;
+import org.firstinspires.ftc.teamcode.hardware.ScoringElementColor;
+import org.firstinspires.ftc.teamcode.hardware.SmartColorSensor;
+import org.firstinspires.ftc.teamcode.hardware.SmartMotor;
+import org.firstinspires.ftc.teamcode.hardware.SmartServo;
 import org.firstinspires.ftc.teamcode.hardware.controllers.PID;
 import org.firstinspires.ftc.teamcode.hardware.controllers.PID.Direction;
 import org.firstinspires.ftc.teamcode.util.Encoder;
@@ -29,9 +33,9 @@ public class Collector {
 
     public int wristTarget;
 
-    public final ColorSensor colorSensor;
-    final Servo gripServo;
-    private final DcMotor wristMotor;
+    public final SmartColorSensor colorSensor;
+    final SmartServo gripServo;
+    private final SmartMotor wristMotor;
     private WristMode wristMode;
     private final Arm arm;
     private double wristPower = 0.0;
@@ -41,9 +45,9 @@ public class Collector {
     }
 
     public Collector(Arm arm, HardwareMap hardwareMap, String colorSensorName, String wristMotorName, String gripServoName){
-        this.colorSensor = new ColorSensor(hardwareMap, colorSensorName);
-        this.gripServo = hardwareMap.get(Servo.class, gripServoName);
-        this.wristMotor = hardwareMap.get(DcMotor.class, wristMotorName);
+        this.colorSensor = Hardware.getColorSensor(colorSensorName);
+        this.gripServo = Hardware.getServo(gripServoName);
+        this.wristMotor = Hardware.getMotor(wristMotorName);
         this.arm = arm;
         this.wristEncoder = new Encoder(hardwareMap.get(DcMotorEx.class, wristMotorName));
 
@@ -144,11 +148,11 @@ public class Collector {
         return Helper.errorTolerable(wristTarget, DOWN_POSITION, 5);
     }
 
-    public boolean holdingSample(){
+    public boolean isHoldingSample(){
         return isGripClosed() && colorSensor.getScoringElementColor() != ScoringElementColor.NONE;
     }
 
-    public boolean holdingSample(ScoringElementColor elementColor){
+    public boolean isHoldingSample(ScoringElementColor elementColor){
         return isGripClosed() && colorSensor.getScoringElementColor() == elementColor;
     }
 

@@ -15,14 +15,14 @@ import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 import org.firstinspires.ftc.robotcore.internal.camera.delegating.SwitchableCameraName;
 import org.firstinspires.ftc.robotcore.internal.system.Deadline;
-import org.firstinspires.ftc.teamcode.components.drive.Pose;
+import org.firstinspires.ftc.teamcode.utilities.Pose;
 
 public class SmartCamera implements CameraName {
     private final CameraName cameraName;
     private final String name;
     private final Pose pose;
 
-    //todo method to
+    //todo link this with april tag processors better
 
     /**
      * @param cameraName base camera object to operate on.
