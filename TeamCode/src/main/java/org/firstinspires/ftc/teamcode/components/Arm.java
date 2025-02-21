@@ -11,7 +11,7 @@ import org.firstinspires.ftc.teamcode.hardware.Hardware;
 import org.firstinspires.ftc.teamcode.hardware.SmartMotor;
 import org.firstinspires.ftc.teamcode.hardware.SmartTouchSensor;
 import org.firstinspires.ftc.teamcode.hardware.controllers.PID;
-import org.firstinspires.ftc.teamcode.util.Encoder;
+import org.firstinspires.ftc.teamcode.drive.roadrunner.util.Encoder;
 
 import java.util.function.Consumer;
 
@@ -83,7 +83,7 @@ public class Arm {
         this.extensionMotor = Hardware.getMotor(extensionMotorName);
         this.tiltLimitSensor = Hardware.getTouchSensor(tiltSensorName);
         this.extensionLimitSensor = Hardware.getTouchSensor(extensionSensorName);
-        this.angleEncoder = new Encoder(angleMotorRight.getMotorEx());
+        this.angleEncoder = new Encoder(angleMotorRight.getMotorEx()); //todo find a way to make this use the SmartMotor cache
 
         this.extensionMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         this.angleMotorLeft.setDirection(DcMotorSimple.Direction.REVERSE);

@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.hardware;
 
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareDevice;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
@@ -16,7 +17,7 @@ import java.util.List;
 import java.util.Optional;
 
 public class Hardware {
-    //todo give each hardware device a wrapper with caching strategies.
+    //todo give each hardware device a wrapper with caching strategies. control caching strategy via this Hardware api
     private static final List<SmartCamera> cameras = new ArrayList<>();
     private static final List<SmartMotor> motors = new ArrayList<>();
     private static final List<SmartColorSensor> colorSensors = new ArrayList<>();
@@ -59,7 +60,7 @@ public class Hardware {
         if (hardwareOptional.isPresent())
             return (SmartMotor) hardwareOptional.get();
 
-        SmartMotor smartMotor = new SmartMotor(hardwareMap.get(DcMotor.class, name));
+        SmartMotor smartMotor = new SmartMotor(hardwareMap.get(DcMotorEx.class, name));
         motors.add(smartMotor);
         return smartMotor;
     }

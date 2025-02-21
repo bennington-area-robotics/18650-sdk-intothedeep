@@ -4,7 +4,7 @@ import com.acmerobotics.dashboard.config.Config;
 
 import org.firstinspires.ftc.teamcode.components.Arm;
 import org.firstinspires.ftc.teamcode.components.Collector;
-import org.firstinspires.ftc.teamcode.components.drive.DriveBase;
+import org.firstinspires.ftc.teamcode.components.DriveBase;
 
 @Config
 public class GameState {

@@ -80,7 +80,7 @@ import java.util.Locale;
  *             /
  *            /
  *           /
- *             &#x21B6; roll
+ *          &#x21B6; roll
  *  </pre>
  */
 public class Pose {
