@@ -12,7 +12,7 @@ import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 @Config
-public class SmartColorSensor implements NormalizedColorSensor {
+public class SmartColorSensor implements NormalizedColorSensor, Caching {
     //configuration
     public static float HUE_THRESHOLD = 20.0f;
     public static float RED_HUE = 25.0f;
@@ -25,8 +25,11 @@ public class SmartColorSensor implements NormalizedColorSensor {
 
     NormalizedColorSensor colorSensor;
 
+    HardwareCache<NormalizedRGBA> colorCache;
+
     SmartColorSensor(NormalizedColorSensor colorSensor) {
         this.colorSensor = colorSensor;
+        colorCache = new HardwareCache<>(colorSensor::getNormalizedColors);
         colorSensor.setGain(GAIN);
     }
 
@@ -36,7 +39,7 @@ public class SmartColorSensor implements NormalizedColorSensor {
      */
     public float[] getHSV() {
         float[] hsv = new float[3];
-        Color.colorToHSV(colorSensor.getNormalizedColors().toColor(), hsv);
+        Color.colorToHSV(getNormalizedColors().toColor(), hsv);
         return hsv;
     }
 
@@ -113,7 +116,7 @@ public class SmartColorSensor implements NormalizedColorSensor {
      */
     @Override
     public NormalizedRGBA getNormalizedColors() {
-        return colorSensor.getNormalizedColors();
+        return colorCache.read();
     }
 
     public float getGain(){
@@ -177,5 +180,37 @@ public class SmartColorSensor implements NormalizedColorSensor {
     @Override
     public void close() {
         colorSensor.close();
+    }
+
+    /**
+     *
+     */
+    @Override
+    public void invalidateCache() {
+        colorCache.invalidateCache();
+    }
+
+    /**
+     *
+     */
+    @Override
+    public void updateCache() {
+        colorCache.updateCache();
+    }
+
+    /**
+     * @param strategy
+     */
+    @Override
+    public void setStrategy(CachingStrategy strategy) {
+        colorCache.setStrategy(strategy);
+    }
+
+    /**
+     * @return
+     */
+    @Override
+    public CachingStrategy getStrategy() {
+        return colorCache.getStrategy();
     }
 }

@@ -2,12 +2,16 @@ package org.firstinspires.ftc.teamcode.hardware;
 
 import com.qualcomm.robotcore.hardware.TouchSensor;
 
-public class SmartTouchSensor implements TouchSensor {
+public class SmartTouchSensor implements TouchSensor, Caching {
 
     private final TouchSensor touchSensor;
 
+    HardwareCache<Boolean> pressingCache;
+    HardwareCache<Double> valueCache;
+
     SmartTouchSensor(TouchSensor touchSensor){
         this.touchSensor = touchSensor;
+        pressingCache = new HardwareCache<>(touchSensor::isPressed);
     }
 
     /**
@@ -28,7 +32,7 @@ public class SmartTouchSensor implements TouchSensor {
      */
     @Override
     public boolean isPressed() {
-        return touchSensor.isPressed();
+        return pressingCache.read();
     }
 
     /**
@@ -88,5 +92,38 @@ public class SmartTouchSensor implements TouchSensor {
     @Override
     public void close() {
         touchSensor.close();
+    }
+
+    /**
+     *
+     */
+    @Override
+    public void invalidateCache() {
+        pressingCache.invalidateCache();
+    }
+
+    /**
+     *
+     */
+    @Override
+    public void updateCache() {
+        pressingCache.updateCache();
+    }
+
+    /**
+     * @param strategy
+     */
+    @Override
+    public void setStrategy(CachingStrategy strategy) {
+        pressingCache.setStrategy(strategy);
+        valueCache.setStrategy(strategy);
+    }
+
+    /**
+     * @return
+     */
+    @Override
+    public CachingStrategy getStrategy() {
+        return pressingCache.getStrategy();
     }
 }

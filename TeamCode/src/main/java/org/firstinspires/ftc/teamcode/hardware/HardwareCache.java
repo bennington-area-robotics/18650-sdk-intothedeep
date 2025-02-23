@@ -5,7 +5,7 @@ import org.firstinspires.ftc.robotcore.external.Supplier;
 public class HardwareCache<T> implements Caching {
     private T cachedValue;
     private boolean cacheValid;
-    private CachingStrategy strategy;
+    private CachingStrategy strategy = CachingStrategy.UPDATE_WHEN_INVALIDATED;
     private final Supplier<T> valueSupplier;
     private boolean cacheRead = false;
 

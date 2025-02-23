@@ -22,6 +22,9 @@ public class Hardware {
     private static final List<SmartColorSensor> colorSensors = new ArrayList<>();
     private static final List<SmartTouchSensor> touchSensors = new ArrayList<>();
     private static final List<SmartServo> servos = new ArrayList<>();
+    private static final List<Caching> caches = new ArrayList<>();
+
+    private static Caching.CachingStrategy cachingStrategy = Caching.CachingStrategy.UPDATE_WHEN_INVALIDATED;
 
     private static HardwareMap hardwareMap;
     private static List<LynxModule> hubs;
@@ -61,6 +64,7 @@ public class Hardware {
 
         SmartMotor smartMotor = new SmartMotor(hardwareMap.get(DcMotorEx.class, name));
         motors.add(smartMotor);
+        caches.add(smartMotor);
         return smartMotor;
     }
 
@@ -72,6 +76,7 @@ public class Hardware {
         
         SmartColorSensor smartColorSensor =  new SmartColorSensor(hardwareMap.get(NormalizedColorSensor.class, name));
         colorSensors.add(smartColorSensor);
+        caches.add(smartColorSensor);
         return smartColorSensor;
     }
     
@@ -84,6 +89,7 @@ public class Hardware {
 
         SmartServo servo = new SmartServo(hardwareMap.get(Servo.class, name));
         servos.add(servo);
+        caches.add(servo);
         return servo;
     }
 
@@ -94,6 +100,7 @@ public class Hardware {
 
         SmartTouchSensor smartTouchSensor = new SmartTouchSensor(hardwareMap.get(TouchSensor.class, name));
         touchSensors.add(smartTouchSensor);
+        caches.add(smartTouchSensor);
         return smartTouchSensor;
     }
 
@@ -107,7 +114,16 @@ public class Hardware {
     }
 
     public void invalidateCaches() {
-        motors.forEach(SmartMotor::invalidateCache);
+        caches.forEach(Caching::invalidateCache);
+    }
+
+    public void setCachingStrategy(Caching.CachingStrategy strategy){
+        caches.forEach(caching -> caching.setStrategy(strategy));
+        Hardware.cachingStrategy = strategy;
+    }
+
+    public Caching.CachingStrategy getCachingStrategy(){
+        return cachingStrategy;
     }
 
     private static void assertInitialized() {

@@ -18,20 +18,35 @@ public class SmartMotor implements DcMotorEx, Caching {
 
     private final DcMotorEx motor;
 
-    private int cachedPosition = 0;
-    private boolean isCacheValid = false;
+    HardwareCache<Integer> positionCache;
 
     public void invalidateCache(){
-        this.isCacheValid = false;
+        positionCache.invalidateCache();
     }
 
-    @Override
     public void updateCache() {
+        positionCache.updateCache();
+    }
 
+    /**
+     * @param strategy
+     */
+    @Override
+    public void setStrategy(CachingStrategy strategy) {
+        positionCache.setStrategy(strategy);
+    }
+
+    /**
+     * @return
+     */
+    @Override
+    public CachingStrategy getStrategy() {
+        return positionCache.getStrategy();
     }
 
     SmartMotor(DcMotorEx motor){
         this.motor = motor;
+        this.positionCache = new HardwareCache<>(motor::getCurrentPosition);
     }
 
     public DcMotor getMotor(){
@@ -213,11 +228,7 @@ public class SmartMotor implements DcMotorEx, Caching {
      */
     @Override
     public int getCurrentPosition() {
-        if(!isCacheValid) {
-            cachedPosition = motor.getCurrentPosition();
-            isCacheValid = true;
-        }
-        return cachedPosition;
+        return positionCache.read();
     }
 
     /**
