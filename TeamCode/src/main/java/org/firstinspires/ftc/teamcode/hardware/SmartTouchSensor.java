@@ -6,7 +6,7 @@ public class SmartTouchSensor implements TouchSensor {
 
     private final TouchSensor touchSensor;
 
-    public SmartTouchSensor(TouchSensor touchSensor){
+    SmartTouchSensor(TouchSensor touchSensor){
         this.touchSensor = touchSensor;
     }
 

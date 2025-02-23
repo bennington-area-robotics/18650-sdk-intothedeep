@@ -82,7 +82,7 @@ public class Arm {
         this.extensionMotor = Hardware.getMotor(extensionMotorName);
         this.tiltLimitSensor = Hardware.getTouchSensor(tiltSensorName);
         this.extensionLimitSensor = Hardware.getTouchSensor(extensionSensorName);
-        this.angleEncoder = new Encoder(angleMotorRight.getMotorEx()); //todo find a way to make this use the SmartMotor cache
+        this.angleEncoder = new Encoder(angleMotorRight);
 
         this.extensionMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         this.angleMotorLeft.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -113,20 +113,12 @@ public class Arm {
         return (angleEncoder.getCurrentPosition() - tickOffsetToZero) / ARM_TICKS_PER_DEGREE;
     }
 
-    public double getAngleVelocity(){
-        return angleEncoder.getCorrectedVelocity() / ARM_TICKS_PER_DEGREE;
-    }
-
     /**
      * Get the current extension of the end of the arm past the minimum extension (fully retracted).
      *
      * @return the extension of the end of the arm.
      */
     public double getExtension(){
-        return extensionMotor.getCurrentPosition() / ARM_TICKS_PER_INCH;
-    }
-
-    public double getExtensionVelocity(){
         return extensionMotor.getCurrentPosition() / ARM_TICKS_PER_INCH;
     }
 

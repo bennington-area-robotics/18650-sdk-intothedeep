@@ -25,7 +25,7 @@ public class SmartColorSensor implements NormalizedColorSensor {
 
     NormalizedColorSensor colorSensor;
 
-    public SmartColorSensor(NormalizedColorSensor colorSensor) {
+    SmartColorSensor(NormalizedColorSensor colorSensor) {
         this.colorSensor = colorSensor;
         colorSensor.setGain(GAIN);
     }

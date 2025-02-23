@@ -29,7 +29,7 @@ public class SmartCamera implements CameraName {
      * @param name configured name of the camera to create.
      * @param pose pose of the camera relative to the robot. The pitch is adjusted -90 degrees for the processor.
      */
-    public SmartCamera(CameraName cameraName, String name, Pose pose){
+    SmartCamera(CameraName cameraName, String name, Pose pose){
         this.cameraName = cameraName;
         this.name = cameraName.toString();
         this.pose = pose.plusPitch(-90);

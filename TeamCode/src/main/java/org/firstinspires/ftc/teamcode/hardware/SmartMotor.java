@@ -4,13 +4,20 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorController;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.MotorControlAlgorithm;
+import com.qualcomm.robotcore.hardware.PIDCoefficients;
+import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.configuration.typecontainers.MotorConfigurationType;
 
-public class SmartMotor implements DcMotor {
-    //todo motor cluster - control multiple motors at once, handle using the same PID, and direction differences
-    //todo make this implement DcMotorEx and make the PID methods use our PID
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 
-    private final DcMotor motor;
+public class SmartMotor implements DcMotorEx {
+    //todo motor cluster - control multiple motors at once, handle using the same PID, and direction differences
+    //todo make the PID methods use our PID implementation
+    //todo report the motor current draw for some things
+
+    private final DcMotorEx motor;
 
     private int cachedPosition = 0;
     private boolean isCacheValid = false;
@@ -19,7 +26,7 @@ public class SmartMotor implements DcMotor {
         this.isCacheValid = false;
     }
 
-    public SmartMotor(DcMotor motor){
+    SmartMotor(DcMotorEx motor){
         this.motor = motor;
     }
 
@@ -28,7 +35,7 @@ public class SmartMotor implements DcMotor {
     }
 
     public DcMotorEx getMotorEx(){
-        return (DcMotorEx) motor;
+        return motor;
     }
 
     public DcMotorSimple getMotorSimple(){
@@ -340,5 +347,249 @@ public class SmartMotor implements DcMotor {
     @Override
     public void close() {
         motor.close();
+    }
+
+    /**
+     * Individually energizes this particular motor
+     *
+     * @see #setMotorDisable()
+     * @see #isMotorEnabled()
+     */
+    @Override
+    public void setMotorEnable() {
+        motor.setMotorEnable();
+    }
+
+    /**
+     * Individually de-energizes this particular motor
+     *
+     * @see #setMotorEnable()
+     * @see #isMotorEnabled()
+     */
+    @Override
+    public void setMotorDisable() {
+        motor.setMotorDisable();
+    }
+
+    /**
+     * Returns whether this motor is energized
+     *
+     * @see #setMotorEnable()
+     * @see #setMotorDisable()
+     */
+    @Override
+    public boolean isMotorEnabled() {
+        return motor.isMotorEnabled();
+    }
+
+    /**
+     * Sets the velocity of the motor
+     *
+     * @param angularRate the desired ticks per second
+     */
+    @Override
+    public void setVelocity(double angularRate) {
+        motor.setVelocity(angularRate);
+    }
+
+    /**
+     * Sets the velocity of the motor
+     *
+     * @param angularRate the desired angular rate, in units per second
+     * @param unit        the units in which angularRate is expressed
+     * @see #getVelocity(AngleUnit)
+     */
+    @Override
+    public void setVelocity(double angularRate, AngleUnit unit) {
+        motor.setVelocity(angularRate, unit);
+    }
+
+    /**
+     * Returns the current velocity of the motor, in ticks per second
+     *
+     * @return the current velocity of the motor
+     */
+    @Override
+    public double getVelocity() {
+        return motor.getVelocity();
+    }
+
+    /**
+     * Returns the current velocity of the motor, in angular units per second
+     *
+     * @param unit the units in which the angular rate is desired
+     * @return the current velocity of the motor
+     * @see #setVelocity(double, AngleUnit)
+     */
+    @Override
+    public double getVelocity(AngleUnit unit) {
+        return motor.getVelocity(unit);
+    }
+
+    /**
+     * Sets the PID control coefficients for one of the PID modes of this motor.
+     * Note that in some controller implementations, setting the PID coefficients for one
+     * mode on a motor might affect other modes on that motor, or might affect the PID
+     * coefficients used by other motors on the same controller (this is not true on the
+     * REV Expansion Hub).
+     *
+     * @param mode            either {@link RunMode#RUN_USING_ENCODER} or {@link RunMode#RUN_TO_POSITION}
+     * @param pidCoefficients the new coefficients to use when in that mode on this motor
+     * @see #getPIDCoefficients(RunMode)
+     * @deprecated Use {@link #setPIDFCoefficients(RunMode, PIDFCoefficients)} instead
+     */
+    @Override
+    public void setPIDCoefficients(RunMode mode, PIDCoefficients pidCoefficients) {
+        //noinspection deprecation
+        motor.setPIDCoefficients(mode, pidCoefficients);
+    }
+
+    /**
+     * {@link #setPIDFCoefficients} is a superset enhancement to {@link #setPIDCoefficients}. In addition
+     * to the proportional, integral, and derivative coefficients previously supported, a feed-forward
+     * coefficient may also be specified. Further, a selection of motor control algorithms is offered:
+     * the originally-shipped Legacy PID algorithm, and a PIDF algorithm which avails itself of the
+     * feed-forward coefficient. Note that the feed-forward coefficient is not used by the Legacy PID
+     * algorithm; thus, the feed-forward coefficient must be indicated as zero if the Legacy PID
+     * algorithm is used. Also: the internal implementation of these algorithms may be different: it
+     * is not the case that the use of PIDF with the F term as zero necessarily exhibits exactly the
+     * same behavior as the use of the LegacyPID algorithm, though in practice they will be quite close.
+     * <p>
+     * Readers are reminded that {@link RunMode#RUN_TO_POSITION} mode makes use of <em>both</em>
+     * the coefficients set for RUN_TO_POSITION <em>and</em> the coefficients set for RUN_WITH_ENCODER,
+     * due to the fact that internally the RUN_TO_POSITION logic calculates an on-the-fly velocity goal
+     * on each control cycle, then (logically) runs the RUN_WITH_ENCODER logic. Because of that double-
+     * layering, only the proportional ('p') coefficient makes logical sense for use in the RUN_TO_POSITION
+     * coefficients.
+     *
+     * @see #setVelocityPIDFCoefficients(double, double, double, double)
+     * @see #setPositionPIDFCoefficients(double)
+     * @see #getPIDFCoefficients(RunMode)
+     * @noinspection JavadocDeclaration
+     */
+    @Override
+    public void setPIDFCoefficients(RunMode mode, PIDFCoefficients pidfCoefficients) throws UnsupportedOperationException {
+        motor.setPIDFCoefficients(mode, pidfCoefficients);
+    }
+
+    /**
+     * A shorthand for setting the PIDF coefficients for the {@link RunMode#RUN_USING_ENCODER}
+     * mode. {@link MotorControlAlgorithm#PIDF} is used.
+     *
+     * @see #setPIDFCoefficients(RunMode, PIDFCoefficients)
+     */
+    @Override
+    public void setVelocityPIDFCoefficients(double p, double i, double d, double f) {
+        motor.setVelocityPIDFCoefficients(p, i, d, f);
+    }
+
+    /**
+     * A shorthand for setting the PIDF coefficients for the {@link RunMode#RUN_TO_POSITION}
+     * mode. {@link MotorControlAlgorithm#PIDF} is used.
+     * <p>
+     * Readers are reminded that {@link RunMode#RUN_TO_POSITION} mode makes use of <em>both</em>
+     * the coefficients set for RUN_TO_POSITION <em>and</em> the coefficients set for RUN_WITH_ENCODER,
+     * due to the fact that internally the RUN_TO_POSITION logic calculates an on-the-fly velocity goal
+     * on each control cycle, then (logically) runs the RUN_WITH_ENCODER logic. Because of that double-
+     * layering, only the proportional ('p') coefficient makes logical sense for use in the RUN_TO_POSITION
+     * coefficients.
+     *
+     * @see #setVelocityPIDFCoefficients(double, double, double, double)
+     * @see #setPIDFCoefficients(RunMode, PIDFCoefficients)
+     */
+    @Override
+    public void setPositionPIDFCoefficients(double p) {
+        motor.setPositionPIDFCoefficients(p);
+    }
+
+    /**
+     * Returns the PID control coefficients used when running in the indicated mode
+     * on this motor.
+     *
+     * @param mode either {@link RunMode#RUN_USING_ENCODER} or {@link RunMode#RUN_TO_POSITION}
+     * @return the PID control coefficients used when running in the indicated mode on this motor
+     * @deprecated Use {@link #getPIDFCoefficients(RunMode)} instead
+     */
+    @Override
+    public PIDCoefficients getPIDCoefficients(RunMode mode) {
+        //noinspection deprecation
+        return motor.getPIDCoefficients(mode);
+    }
+
+    /**
+     * Returns the PIDF control coefficients used when running in the indicated mode
+     * on this motor.
+     *
+     * @param mode either {@link RunMode#RUN_USING_ENCODER} or {@link RunMode#RUN_TO_POSITION}
+     * @return the PIDF control coefficients used when running in the indicated mode on this motor
+     * @see #setPIDFCoefficients(RunMode, PIDFCoefficients)
+     */
+    @Override
+    public PIDFCoefficients getPIDFCoefficients(RunMode mode) {
+        return motor.getPIDFCoefficients(mode);
+    }
+
+    /**
+     * Sets the target positioning tolerance of this motor
+     *
+     * @param tolerance the desired tolerance, in encoder ticks
+     * @see DcMotor#setTargetPosition(int)
+     */
+    @Override
+    public void setTargetPositionTolerance(int tolerance) {
+        motor.setTargetPositionTolerance(tolerance);
+    }
+
+    /**
+     * Returns the current target positioning tolerance of this motor
+     *
+     * @return the current target positioning tolerance of this motor
+     */
+    @Override
+    public int getTargetPositionTolerance() {
+        return motor.getTargetPositionTolerance();
+    }
+
+    /**
+     * Returns the current consumed by this motor.
+     *
+     * @param unit current units
+     * @return the current consumed by this motor.
+     */
+    @Override
+    public double getCurrent(CurrentUnit unit) {
+        return motor.getCurrent(unit);
+    }
+
+    /**
+     * Returns the current alert for this motor.
+     *
+     * @param unit current units
+     * @return the current alert for this motor
+     */
+    @Override
+    public double getCurrentAlert(CurrentUnit unit) {
+        return motor.getCurrentAlert(unit);
+    }
+
+    /**
+     * Sets the current alert for this motor
+     *
+     * @param current current alert
+     * @param unit    current units
+     */
+    @Override
+    public void setCurrentAlert(double current, CurrentUnit unit) {
+        motor.setCurrentAlert(current, unit);
+    }
+
+    /**
+     * Returns whether the current consumption of this motor exceeds the alert threshold.
+     *
+     * @return whether the current consumption of this motor exceeds the alert threshold.
+     */
+    @Override
+    public boolean isOverCurrent() {
+        return motor.isOverCurrent();
     }
 }

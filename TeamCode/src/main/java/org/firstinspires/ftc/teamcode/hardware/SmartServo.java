@@ -6,7 +6,7 @@ import com.qualcomm.robotcore.hardware.ServoController;
 public class SmartServo implements Servo {
     private final Servo baseServo;
 
-    public SmartServo(Servo baseServo){
+    SmartServo(Servo baseServo){
         this.baseServo = baseServo;
     }
 
