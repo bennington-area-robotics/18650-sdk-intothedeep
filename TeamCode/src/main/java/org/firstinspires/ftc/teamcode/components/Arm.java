@@ -10,6 +10,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.teamcode.hardware.Hardware;
 import org.firstinspires.ftc.teamcode.hardware.SmartMotor;
 import org.firstinspires.ftc.teamcode.hardware.SmartTouchSensor;
+import org.firstinspires.ftc.teamcode.hardware.controllers.Consts;
 import org.firstinspires.ftc.teamcode.hardware.controllers.PID;
 import org.firstinspires.ftc.teamcode.drive.roadrunner.util.Encoder;
 
@@ -40,10 +41,10 @@ public class Arm {
     public static double extensionKP = 0.2, extensionKI, extensionKD, extensionKF = 0.15, extensionMaxI;
     public static double retractionKP = 0.1, retractionKI, retractionKD, retractionKF = -0.5, retractionMaxI;
 
-    private final PID downwardPID = new PID(downwardKP, downwardKI, downwardKD, downwardKF, downwardMaxI, 0.75);
-    private final PID upwardPID = new PID(upwardKP, upwardKI, upwardKD, upwardKF, upwardMaxI, 0.75);
-    private final PID extensionPID = new PID(extensionKP, extensionKI, extensionKD, extensionKF, extensionMaxI, 0.4);
-    private final PID retractionPID = new PID(retractionKP, retractionKI, retractionKD, retractionKF, retractionMaxI,0.4);
+    private final PID downwardPID = new PID(Consts.of(downwardKP, downwardKI, downwardKD, downwardKF, downwardMaxI), 0.75);
+    private final PID upwardPID = new PID(Consts.of(upwardKP, upwardKI, upwardKD, upwardKF, upwardMaxI), 0.75);
+    private final PID extensionPID = new PID(Consts.of(extensionKP, extensionKI, extensionKD, extensionKF, extensionMaxI), 0.4);
+    private final PID retractionPID = new PID(Consts.of(retractionKP, retractionKI, retractionKD, retractionKF, retractionMaxI),0.4);
     //</editor-fold>
 
     private final SmartMotor angleMotorRight;
@@ -73,8 +74,6 @@ public class Arm {
     private boolean atAngleTarget;
 
     private Consumer<Arm> runningMacro;
-
-    //todo these need actual trained values
 
     public Arm(HardwareMap hardwareMap, String tiltMotorLeftName, String tiltMotorRightName, String extensionMotorName, String tiltSensorName, String extensionSensorName) {
         //<editor-fold desc="Hardware Config">
@@ -301,8 +300,8 @@ public class Arm {
 
     private double lastAnglePower;
     private double getAnglePower(){
-        downwardPID.setConstants(downwardKP, downwardKI, downwardKD,downwardKF, downwardMaxI);
-        upwardPID.setConstants(upwardKP, upwardKI, upwardKD, upwardKF, upwardMaxI);
+        downwardPID.constants.set(downwardKP, downwardKI, downwardKD,downwardKF, downwardMaxI);
+        upwardPID.constants.set(upwardKP, upwardKI, upwardKD, upwardKF, upwardMaxI);
 
         if(targetAngle < getAngle())
             lastAnglePower = downwardPID.calc(targetAngle - getAngle());
@@ -320,8 +319,8 @@ public class Arm {
 
     double lastExtensionPower;
     private double getExtensionPower(){
-        extensionPID.setConstants(extensionKP, extensionKI, extensionKD, extensionKF, extensionMaxI);
-        retractionPID.setConstants(retractionKP, retractionKI, retractionKD, retractionKF, retractionMaxI);
+        extensionPID.constants.set(extensionKP, extensionKI, extensionKD, extensionKF, extensionMaxI);
+        retractionPID.constants.set(retractionKP, retractionKI, retractionKD, retractionKF, retractionMaxI);
 
         if(targetExtension < getExtension())
             lastExtensionPower = retractionPID.calc(targetExtension - getExtension());

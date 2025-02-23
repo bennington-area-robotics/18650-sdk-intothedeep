@@ -7,7 +7,10 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.configuration.typecontainers.MotorConfigurationType;
 
 public class SmartMotor implements DcMotor {
-    private DcMotor motor;
+    //todo motor cluster - control multiple motors at once, handle using the same PID, and direction differences
+    //todo make this implement DcMotorEx and make the PID methods use our PID
+
+    private final DcMotor motor;
 
     private int cachedPosition = 0;
     private boolean isCacheValid = false;
