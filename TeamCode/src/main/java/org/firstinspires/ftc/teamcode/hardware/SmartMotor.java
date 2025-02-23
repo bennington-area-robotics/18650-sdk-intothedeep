@@ -12,9 +12,8 @@ import com.qualcomm.robotcore.hardware.configuration.typecontainers.MotorConfigu
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 
-public class SmartMotor implements DcMotorEx {
+public class SmartMotor implements DcMotorEx, Caching {
     //todo motor cluster - control multiple motors at once, handle using the same PID, and direction differences
-    //todo make the PID methods use our PID implementation
     //todo report the motor current draw for some things
 
     private final DcMotorEx motor;
@@ -24,6 +23,11 @@ public class SmartMotor implements DcMotorEx {
 
     public void invalidateCache(){
         this.isCacheValid = false;
+    }
+
+    @Override
+    public void updateCache() {
+
     }
 
     SmartMotor(DcMotorEx motor){

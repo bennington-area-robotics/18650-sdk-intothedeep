@@ -11,7 +11,7 @@ import org.firstinspires.ftc.teamcode.hardware.ScoringElementColor;
 import org.firstinspires.ftc.teamcode.hardware.SmartColorSensor;
 import org.firstinspires.ftc.teamcode.hardware.SmartMotor;
 import org.firstinspires.ftc.teamcode.hardware.SmartServo;
-import org.firstinspires.ftc.teamcode.hardware.controllers.Consts;
+import org.firstinspires.ftc.teamcode.hardware.controllers.Constants;
 import org.firstinspires.ftc.teamcode.hardware.controllers.PID;
 import org.firstinspires.ftc.teamcode.hardware.controllers.PID.Direction;
 import org.firstinspires.ftc.teamcode.drive.roadrunner.util.Encoder;
@@ -30,7 +30,7 @@ public class Collector {
     double KF = wristKF;
     private final Encoder wristEncoder;
 
-    PID PID = new PID(Consts.of(wristKP, wristKI, wristKD, wristKF, wristMaxI), 1);
+    PID PID = new PID(Constants.of(wristKP, wristKI, wristKD, wristKF, wristMaxI), 1);
 
     public int wristTarget;
 

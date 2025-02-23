@@ -5,7 +5,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 public class PID implements ControlAlg {
     double i, lastError, tolerance, minimum, lastResult;
 
-    public final Consts constants;
+    public final Constants constants;
     private final ElapsedTime timer = new ElapsedTime();
     Direction direction;
 
@@ -18,7 +18,7 @@ public class PID implements ControlAlg {
      *
      * @param tolerance the distance at which the controller considers having reached the target.
      */
-    public PID(Consts constants, double tolerance){
+    public PID(Constants constants, double tolerance){
         this.constants = constants;
         this.direction = Direction.FORWARD;
         this.tolerance = tolerance;
@@ -50,7 +50,7 @@ public class PID implements ControlAlg {
      * @param currentError the current (directional) error value from the target.
      * @return the directional output power of the PID.
      */
-    double calc(double currentError, Consts constants){
+    double calc(double currentError, Constants constants){
         if(Math.abs(currentError) > tolerance) {
             double timeChange = timer.milliseconds();
             timer.reset();

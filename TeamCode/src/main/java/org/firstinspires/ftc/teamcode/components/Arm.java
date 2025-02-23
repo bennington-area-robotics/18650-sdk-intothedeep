@@ -10,8 +10,8 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.teamcode.hardware.Hardware;
 import org.firstinspires.ftc.teamcode.hardware.SmartMotor;
 import org.firstinspires.ftc.teamcode.hardware.SmartTouchSensor;
-import org.firstinspires.ftc.teamcode.hardware.controllers.Consts;
-import org.firstinspires.ftc.teamcode.hardware.controllers.PID;
+import org.firstinspires.ftc.teamcode.hardware.controllers.BidirectionalPID;
+import org.firstinspires.ftc.teamcode.hardware.controllers.Constants;
 import org.firstinspires.ftc.teamcode.drive.roadrunner.util.Encoder;
 
 import java.util.function.Consumer;
@@ -41,10 +41,17 @@ public class Arm {
     public static double extensionKP = 0.2, extensionKI, extensionKD, extensionKF = 0.15, extensionMaxI;
     public static double retractionKP = 0.1, retractionKI, retractionKD, retractionKF = -0.5, retractionMaxI;
 
-    private final PID downwardPID = new PID(Consts.of(downwardKP, downwardKI, downwardKD, downwardKF, downwardMaxI), 0.75);
-    private final PID upwardPID = new PID(Consts.of(upwardKP, upwardKI, upwardKD, upwardKF, upwardMaxI), 0.75);
-    private final PID extensionPID = new PID(Consts.of(extensionKP, extensionKI, extensionKD, extensionKF, extensionMaxI), 0.4);
-    private final PID retractionPID = new PID(Consts.of(retractionKP, retractionKI, retractionKD, retractionKF, retractionMaxI),0.4);
+    private final BidirectionalPID anglePid = new BidirectionalPID(
+            Constants.of(upwardKP, upwardKI, upwardKD, upwardKF, upwardMaxI),
+            Constants.of(downwardKP, downwardKI, downwardKD, downwardKF, downwardMaxI),
+            0.75
+    );
+
+    private final BidirectionalPID extensionPid = new BidirectionalPID(
+            Constants.of(extensionKP, extensionKI, extensionKD, extensionKF, extensionMaxI),
+            Constants.of(retractionKP, retractionKI, retractionKD, retractionKF, retractionMaxI),
+            0.4
+    );
     //</editor-fold>
 
     private final SmartMotor angleMotorRight;
@@ -292,16 +299,11 @@ public class Arm {
 
     private double lastAnglePower;
     private double getAnglePower(){
-        downwardPID.constants.set(downwardKP, downwardKI, downwardKD,downwardKF, downwardMaxI);
-        upwardPID.constants.set(upwardKP, upwardKI, upwardKD, upwardKF, upwardMaxI);
+        anglePid.reverseSet.set(downwardKP, downwardKI, downwardKD,downwardKF, downwardMaxI);
+        anglePid.forwardSet.set(upwardKP, upwardKI, upwardKD, upwardKF, upwardMaxI);
 
-        if(targetAngle < getAngle())
-            lastAnglePower = downwardPID.calc(targetAngle - getAngle());
-        else if (targetAngle > getAngle()){
-            lastAnglePower = upwardPID.calc(targetAngle - getAngle());
-        }else{
-            lastAnglePower = 0;
-        }
+        lastAnglePower = anglePid.calc(targetAngle - getAngle());
+
         return lastAnglePower;
     }
 
@@ -311,16 +313,11 @@ public class Arm {
 
     double lastExtensionPower;
     private double getExtensionPower(){
-        extensionPID.constants.set(extensionKP, extensionKI, extensionKD, extensionKF, extensionMaxI);
-        retractionPID.constants.set(retractionKP, retractionKI, retractionKD, retractionKF, retractionMaxI);
+        extensionPid.forwardSet.set(extensionKP, extensionKI, extensionKD, extensionKF, extensionMaxI);
+        extensionPid.reverseSet.set(retractionKP, retractionKI, retractionKD, retractionKF, retractionMaxI);
 
-        if(targetExtension < getExtension())
-            lastExtensionPower = retractionPID.calc(targetExtension - getExtension());
-        else if (targetExtension > getExtension()){
-            lastExtensionPower = extensionPID.calc(targetExtension - getExtension());
-        }else{
-            lastExtensionPower = 0;
-        }
+        lastExtensionPower = extensionPid.calc(targetExtension - getExtension());
+
         return lastExtensionPower;
     }
 
