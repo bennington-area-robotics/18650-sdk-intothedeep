@@ -39,6 +39,7 @@ public class Arm {
     public static double retractionKP = 0.1, retractionKI, retractionKD, retractionKF = -0.5, retractionMaxI;
     public static double rotationKF = 0.1, rotationKCOS = 1;
     public static double downwardKFMultiplier = 0.01;
+    public static double minThreshold = 0.15;
 
     private final PID downwardPID = new PID(downwardKP, downwardKI, downwardKD, downwardKF, downwardMaxI, 0.75);
     private final PID upwardPID = new PID(upwardKP, upwardKI, upwardKD, upwardKF, upwardMaxI, 0.75);
@@ -423,19 +424,24 @@ public class Arm {
     private double calcAnglePower(){
         if(angleMode == AngleMode.MOVE_TO_TARGET) {
             upwardKF = rotationKF * Math.cos(Math.toRadians(getAngle())) * rotationKCOS;
-            if (getAngle() < 60) {
+            downwardKF = rotationKF * Math.cos(Math.toRadians(getAngle())) * rotationKCOS * downwardKFMultiplier;
+            /*if (getAngle() < 60) {
                 downwardKF = rotationKF * Math.cos(Math.toRadians(getAngle())) * rotationKCOS * downwardKFMultiplier;
             }
-            else {downwardKF = rotationKF * -1 * Math.cos(Math.toRadians(getAngle()));}
+            else {downwardKF = rotationKF * -1 * Math.cos(Math.toRadians(getAngle()));}*/
             downwardPID.setConstants(downwardKP, downwardKI, downwardKD, downwardKF, downwardMaxI);
             upwardPID.setConstants(upwardKP, upwardKI, upwardKD, upwardKF, upwardMaxI);
 
-            if (targetAngle < getAngle())
+            if (targetAngle < getAngle()) {
                 lastAnglePower = downwardPID.calc(targetAngle - getAngle());
+
+            }
             else if (targetAngle > getAngle()) {
                 lastAnglePower = upwardPID.calc(targetAngle - getAngle());
-            } else {
-                lastAnglePower = 0;
+                if (Math.abs(targetAngle - getAngle()) > 0.1) {  // if we're not at target
+                    // Ensure minimum power while maintaining direction
+                    lastAnglePower = Math.signum(lastAnglePower) * Math.max(Math.abs(lastAnglePower), minThreshold);
+                }
             }
         }else if (angleMode == AngleMode.SET_POWER){
             lastAnglePower = anglePower;

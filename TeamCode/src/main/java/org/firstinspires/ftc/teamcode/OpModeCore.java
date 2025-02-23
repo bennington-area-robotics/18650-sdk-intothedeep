@@ -28,6 +28,7 @@ import java.util.Locale;
 public class OpModeCore extends LinearOpMode {
 
     public static int posVariable = 40;
+    public static double armVariable = 45;
     //<editor-fold desc="Config">
     public static float LOW_POWER_MODIFIER = 0.05f;
     public static float HIGH_POWER_MODIFIER = 0.75f;
@@ -170,6 +171,8 @@ public class OpModeCore extends LinearOpMode {
                 .addData("Current Extension", () -> arm.getExtension())
                 .addData("Target Extension", () -> arm.getTargetExtension())
                 .addData("Last Angle Power", () -> arm.getLastAnglePower())
+                .addData("kF", () -> arm.upwardKF)
+                .addData("Error", () -> arm.getTargetAngle() - arm.getAngle())
                 .addData("Last Extension Power", () -> arm.getLastExtensionPower())
                 .addData("Tilt Limit Sensor Pressed?", () -> arm.tiltLimitSensor.isPressed())
                 .addData("Extension Limit Sensor Pressed?", () -> arm.extensionLimitSensor.isPressed());
@@ -286,7 +289,7 @@ public class OpModeCore extends LinearOpMode {
         }
 
         if (gamepad1.dpad_left && !previousGamepad1.dpad_left){
-            arm.setTargetAngle(45);
+            arm.setTargetAngle(armVariable);
             arm.setTargetExtension(16.2);
             collector.setWristMode(Collector.WristMode.MOVE_TO_TARGET);
             collector.wristTo(posVariable);
