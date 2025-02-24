@@ -321,7 +321,6 @@ public class Pose {
         return withOffset(0,0,0,0,0, roll + rollOffsetInches);
     }
 
-
     public double distanceTo(Pose otherPose){
         double dx = otherPose.x - x;
         double dy = otherPose.y - y;
@@ -330,7 +329,7 @@ public class Pose {
     }
 
     public Pose2d toRR(){
-        return new Pose2d(x, y, Math.toRadians(heading()));
+        return new Pose2d(x, y, heading(AngleUnit.RADIANS));
     }
 
     public Pose2D toNav(){

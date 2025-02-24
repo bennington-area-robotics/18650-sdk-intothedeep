@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.apriltag;
+package org.firstinspires.ftc.teamcode.vision;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.CameraName;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;

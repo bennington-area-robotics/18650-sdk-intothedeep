@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.apriltag;
+package org.firstinspires.ftc.teamcode.vision;
 
 import com.acmerobotics.dashboard.config.Config;
 

@@ -105,7 +105,7 @@ public class Hardware {
     }
 
     /**
-     * @param type the hardware class which you would like to get. Only supports FTC-SDK hardware.
+     * @param type the hardware class which you would like to get. Only supports FTC-SDK classes.
      * @param name the name of the device to get.
      * @return the hardware object requested.
      */
@@ -113,16 +113,16 @@ public class Hardware {
         return hardwareMap.get(type, name);
     }
 
-    public void invalidateCaches() {
+    public static void invalidateCaches() {
         caches.forEach(Caching::invalidateCache);
     }
 
-    public void setCachingStrategy(Caching.CachingStrategy strategy){
+    public static void setCachingStrategy(Caching.CachingStrategy strategy){
         caches.forEach(caching -> caching.setStrategy(strategy));
         Hardware.cachingStrategy = strategy;
     }
 
-    public Caching.CachingStrategy getCachingStrategy(){
+    public static Caching.CachingStrategy getCachingStrategy(){
         return cachingStrategy;
     }
 

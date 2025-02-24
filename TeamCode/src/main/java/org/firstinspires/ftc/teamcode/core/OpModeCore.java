@@ -8,7 +8,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.utilities.GameState;
 import org.firstinspires.ftc.teamcode.utilities.PrettyTelemetry;
-import org.firstinspires.ftc.teamcode.apriltag.MultiAprilTagReader;
+import org.firstinspires.ftc.teamcode.vision.MultiAprilTagReader;
 import org.firstinspires.ftc.teamcode.components.Arm;
 import org.firstinspires.ftc.teamcode.components.Collector;
 import org.firstinspires.ftc.teamcode.components.DriveBase;
