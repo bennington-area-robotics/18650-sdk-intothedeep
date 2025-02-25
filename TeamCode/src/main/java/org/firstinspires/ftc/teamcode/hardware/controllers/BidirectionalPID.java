@@ -12,6 +12,8 @@ public class BidirectionalPID implements ControlAlg{
      */
     public BidirectionalPID(Constants forwardSet, Constants reverseSet, double tolerance) {
         this.pid = new PID(Constants.of(0, 0), tolerance);
+        this.forwardSet = forwardSet;
+        this.reverseSet = reverseSet;
     }
 
     public double calc(double error) {
