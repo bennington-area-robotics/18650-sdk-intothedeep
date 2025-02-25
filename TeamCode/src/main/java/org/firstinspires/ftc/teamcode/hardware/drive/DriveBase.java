@@ -74,7 +74,7 @@ public class DriveBase extends ConfiguredMecanumDrive {
         double actualLoopTimeSeconds = (currentTimeMs - lastLoopTimeMs) / 1000.0;
         lastLoopTimeMs = currentTimeMs;
 
-        // Clamp loop time to reasonable values (in case of very long pauses)
+
         actualLoopTimeSeconds = Math.min(actualLoopTimeSeconds, 0.1);
 
         // Apply acceleration limits
@@ -87,7 +87,7 @@ public class DriveBase extends ConfiguredMecanumDrive {
         double actualTransAccelY = maxTranslationAccel;
         double actualRotAccel = maxRotationAccel;
 
-        // Simple but effective direction change detection - check if moving in opposite directions
+
         if (lastX * targetX < 0 && Math.abs(targetX) > 0.1) { // X direction change
             actualTransAccelX *= directionChangeBoost;
         }
@@ -100,7 +100,7 @@ public class DriveBase extends ConfiguredMecanumDrive {
             actualRotAccel *= directionChangeBoost;
         }
 
-        // Check for axis changes (e.g., forward to strafe)
+
         if ((Math.abs(targetX) > 0.3 && Math.abs(lastY) > 0.3 && Math.abs(lastX) < 0.2) ||
                 (Math.abs(targetY) > 0.3 && Math.abs(lastX) > 0.3 && Math.abs(lastY) < 0.2)) {
 
@@ -161,18 +161,18 @@ public class DriveBase extends ConfiguredMecanumDrive {
         maxRotationAccel = Math.abs(acceleration); // Ensure positive value
     }
 
-    // Or set both at once with different values
     public void setAccelerationLimits(double translationAccel, double rotationAccel) {
         maxTranslationAccel = Math.abs(translationAccel);
         maxRotationAccel = Math.abs(rotationAccel);
     }
 
-    // You can add a method to reset the acceleration when stopping movement
+
     public void resetAcceleration() {
         lastX = 0;
         lastY = 0;
         lastTurn = 0;
     }
+
     public void moveUsingPower(double x, double y, double turn){
         // Denominator is the largest motor power (absolute value) or 1
         // This ensures all the powers maintain the correct ratio, but only when
