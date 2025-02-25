@@ -9,6 +9,7 @@ import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.teamcode.apriltag.AprilTagReaderTest;
 import org.firstinspires.ftc.teamcode.apriltag.Camera;
 import org.firstinspires.ftc.teamcode.apriltag.MultiAprilTagReader;
 import org.firstinspires.ftc.teamcode.hardware.Arm;
@@ -40,7 +41,7 @@ public class OpModeCore extends LinearOpMode {
 
     //<editor-fold desc="Fields">
     //components
-    private static MultiAprilTagReader aprilTagReader;
+    private static AprilTagReaderTest aprilTagReader;
     private static OpModeCore instance;
     private static Collector collector;
     private static DriveBase driveBase;
@@ -118,7 +119,7 @@ public class OpModeCore extends LinearOpMode {
         autopilot = new Autopilot(driveBase, arm, collector);
         autopilot.setTickRunnable(this::tick);
 
-        aprilTagReader = new MultiAprilTagReader(
+        /*aprilTagReader = new MultiAprilTagReader(
                 new Camera(
                         hardwareMap,
                         "Webcam Left",
@@ -129,7 +130,8 @@ public class OpModeCore extends LinearOpMode {
                         "Webcam Right",
                         new Pose(6.5, 2.125, -90)
                 )
-        );
+        );*/
+        aprilTagReader = new AprilTagReaderTest(hardwareMap, "Webcam Left");
         if(startAfterAscent){
             arm.resetAngleAfterAscent();
         }
@@ -195,8 +197,9 @@ public class OpModeCore extends LinearOpMode {
                 .addData("Scoring Color", () -> collector.colorSensor.getScoringElementColor());
 
         prettyTelem.addLine("April Tags")
-                .addData("Left Camera", () -> aprilTagReader.getFirstPose(0).toString())
-                .addData("Right Camera", () -> aprilTagReader.getFirstPose(1).toString());
+                .addData("LeftCamera", () -> aprilTagReader.toString());
+                //.addData("Left Camera", () -> aprilTagReader.getFirstPose(0).toString())
+                //.addData("Right Camera", () -> aprilTagReader.getFirstPose(1).toString());
     }
 
     private String getHSV(){
