@@ -55,7 +55,7 @@ public class OpModeCore extends LinearOpMode {
     //private final FtcDashboard dashboard = FtcDashboard.getInstance();
 
     private boolean collectorArmed = false;
-    private boolean isHighPower = false;
+    private boolean isHighPower = true;
     private boolean manualArm = false;
 
     private String testValue = "UNSET";
@@ -254,9 +254,6 @@ public class OpModeCore extends LinearOpMode {
             manualArm = !manualArm;
         }
 
-        if(gamepad1.right_bumper && !previousGamepad1.right_bumper){
-            refreshLocations();
-        }
 
 
         //toggle grip on pressing a, if failed to detect if open or closed, default to close.
@@ -283,8 +280,10 @@ public class OpModeCore extends LinearOpMode {
             isHighPower = !isHighPower;
             if (isHighPower) {
                 driveBase.setPowerFactor(HIGH_POWER_MODIFIER);
+                driveBase.setLowPowerMode(false);
             } else {
                 driveBase.setPowerFactor(LOW_POWER_MODIFIER);
+                driveBase.setLowPowerMode(true);
             }
         }
 
@@ -332,8 +331,8 @@ public class OpModeCore extends LinearOpMode {
 
         gamepadTimer.reset();
 
-        driveBase.moveUsingPower(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x);
-
+        //driveBase.moveUsingPower(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x);
+        driveBase.moveWithAcceleration(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x);
         //save the last gamepad state to compare again later
         previousGamepad1.copy(gamepad1);
         previousGamepad2.copy(gamepad2);

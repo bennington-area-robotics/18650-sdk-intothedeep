@@ -14,6 +14,17 @@ public class DriveBase extends ConfiguredMecanumDrive {
 
     private double powerFactor = 1;
 
+    private boolean lowPowerMode = false;
+    public static double lowPowerMax = 0.5;
+
+    private double lastX = 0;
+    private double lastY = 0;
+    private double lastTurn = 0;
+    public static double maxTranslationAccel = 0.8; // For X and Y movement (0.05-0.2 range)
+    public static double maxRotationAccel = 1;    // For turning (typically lower than translation)
+    public static double directionChangeBoost = 4.0;
+    private long lastLoopTimeMs = System.currentTimeMillis(); // Track actual loop time
+
     public DriveBase(HardwareMap hardwareMap) {
         super(hardwareMap);
         setPoseEstimate(new Pose2d(0, 63, Math.toRadians(-90)));
@@ -35,6 +46,133 @@ public class DriveBase extends ConfiguredMecanumDrive {
         ));
     }
 
+    public void moveWithAcceleration(double targetX, double targetY, double targetTurn) {
+        // Apply quadratic scaling to inputs (maintains sign but makes control more precise)
+        targetX = Math.signum(targetX) * Math.pow(Math.abs(targetX), 2);
+        targetY = Math.signum(targetY) * Math.pow(Math.abs(targetY), 2);
+        targetTurn = Math.signum(targetTurn) * Math.pow(Math.abs(targetTurn), 2);
+
+        boolean isZeroInputTranslation = Math.abs(targetX) < 0.05 && Math.abs(targetY) < 0.05;
+        boolean isZeroInputRotation = Math.abs(targetTurn) < 0.05;
+
+        if (isZeroInputRotation) {
+            lastTurn = 0;
+            if (isZeroInputTranslation){
+                // Either stop immediately or decelerate more quickly
+                lastX = 0;
+                lastY = 0;
+                lastTurn = 0;
+                moveUsingPower(0, 0, 0);
+                return;
+            }
+
+
+
+        }
+        // Calculate actual loop time
+        long currentTimeMs = System.currentTimeMillis();
+        double actualLoopTimeSeconds = (currentTimeMs - lastLoopTimeMs) / 1000.0;
+        lastLoopTimeMs = currentTimeMs;
+
+        // Clamp loop time to reasonable values (in case of very long pauses)
+        actualLoopTimeSeconds = Math.min(actualLoopTimeSeconds, 0.1);
+
+        // Apply acceleration limits
+        double deltaX = targetX - lastX;
+        double deltaY = targetY - lastY;
+        double deltaTurn = targetTurn - lastTurn;
+
+        // Check for direction changes (sign changes) and apply boost if needed
+        double actualTransAccelX = maxTranslationAccel;
+        double actualTransAccelY = maxTranslationAccel;
+        double actualRotAccel = maxRotationAccel;
+
+        // Simple but effective direction change detection - check if moving in opposite directions
+        if (lastX * targetX < 0 && Math.abs(targetX) > 0.1) { // X direction change
+            actualTransAccelX *= directionChangeBoost;
+        }
+
+        if (lastY * targetY < 0 && Math.abs(targetY) > 0.1) { // Y direction change
+            actualTransAccelY *= directionChangeBoost;
+        }
+
+        if (lastTurn * targetTurn < 0 && Math.abs(targetTurn) > 0.1) { // Turn direction change
+            actualRotAccel *= directionChangeBoost;
+        }
+
+        // Check for axis changes (e.g., forward to strafe)
+        if ((Math.abs(targetX) > 0.3 && Math.abs(lastY) > 0.3 && Math.abs(lastX) < 0.2) ||
+                (Math.abs(targetY) > 0.3 && Math.abs(lastX) > 0.3 && Math.abs(lastY) < 0.2)) {
+
+            // When switching primary movement axes, rapidly reduce the old axis
+            if (Math.abs(lastX) > Math.abs(targetX) && Math.abs(lastX) > 0.2) {
+                // Rapidly reduce X when switching to Y
+                lastX *= 0.5; // Cut the current X velocity in half immediately
+            }
+
+            if (Math.abs(lastY) > Math.abs(targetY) && Math.abs(lastY) > 0.2) {
+                // Rapidly reduce Y when switching to X
+                lastY *= 0.5; // Cut the current Y velocity in half immediately
+            }
+
+            // Also boost acceleration in the new direction
+            actualTransAccelX *= 1.5;
+            actualTransAccelY *= 1.5;
+        }
+
+        // Limit the changes based on max acceleration and actual loop time
+        double maxXDelta = actualTransAccelX * actualLoopTimeSeconds;
+        double maxYDelta = actualTransAccelY * actualLoopTimeSeconds;
+        double maxRotDelta = actualRotAccel * actualLoopTimeSeconds;
+
+        // Clamp the changes to the maximum allowed change
+        if (Math.abs(deltaX) > maxXDelta) {
+            deltaX = Math.signum(deltaX) * maxXDelta;
+        }
+
+        if (Math.abs(deltaY) > maxYDelta) {
+            deltaY = Math.signum(deltaY) * maxYDelta;
+        }
+
+        if (Math.abs(deltaTurn) > maxRotDelta) {
+            deltaTurn = Math.signum(deltaTurn) * maxRotDelta;
+        }
+
+        // Calculate new values with limited acceleration
+        double newX = lastX + deltaX;
+        double newY = lastY + deltaY;
+        double newTurn = lastTurn + deltaTurn;
+
+        // Update last values for next iteration
+        lastX = newX;
+        lastY = newY;
+        lastTurn = newTurn;
+
+        // Call the original movement method with the acceleration-limited values
+        moveUsingPower(newX, newY, newTurn);
+    }
+
+    // Methods to set the acceleration limits
+    public void setMaxTranslationAcceleration(double acceleration) {
+        maxTranslationAccel = Math.abs(acceleration); // Ensure positive value
+    }
+
+    public void setMaxRotationAcceleration(double acceleration) {
+        maxRotationAccel = Math.abs(acceleration); // Ensure positive value
+    }
+
+    // Or set both at once with different values
+    public void setAccelerationLimits(double translationAccel, double rotationAccel) {
+        maxTranslationAccel = Math.abs(translationAccel);
+        maxRotationAccel = Math.abs(rotationAccel);
+    }
+
+    // You can add a method to reset the acceleration when stopping movement
+    public void resetAcceleration() {
+        lastX = 0;
+        lastY = 0;
+        lastTurn = 0;
+    }
     public void moveUsingPower(double x, double y, double turn){
         // Denominator is the largest motor power (absolute value) or 1
         // This ensures all the powers maintain the correct ratio, but only when
@@ -45,6 +183,13 @@ public class DriveBase extends ConfiguredMecanumDrive {
         double rightFront = ((y + x - turn) / denominator) * powerFactor;
         double rightRear = ((y - x - turn) / denominator) * powerFactor;
 
+        if (lowPowerMode){
+            leftFront = Math.signum(leftFront) * Math.min(lowPowerMax, Math.abs(leftFront));
+            leftRear = Math.signum(leftRear) * Math.min(lowPowerMax, Math.abs(leftRear));
+            rightRear = Math.signum(rightRear) * Math.min(lowPowerMax, Math.abs(rightRear));
+            rightFront = Math.signum(rightFront) * Math.min(lowPowerMax, Math.abs(rightFront));
+
+        }
         setMotorPowers(leftFront, leftRear, rightRear, rightFront);
     }
 
@@ -62,6 +207,9 @@ public class DriveBase extends ConfiguredMecanumDrive {
 
     public void setPowerFactor(double powerFactor){
         this.powerFactor = powerFactor;
+    }
+    public void setLowPowerMode (boolean lowPowerMode){
+        this.lowPowerMode = lowPowerMode;
     }
 
     public void followTrajectories(Trajectory... trajectories) {
