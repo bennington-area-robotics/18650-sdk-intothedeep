@@ -18,35 +18,11 @@ public class SmartMotor implements DcMotorEx, Caching {
 
     private final DcMotorEx motor;
 
-    HardwareCache<Integer> positionCache;
-
-    public void invalidateCache(){
-        positionCache.invalidateCache();
-    }
-
-    public void updateCache() {
-        positionCache.updateCache();
-    }
-
-    /**
-     * @param strategy
-     */
-    @Override
-    public void setStrategy(CachingStrategy strategy) {
-        positionCache.setStrategy(strategy);
-    }
-
-    /**
-     * @return
-     */
-    @Override
-    public CachingStrategy getStrategy() {
-        return positionCache.getStrategy();
-    }
+    SmartEncoder encoder;
 
     SmartMotor(DcMotorEx motor){
         this.motor = motor;
-        this.positionCache = new HardwareCache<>(motor::getCurrentPosition);
+        this.encoder = new SmartEncoder(motor);
     }
 
     public DcMotor getMotor(){
@@ -59,6 +35,28 @@ public class SmartMotor implements DcMotorEx, Caching {
 
     public DcMotorSimple getMotorSimple(){
         return motor;
+    }
+
+    public SmartEncoder getEncoder(){
+        return encoder;
+    }
+
+    public void invalidateCache(){
+        encoder.invalidateCache();
+    }
+
+    public void updateCache() {
+        encoder.updateCache();
+    }
+
+    @Override
+    public void setStrategy(CachingStrategy strategy) {
+        encoder.setStrategy(strategy);
+    }
+
+    @Override
+    public CachingStrategy getStrategy() {
+        return encoder.getStrategy();
     }
 
     /**
@@ -228,7 +226,7 @@ public class SmartMotor implements DcMotorEx, Caching {
      */
     @Override
     public int getCurrentPosition() {
-        return positionCache.read();
+        return encoder.getCurrentPosition();
     }
 
     /**
@@ -426,7 +424,7 @@ public class SmartMotor implements DcMotorEx, Caching {
      */
     @Override
     public double getVelocity() {
-        return motor.getVelocity();
+        return encoder.getCorrectedVelocity();
     }
 
     /**

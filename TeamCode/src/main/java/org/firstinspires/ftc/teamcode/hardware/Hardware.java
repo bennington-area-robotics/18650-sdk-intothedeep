@@ -16,7 +16,6 @@ import java.util.List;
 import java.util.Optional;
 
 public class Hardware {
-    //todo give each hardware device a wrapper with caching strategies. control caching strategy via this Hardware api
     private static final List<SmartCamera> cameras = new ArrayList<>();
     private static final List<SmartMotor> motors = new ArrayList<>();
     private static final List<SmartColorSensor> colorSensors = new ArrayList<>();
@@ -24,14 +23,16 @@ public class Hardware {
     private static final List<SmartServo> servos = new ArrayList<>();
     private static final List<Caching> caches = new ArrayList<>();
 
-    private static Caching.CachingStrategy cachingStrategy = Caching.CachingStrategy.UPDATE_WHEN_INVALIDATED;
-
     private static HardwareMap hardwareMap;
     private static List<LynxModule> hubs;
 
     public static void init(HardwareMap hardwareMap) {
         Hardware.hardwareMap = hardwareMap;
         Hardware.hubs = hardwareMap.getAll(LynxModule.class);
+
+        hubs.forEach(hub -> {
+            hub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
+        });
     }
 
     public static List<LynxModule> getHubs() {
@@ -114,16 +115,12 @@ public class Hardware {
     }
 
     public static void invalidateCaches() {
+        hubs.forEach(LynxModule::clearBulkCache);
         caches.forEach(Caching::invalidateCache);
     }
 
     public static void setCachingStrategy(Caching.CachingStrategy strategy){
         caches.forEach(caching -> caching.setStrategy(strategy));
-        Hardware.cachingStrategy = strategy;
-    }
-
-    public static Caching.CachingStrategy getCachingStrategy(){
-        return cachingStrategy;
     }
 
     private static void assertInitialized() {

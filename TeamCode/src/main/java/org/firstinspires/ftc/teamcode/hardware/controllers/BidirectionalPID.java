@@ -1,9 +1,8 @@
 package org.firstinspires.ftc.teamcode.hardware.controllers;
 
-public class BidirectionalPID implements ControlAlg{
+public class BidirectionalPID extends PID {
     public Constants forwardSet;
     public Constants reverseSet;
-    private final PID pid;
 
     /**
      * Creates a PIDF controller which can be used to easily apply a control loop to almost anything.
@@ -11,16 +10,17 @@ public class BidirectionalPID implements ControlAlg{
      * @param tolerance the distance at which the controller considers having reached the target.
      */
     public BidirectionalPID(Constants forwardSet, Constants reverseSet, double tolerance) {
-        this.pid = new PID(Constants.of(0, 0), tolerance);
+        super(Constants.of(0, 0), tolerance);
         this.forwardSet = forwardSet;
         this.reverseSet = reverseSet;
     }
 
+    @Override
     public double calc(double error) {
         if(error < 0)
-            return pid.calc(error, reverseSet);
+            return calc(error, reverseSet);
         else {
-            return pid.calc(error, forwardSet);
+            return calc(error, forwardSet);
         }
     }
 }

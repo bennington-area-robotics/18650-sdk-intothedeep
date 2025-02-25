@@ -5,7 +5,6 @@ import com.qualcomm.robotcore.hardware.Gamepad;
 
 import org.firstinspires.ftc.teamcode.components.Collector;
 import org.firstinspires.ftc.teamcode.core.TeleOpCore;
-import org.firstinspires.ftc.teamcode.utilities.Pose;
 
 @TeleOp(name = "1 - Main TeleOp")
 public class MainTeleOp extends TeleOpCore {
