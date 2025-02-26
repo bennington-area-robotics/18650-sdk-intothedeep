@@ -157,6 +157,7 @@ public class AutonomousCore extends LinearOpMode {
         collector.moveWristToBlocking(240, this::tick, true);
         collector.closeGrip();
         arm.setAnglePower(0);
+
     }
 
     public void blueNetZoneSamplePushPath(){

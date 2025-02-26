@@ -1,6 +1,8 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.acmerobotics.dashboard.config.Config;
+import com.acmerobotics.roadrunner.geometry.Pose2d;
+import com.acmerobotics.roadrunner.trajectory.Trajectory;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -86,6 +88,11 @@ public class OpModeCore extends LinearOpMode {
     public static Autopilot getAutopilot(){
         return autopilot;
     }
+
+
+
+
+
     //</editor-fold>
 
     public void initialize(){
@@ -143,6 +150,7 @@ public class OpModeCore extends LinearOpMode {
         gamepadTimer = new ElapsedTime();
 
         StandardTrackingWheelLocalizer.reverseEncoders();
+
 
 
         // always configure telemetry last
@@ -228,6 +236,8 @@ public class OpModeCore extends LinearOpMode {
         arm.tick();
         collector.tick();
         prettyTelem.update();
+        driveBase.update();
+
         tickTimer.reset();
     }
 
@@ -304,6 +314,8 @@ public class OpModeCore extends LinearOpMode {
             collector.setWristMode(Collector.WristMode.MOVE_TO_TARGET);
             collector.wristTo(-34);
         }
+
+
 
         if(gamepad1.dpad_down && !previousGamepad1.dpad_down){
             if(manualArm){

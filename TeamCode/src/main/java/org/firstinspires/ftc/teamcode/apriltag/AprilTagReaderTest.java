@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.apriltag;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
@@ -26,8 +27,10 @@ import java.util.Map;
  * - Camera positioning and configuration
  * - Retrieval of Pose3d data from AprilTag detections
  */
+@Config
 public class AprilTagReaderTest {
 
+    public static double yaw = 90, pitch = -90, roll =0;
     private AprilTagProcessor aprilTagProcessor;
     private VisionPortal visionPortal;
     private String webcamName;
@@ -50,7 +53,7 @@ public class AprilTagReaderTest {
     public AprilTagReaderTest(HardwareMap hardwareMap, String webcamName) {
         this(hardwareMap, webcamName,
                 new Position(DistanceUnit.INCH, 0, 0, 0, 0),
-                new YawPitchRollAngles(AngleUnit.DEGREES, 90, -90, -90, 0));
+                new YawPitchRollAngles(AngleUnit.DEGREES, yaw, pitch, roll, 0));
     }
 
     /**
