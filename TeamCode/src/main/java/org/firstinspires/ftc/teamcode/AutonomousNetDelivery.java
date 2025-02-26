@@ -145,7 +145,8 @@ public class AutonomousNetDelivery extends LinearOpMode {
                 hardwareMap,
                 "colorSensor",
                 "wristMotor",
-                "gripServo");
+                "gripServo",
+                "wristServo");
         tickTimer = new ElapsedTime();
         aprilTagReader = new AprilTagReader(
                 new Camera(

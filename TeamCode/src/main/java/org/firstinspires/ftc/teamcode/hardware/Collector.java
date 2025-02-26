@@ -16,8 +16,9 @@ public class Collector {
 
     //config
     public static float WRIST_TICKS_PER_DEGREE = 8192f/360f;
-    public static float OPEN_POSITION = 0.9f, CLOSED_POSITION = 0; //grip
-    public static int UP_POSITION = 90, DOWN_POSITION = -20; //wrist
+    public static float OPEN_POSITION = 0.9f, CLOSED_POSITION = 0.5f; //grip
+    public static int UP_POSITION = 90, DOWN_POSITION = 0; //wristMotor
+    public static float DEFAULT_POSITION = 0.0f, ROTATED_POSITION = 1.0f;//wristServo
     public static float LENGTH = 5f;
     public static double wristKP = 0.009, wristKI, wristKD = 0, wristKF = -0.035, wristMaxI, wristKCOS =6;
     public static double wristOffset = 0;
@@ -31,6 +32,7 @@ public class Collector {
 
     public final ColorSensor colorSensor;
     final Servo gripServo;
+    final Servo wristServo;
     private final DcMotor wristMotor;
     private WristMode wristMode;
     private final Arm arm;
@@ -40,12 +42,13 @@ public class Collector {
         MOVE_TO_TARGET, STAY_PARALLEL, STAY_PERPENDICULAR, FLOAT, SET_POWER
     }
 
-    public Collector(Arm arm, HardwareMap hardwareMap, String colorSensorName, String wristMotorName, String gripServoName){
+    public Collector(Arm arm, HardwareMap hardwareMap, String colorSensorName, String wristMotorName, String gripServoName, String wristServoName){
         this.colorSensor = new ColorSensor(hardwareMap, colorSensorName);
         this.gripServo = hardwareMap.get(Servo.class, gripServoName);
         this.wristMotor = hardwareMap.get(DcMotor.class, wristMotorName);
         this.arm = arm;
         this.wristEncoder = new Encoder(hardwareMap.get(DcMotorEx.class, wristMotorName));
+        this.wristServo = hardwareMap.get(Servo.class, wristServoName);
 
         resetPositionAs(0);
         wristMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
@@ -111,6 +114,34 @@ public class Collector {
             return true;
         }else if (isGripClosed()) {
             openGrip();
+            return true;
+        }else{
+            return false;
+        }
+    }
+
+    public void wristToRotatedPosition(){wristServo.setPosition(ROTATED_POSITION);}
+    public void wristToDefaultPosition(){wristServo.setPosition(DEFAULT_POSITION);}
+
+    public void setWristPosition(double position) {wristServo.setPosition(position);}
+
+    public boolean isWristRotated(){
+        return Helper.errorTolerable(getWristServoPosition(), ROTATED_POSITION, 0.1);
+    }
+    public double getWristServoPosition(){
+        return wristServo.getPosition();
+    }
+
+    public boolean isWristDefault(){
+        return Helper.errorTolerable(getWristServoPosition(), DEFAULT_POSITION, 0.1);
+    }
+
+    public boolean toggleWristServo(){
+        if (isWristDefault()) {
+            wristToRotatedPosition();
+            return true;
+        }else if (isWristRotated()) {
+            wristToDefaultPosition();
             return true;
         }else{
             return false;

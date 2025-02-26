@@ -1,6 +1,8 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.acmerobotics.dashboard.config.Config;
+import com.acmerobotics.roadrunner.geometry.Pose2d;
+import com.acmerobotics.roadrunner.trajectory.Trajectory;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -28,9 +30,10 @@ import java.util.Locale;
 public class OpModeCore extends LinearOpMode {
 
     public static int posVariable = 40;
+    public static int collectionPosVariable = -20;
     public static double armVariable = 45;
     //<editor-fold desc="Config">
-    public static float LOW_POWER_MODIFIER = 0.05f;
+    public static float LOW_POWER_MODIFIER = 0.75f;
     public static float HIGH_POWER_MODIFIER = 0.75f;
     public static float MAX_INCHES_PER_SECOND = 9f;
     public static float MIN_WRIST_VELOCITY = 8;
@@ -112,7 +115,8 @@ public class OpModeCore extends LinearOpMode {
                 hardwareMap,
                 "colorSensor",
                 "wristMotor",
-                "gripServo"
+                "gripServo",
+                "wristServo"
         );
 
         autopilot = new Autopilot(driveBase, arm, collector);
@@ -187,7 +191,9 @@ public class OpModeCore extends LinearOpMode {
                 .addData("Target", collector::getWristTarget)
                 .addData("Velocity", () -> collector.getWristVelocity())
                 .addData("Up?", () -> collector.isWristUp())
-                .addData("Down?", () -> collector.isWristDown());
+                .addData("Down?", () -> collector.isWristDown())
+                .addData("Rotated?", () -> collector.isWristRotated())
+                .addData("Default?", () -> collector.isWristDefault());
 
         prettyTelem.addLine("Color Sensor")
                 .addData("HSV", this::getHSV)
@@ -222,6 +228,7 @@ public class OpModeCore extends LinearOpMode {
         updateMotorServoCache();
         checkGamepad();
         checkForScoringElement();
+        driveBase.update();
         arm.tick();
         collector.tick();
         prettyTelem.update();
@@ -257,12 +264,11 @@ public class OpModeCore extends LinearOpMode {
 
 
         //toggle grip on pressing a, if failed to detect if open or closed, default to close.
-        if(gamepad1.a){
-            if(!previousGamepad1.a) {
-                if (!collector.toggleGrip()) {
-                    collector.closeGrip();
-                }
+        if(gamepad1.a && !previousGamepad1.a){
+            if (!collector.toggleGrip()) {
+                collector.closeGrip();
             }
+
         }
 
         //toggle wrist on pressing b, if failed to detect if up or down, default to up.
@@ -273,7 +279,9 @@ public class OpModeCore extends LinearOpMode {
         }
 
         if(gamepad1.y && !previousGamepad1.y){
-            collectorArmed = !collectorArmed;
+            if(!collector.toggleWristServo())
+                collector.wristToDefaultPosition();
+            //collectorArmed = !collectorArmed;
         }
 
         if(gamepad1.x && !previousGamepad1.x) {
@@ -299,7 +307,16 @@ public class OpModeCore extends LinearOpMode {
             arm.setTargetAngle(30);
             arm.setTargetExtension(9.5);
             collector.setWristMode(Collector.WristMode.MOVE_TO_TARGET);
-            collector.wristTo(-34);
+            collector.wristTo(collectionPosVariable);
+        }
+        if(gamepad1.right_bumper && !previousGamepad1.right_bumper){
+            driveBase.setPoseEstimate(new Pose2d( -36, 50, Math.toRadians(90)));
+            Trajectory moveToRung = driveBase.trajectoryBuilder(driveBase.getPoseEstimate(), true)
+                    .splineToLinearHeading(new Pose2d(-12, 40, Math.toRadians(-90)), Math.toRadians(-90))
+                    .build();
+            driveBase.followTrajectoryAsync(moveToRung);
+
+
         }
 
         if(gamepad1.dpad_down && !previousGamepad1.dpad_down){
