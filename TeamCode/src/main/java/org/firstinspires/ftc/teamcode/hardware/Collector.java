@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.teamcode.OpModeCore;
 import org.firstinspires.ftc.teamcode.hardware.controllers.PID;
 import org.firstinspires.ftc.teamcode.hardware.controllers.PID.Direction;
 import org.firstinspires.ftc.teamcode.util.Encoder;
@@ -18,16 +19,18 @@ public class Collector {
     public static float WRIST_TICKS_PER_DEGREE = 8192f/360f;
     public static float OPEN_POSITION = 0.9f, CLOSED_POSITION = 0.5f; //grip
     public static int UP_POSITION = 90, DOWN_POSITION = 0; //wristMotor
-    public static float DEFAULT_POSITION = 0.0f, ROTATED_POSITION = 1.0f;//wristServo
+    public static float DEFAULT_POSITION = 1.0f, ROTATED_POSITION = 0.0f;//wristServo
     public static float LENGTH = 5f;
-    public static double wristKP = 0.009, wristKI, wristKD = 0, wristKF = -0.035, wristMaxI, wristKCOS =6;
+    public static double upWristKP = 0.009, upWristKI, upWristKD = 0, upWristKF = -0.035, upWristMaxI,  upWristKCOS =6;
     public static double wristOffset = 0;
 
-    double KF = wristKF;
+    public static double downWristKP, downWristKI, downWristKD, downWristKF, downWristMaxI, downWristKCOS;
+
+    double KF = upWristKF;
     private final Encoder wristEncoder;
 
-    PID PID = new PID(wristKP, wristKI, wristKD, wristKF, wristMaxI, 1);
-
+    PID upwardPID = new PID(upWristKP, upWristKI, upWristKD, upWristKF, upWristMaxI, 1);
+    PID downwardPID = new PID(downWristKP, downWristKI, downWristKD, downWristKF, downWristMaxI, 1);
     public int wristTarget;
 
     public final ColorSensor colorSensor;
@@ -37,6 +40,7 @@ public class Collector {
     private WristMode wristMode;
     private final Arm arm;
     private double wristPower = 0.0;
+    public static int submersibleCollectionPosition = 60;
 
     public enum WristMode {
         MOVE_TO_TARGET, STAY_PARALLEL, STAY_PERPENDICULAR, FLOAT, SET_POWER
@@ -137,11 +141,19 @@ public class Collector {
     }
 
     public boolean toggleWristServo(){
-        if (isWristDefault()) {
+
+        if (isWristDefault() && isWristUp()) {
             wristToRotatedPosition();
+            while(!isWristRotated()){
+                OpModeCore.getInstance().tick();
+            }
+            setWristMode(WristMode.MOVE_TO_TARGET);
+            wristTo(submersibleCollectionPosition);
             return true;
         }else if (isWristRotated()) {
             wristToDefaultPosition();
+            setWristMode(WristMode.MOVE_TO_TARGET);
+            wristTo(UP_POSITION);
             return true;
         }else{
             return false;
@@ -243,16 +255,21 @@ public class Collector {
     }
 
     public void tick(){
+
+        double passedUpKF = upWristKF * Math.sin(Math.toRadians(getWristAngle() + arm.getAngle())) * upWristKCOS;
+        double passedDownKF = downWristKF * Math.sin(Math.toRadians(getWristAngle() + arm.getAngle())) * downWristKCOS;
         if (wristTarget < getWristAngle()){
-             KF = wristKF * -1;
-             KF*=0.25;
+            KF = upWristKF * -1;
+            KF*=0.25;
         } else {
-            KF = wristKF * Math.sin(Math.toRadians(getWristAngle() + arm.getAngle())) * wristKCOS;
+            KF = upWristKF * Math.sin(Math.toRadians(getWristAngle() + arm.getAngle())) * upWristKCOS;
         }
 
-        PID.setConstants(wristKP, wristKI, wristKD, KF, wristMaxI);
+        upwardPID.setConstants(upWristKP, upWristKI, upWristKD, KF, upWristMaxI);
+        downwardPID.setConstants(downWristKP, downWristKI, downWristKD, passedDownKF, downWristMaxI);
 
-        PID.setDirection(Direction.REVERSE);
+        upwardPID.setDirection(Direction.REVERSE);
+        downwardPID.setDirection(Direction.REVERSE);
 
         switch (wristMode) {
             case FLOAT:
@@ -262,13 +279,19 @@ public class Collector {
                 wristMotor.setPower(wristPower);
                 break;
             case STAY_PARALLEL:
-                wristMotor.setPower(PID.calc(getWristAngle() - (90 - arm.getAngle())));
+                wristMotor.setPower(upwardPID.calc(getWristAngle() - (90 - arm.getAngle())));
                 break;
             case STAY_PERPENDICULAR:
-                wristMotor.setPower(PID.calc(getWristAngle() - (arm.getAngle() - 90)));
+                wristMotor.setPower(upwardPID.calc(getWristAngle() - (arm.getAngle() - 90)));
                 break;
             case MOVE_TO_TARGET:
-                wristMotor.setPower(PID.calc(getWristAngle() - wristTarget));
+                /*if(getWristAngle() < wristTarget){
+                    wristMotor.setPower(upwardPID.calc(getWristAngle() - wristTarget));
+                } else if (getWristAngle() > wristTarget){
+                    wristMotor.setPower(downwardPID.calc(getWristAngle() - wristTarget));
+                }*/
+                wristMotor.setPower(upwardPID.calc(getWristAngle() - wristTarget));
+
                 break;
         }
     }

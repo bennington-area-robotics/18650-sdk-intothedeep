@@ -226,7 +226,8 @@ public class OpModeCore extends LinearOpMode {
 
     public void tick(){
         updateMotorServoCache();
-        checkGamepad();
+        //checkGamepad();
+        checkBothGamepads();
         checkForScoringElement();
         driveBase.update();
         arm.tick();
@@ -248,6 +249,113 @@ public class OpModeCore extends LinearOpMode {
             }
         }
     }
+
+    public void checkBothGamepads(){
+        //store the current gamepads since this state can change while in a check cycle
+        Gamepad gamepad1 = new Gamepad();
+        gamepad1.copy(this.gamepad1);
+        Gamepad gamepad2 = new Gamepad();
+        gamepad2.copy(this.gamepad2);
+
+        if(gamepad1.left_bumper && !previousGamepad1.left_bumper){
+            manualArm = !manualArm;
+        }
+
+
+
+        //toggle grip on pressing a, if failed to detect if open or closed, default to close.
+        if(gamepad1.a && !previousGamepad1.a){
+            if (!collector.toggleGrip()) {
+                collector.closeGrip();
+            }
+
+        }
+
+        //toggle wrist on pressing b, if failed to detect if up or down, default to up.
+        if(gamepad1.b && !previousGamepad1.b){
+            collector.setWristMode(Collector.WristMode.MOVE_TO_TARGET);
+            if(!collector.toggleWrist())
+                collector.wristUp();
+        }
+
+        if(gamepad1.y && !previousGamepad1.y){
+            if(!collector.toggleWristServo())
+                collector.wristToDefaultPosition();
+            //collectorArmed = !collectorArmed;
+        }
+
+        if(gamepad2.x && !previousGamepad2.x) {
+            isHighPower = !isHighPower;
+            if (isHighPower) {
+                driveBase.setPowerFactor(HIGH_POWER_MODIFIER);
+                driveBase.setLowPowerMode(false);
+            } else {
+                driveBase.setPowerFactor(LOW_POWER_MODIFIER);
+                driveBase.setLowPowerMode(true);
+            }
+        }
+
+        if (gamepad1.dpad_left && !previousGamepad1.dpad_left){
+            arm.setTargetAngle(armVariable);
+            arm.setTargetExtension(16.2);
+            collector.setWristMode(Collector.WristMode.MOVE_TO_TARGET);
+            collector.wristTo(posVariable);
+            //collector.setWristMode(Collector.WristMode.STAY_PERPENDICULAR);
+        }
+
+        if(gamepad1.dpad_right && !previousGamepad1.dpad_right) {
+            arm.setTargetAngle(30);
+            arm.setTargetExtension(9.5);
+            collector.setWristMode(Collector.WristMode.MOVE_TO_TARGET);
+            collector.wristTo(collectionPosVariable);
+        }
+        if(gamepad1.right_bumper && !previousGamepad1.right_bumper){
+            driveBase.setPoseEstimate(new Pose2d( -36, 50, Math.toRadians(90)));
+            Trajectory moveToRung = driveBase.trajectoryBuilder(driveBase.getPoseEstimate(), true)
+                    .splineToLinearHeading(new Pose2d(-12, 40, Math.toRadians(-90)), Math.toRadians(-90))
+                    .build();
+            driveBase.followTrajectoryAsync(moveToRung);
+
+
+        }
+
+        if(gamepad1.dpad_down && !previousGamepad1.dpad_down){
+            if(manualArm){
+                arm.setTargetAngle(Math.max(arm.getTargetAngle() - 15, 0));
+            }else{
+                collector.wristUp();
+                arm.collectionPosition();
+            }
+        }else if(gamepad1.dpad_up && !previousGamepad1.dpad_up){
+            if(manualArm){
+                arm.setTargetAngle(Math.min(arm.getTargetAngle() + 15, 100));
+            }else {
+                if (!arm.setTargetAngle(100))
+                    this.gamepad1.rumbleBlips(100);
+            }
+        }
+
+
+        if(Math.abs(-gamepad1.left_trigger + gamepad1.right_trigger) > 0.1){
+            arm.killMacro();
+            arm.setExtensionPower(-gamepad1.left_trigger + gamepad1.right_trigger);
+        }else if (!arm.isRunningMacro()){
+            if(arm.getExtensionMode() != Arm.ExtensionMode.MOVE_TO_TARGET) {
+                arm.setExtensionPower(0);
+                arm.setTargetExtension(arm.getExtension());
+            }
+        }
+
+        gamepadTimer.reset();
+
+        //driveBase.moveUsingPower(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x);
+        driveBase.moveWithAcceleration(gamepad2.left_stick_x, gamepad2.left_stick_y, gamepad2.right_stick_x);
+        //save the last gamepad state to compare again later
+        previousGamepad1.copy(gamepad1);
+        previousGamepad2.copy(gamepad2);
+
+    }
+
 
     //this might be moved to a seperate class
     public void checkGamepad() {
