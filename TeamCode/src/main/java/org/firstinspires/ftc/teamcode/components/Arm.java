@@ -7,11 +7,13 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
+import org.firstinspires.ftc.teamcode.hardware.Direction;
 import org.firstinspires.ftc.teamcode.hardware.Hardware;
+import org.firstinspires.ftc.teamcode.hardware.SmartEncoder;
 import org.firstinspires.ftc.teamcode.hardware.SmartMotor;
 import org.firstinspires.ftc.teamcode.hardware.SmartTouchSensor;
 import org.firstinspires.ftc.teamcode.hardware.controllers.BidirectionalPID;
-import org.firstinspires.ftc.teamcode.hardware.controllers.Constants;
+import org.firstinspires.ftc.teamcode.hardware.controllers.PIDFConstants;
 import org.firstinspires.ftc.teamcode.drive.roadrunner.util.Encoder;
 
 import java.util.function.Consumer;
@@ -36,20 +38,20 @@ public class Arm {
     public static double COLLECTION_ANGLE = 0.0;
     public static double SPECIMEN_ANGLE = 55;
 
-    public static double downwardKP = 0.005, downwardKI = 0, downwardKD = 0, downwardKF = -0.15, downwardMaxI = 0;
-    public static double upwardKP = 0.02, upwardKI = 0.00001, upwardKD = 0.2, upwardKF = 0.15, upwardMaxI = 0.09;
+    public static double downwardKP = 0.000375, downwardKI = 0, downwardKD = 0.05, downwardKF = -0.175, downwardMaxI = 0;
+    public static double upwardKP = 0.025, upwardKI = 0, upwardKD = 0.15, upwardKF = 0.325, upwardMaxI = 0;
     public static double extensionKP = 0.2, extensionKI, extensionKD, extensionKF = 0.15, extensionMaxI;
     public static double retractionKP = 0.1, retractionKI, retractionKD, retractionKF = -0.5, retractionMaxI;
 
     private final BidirectionalPID anglePid = new BidirectionalPID(
-            Constants.of(upwardKP, upwardKI, upwardKD, upwardKF, upwardMaxI),
-            Constants.of(downwardKP, downwardKI, downwardKD, downwardKF, downwardMaxI),
+            PIDFConstants.of(upwardKP, upwardKI, upwardKD, upwardKF, upwardMaxI),
+            PIDFConstants.of(downwardKP, downwardKI, downwardKD, downwardKF, downwardMaxI),
             0.75
     );
 
     private final BidirectionalPID extensionPid = new BidirectionalPID(
-            Constants.of(extensionKP, extensionKI, extensionKD, extensionKF, extensionMaxI),
-            Constants.of(retractionKP, retractionKI, retractionKD, retractionKF, retractionMaxI),
+            PIDFConstants.of(extensionKP, extensionKI, extensionKD, extensionKF, extensionMaxI),
+            PIDFConstants.of(retractionKP, retractionKI, retractionKD, retractionKF, retractionMaxI),
             0.4
     );
     //</editor-fold>
@@ -58,7 +60,7 @@ public class Arm {
     private final SmartMotor angleMotorLeft;
     private final SmartMotor extensionMotor;
 
-    private final Encoder angleEncoder;
+    private final SmartEncoder angleEncoder;
     public final SmartTouchSensor tiltLimitSensor;
     public final SmartTouchSensor extensionLimitSensor;
 
@@ -84,12 +86,12 @@ public class Arm {
 
     public Arm(HardwareMap hardwareMap, String tiltMotorLeftName, String tiltMotorRightName, String extensionMotorName, String tiltSensorName, String extensionSensorName) {
         //<editor-fold desc="Hardware Config">
-        this.angleMotorRight = Hardware.getMotor(tiltMotorLeftName);
-        this.angleMotorLeft = Hardware.getMotor(tiltMotorRightName);
+        this.angleMotorRight = Hardware.getMotor(tiltMotorRightName, true);
+        this.angleMotorLeft = Hardware.getMotor(tiltMotorLeftName);
         this.extensionMotor = Hardware.getMotor(extensionMotorName);
         this.tiltLimitSensor = Hardware.getTouchSensor(tiltSensorName);
         this.extensionLimitSensor = Hardware.getTouchSensor(extensionSensorName);
-        this.angleEncoder = new Encoder(angleMotorRight);
+        this.angleEncoder = angleMotorRight.getEncoder();
 
         this.extensionMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         this.angleMotorLeft.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -100,7 +102,7 @@ public class Arm {
 
         this.angleMotorLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         this.angleMotorRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        this.angleEncoder.setDirection(Encoder.Direction.FORWARD);
+        this.angleEncoder.setDirection(Direction.FORWARD);
         //</editor-fold>
 
         resetExtension();
@@ -117,7 +119,7 @@ public class Arm {
      * @return the angle of the arm relative to the base.
      */
     public double getAngle(){
-        return (angleEncoder.getCurrentPosition() - tickOffsetToZero) / ARM_TICKS_PER_DEGREE;
+        return (angleEncoder.getPosition() - tickOffsetToZero) / ARM_TICKS_PER_DEGREE;
     }
 
     /**
@@ -217,7 +219,7 @@ public class Arm {
      * Sets the current angle as the zero position.
      */
     public void resetAngle(){
-        tickOffsetToZero = angleEncoder.getCurrentPosition();
+        tickOffsetToZero = angleEncoder.getPosition();
     }
 
     /**

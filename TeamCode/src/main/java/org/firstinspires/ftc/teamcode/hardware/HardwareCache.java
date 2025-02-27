@@ -4,7 +4,7 @@ import org.firstinspires.ftc.robotcore.external.Supplier;
 
 public class HardwareCache<T> implements Caching {
     private T cachedValue;
-    private boolean cacheValid;
+    private boolean cacheValid = false;
     private CachingStrategy strategy = CachingStrategy.UPDATE_WHEN_INVALIDATED;
     private final Supplier<T> valueSupplier;
     private boolean cacheRead = false;
@@ -15,24 +15,31 @@ public class HardwareCache<T> implements Caching {
 
     @Override
     public void invalidateCache() {
-        if(strategy == CachingStrategy.UPDATE_WHEN_INVALIDATED)
+        if(strategy == CachingStrategy.UPDATE_WHEN_INVALIDATED) {
             updateCache();
-        else
+        } else
             this.cacheValid = false;
+
+        cacheRead = false;
     }
 
     @Override
     public void updateCache() {
         this.cachedValue = valueSupplier.get();
+        cacheValid = true;
         cacheRead = false;
     }
 
     public T read() {
+        if(cachedValue == null || !cacheValid){
+            updateCache();
+        }
+
         switch (strategy){
             case UPDATE_WHEN_INVALIDATED:
             case VALID_UNTIL_INVALIDATED:
                 cacheRead = true;
-                return readFromOrUpdateCache();
+                return cachedValue;
             case INVALID_AFTER_FIRST_READ:
                 if(cacheRead){
                     updateCache();
@@ -41,13 +48,7 @@ public class HardwareCache<T> implements Caching {
                 }
                 return cachedValue;
         }
-        return cachedValue;
-    }
 
-    private T readFromOrUpdateCache(){
-        if(!cacheValid){
-            updateCache();
-        }
         return cachedValue;
     }
 
@@ -57,6 +58,8 @@ public class HardwareCache<T> implements Caching {
 
     public void setStrategy(CachingStrategy strategy){
         this.strategy = strategy;
+        cacheValid = false;
+        cacheRead = false;
     }
 
     public CachingStrategy getStrategy() {

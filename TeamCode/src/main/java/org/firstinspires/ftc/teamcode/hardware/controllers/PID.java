@@ -2,23 +2,21 @@ package org.firstinspires.ftc.teamcode.hardware.controllers;
 
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-public class PID implements ControlAlg {
+import org.firstinspires.ftc.teamcode.hardware.Direction;
+
+public class PID implements ControlAlgorithm {
     double i, lastError, tolerance, minimum, lastResult;
 
-    public final Constants constants;
+    public final PIDFConstants constants;
     private final ElapsedTime timer = new ElapsedTime();
     Direction direction;
-
-    public enum Direction {
-        FORWARD, REVERSE
-    }
 
     /**
      * Creates a PIDF controller which can be used to easily apply a control loop to almost anything.
      *
      * @param tolerance the distance at which the controller considers having reached the target.
      */
-    public PID(Constants constants, double tolerance){
+    public PID(PIDFConstants constants, double tolerance){
         this.constants = constants;
         this.direction = Direction.FORWARD;
         this.tolerance = tolerance;
@@ -50,7 +48,7 @@ public class PID implements ControlAlg {
      * @param currentError the current (directional) error value from the target.
      * @return the directional output power of the PID.
      */
-    double calc(double currentError, Constants constants){
+    double calc(double currentError, PIDFConstants constants){
         if(Math.abs(currentError) > tolerance) {
             double timeChange = timer.milliseconds();
             timer.reset();

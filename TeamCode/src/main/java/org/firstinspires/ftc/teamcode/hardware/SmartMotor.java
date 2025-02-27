@@ -11,6 +11,7 @@ import com.qualcomm.robotcore.hardware.configuration.typecontainers.MotorConfigu
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
+import org.firstinspires.ftc.teamcode.drive.roadrunner.util.Encoder;
 
 public class SmartMotor implements DcMotorEx, Caching {
     //todo motor cluster - control multiple motors at once, handle using the same PID, and direction differences
@@ -23,6 +24,16 @@ public class SmartMotor implements DcMotorEx, Caching {
     SmartMotor(DcMotorEx motor){
         this.motor = motor;
         this.encoder = new SmartEncoder(motor);
+    }
+
+    SmartMotor(DcMotorEx motor, boolean hasExternalEncoder){
+        if(hasExternalEncoder){
+            this.motor = motor;
+            this.encoder = new SmartEncoder(new Encoder(motor));
+        } else {
+            this.motor = motor;
+            this.encoder = new SmartEncoder(motor);
+        }
     }
 
     public DcMotor getMotor(){
@@ -226,7 +237,7 @@ public class SmartMotor implements DcMotorEx, Caching {
      */
     @Override
     public int getCurrentPosition() {
-        return encoder.getCurrentPosition();
+        return encoder.getPosition();
     }
 
     /**
@@ -424,7 +435,7 @@ public class SmartMotor implements DcMotorEx, Caching {
      */
     @Override
     public double getVelocity() {
-        return encoder.getCorrectedVelocity();
+        return encoder.getVelocity();
     }
 
     /**

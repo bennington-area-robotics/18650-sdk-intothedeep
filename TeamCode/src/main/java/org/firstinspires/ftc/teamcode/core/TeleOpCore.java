@@ -21,9 +21,9 @@ public abstract class TeleOpCore extends OpModeCore {
         super.tick();
     }
 
-    //this might be moved to a seperate class
+    //this might be moved to a separate class
     private void checkGamepad() {
-        //store the current gamepads since this state can change while in a check cycle
+        //store the current game pads since this state can change while in a check cycle
         Gamepad gamepad1 = new Gamepad();
         gamepad1.copy(this.gamepad1);
         Gamepad gamepad2 = new Gamepad();

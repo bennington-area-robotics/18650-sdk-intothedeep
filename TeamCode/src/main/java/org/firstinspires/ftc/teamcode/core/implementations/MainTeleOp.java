@@ -54,6 +54,10 @@ public class MainTeleOp extends TeleOpCore {
             collector.wristTo(-34);
         }
 
+        //dpad down -> if arm is in manual mode move arm down 15 degrees,
+        // else bring arm all the way down and pull the arm all the way in
+        //dpad up -? if arm is in manual mode move arm up 15 degrees,
+        // else bring arm all the way up
         if(gamepad1.dpad_down && !previousGamepad1.dpad_down){
             if(manualArm){
                 arm.setTargetAngle(Math.max(arm.getTargetAngle() - 15, 0));

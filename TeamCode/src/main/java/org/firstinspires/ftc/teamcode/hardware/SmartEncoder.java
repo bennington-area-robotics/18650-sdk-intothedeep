@@ -4,53 +4,66 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 
 import org.firstinspires.ftc.teamcode.drive.roadrunner.util.Encoder;
 
-public class SmartEncoder extends Encoder implements Caching{
+public class SmartEncoder implements Caching{
     private final HardwareCache<Integer> positionCache;
     private final HardwareCache<Double> velocityCache;
-    private final HardwareCache<Double> correctedVelocityCache;
+
+    private Encoder rrEncoder;
+
+    Direction direction = Direction.FORWARD;
+
+    //todo add reset()
 
     SmartEncoder(DcMotorEx motor) {
-        super(motor);
-        this.positionCache = new HardwareCache<>(super::getCurrentPosition);
-        this.velocityCache = new HardwareCache<>(super::getRawVelocity);
-        this.correctedVelocityCache = new HardwareCache<>(super::getCorrectedVelocity);
+        this.positionCache = new HardwareCache<>(motor::getCurrentPosition);
+        this.velocityCache = new HardwareCache<>(motor::getVelocity);
     }
 
-    @Override
-    public int getCurrentPosition() {
+    SmartEncoder(Encoder rrEncoder){
+        this.rrEncoder = rrEncoder;
+        this.direction = Direction.of(rrEncoder.getDirection());
+        this.positionCache = new HardwareCache<>(this.rrEncoder::getCurrentPosition);
+        this.velocityCache = new HardwareCache<>(this.rrEncoder::getCorrectedVelocity);
+    }
+
+    public int getPosition() {
         return positionCache.read();
     }
 
+    public double getVelocity() {
+        return velocityCache.read();
+    }
 
-    /**
-     *
-     */
     @Override
     public void invalidateCache() {
         positionCache.invalidateCache();
         velocityCache.invalidateCache();
-        correctedVelocityCache.invalidateCache();
     }
 
-    /**
-     *
-     */
     @Override
     public void updateCache() {
         positionCache.updateCache();
         velocityCache.updateCache();
-        correctedVelocityCache.updateCache();
     }
 
     @Override
     public void setStrategy(CachingStrategy strategy) {
         positionCache.setStrategy(strategy);
         velocityCache.setStrategy(strategy);
-        correctedVelocityCache.setStrategy(strategy);
     }
 
     @Override
     public CachingStrategy getStrategy() {
         return positionCache.getStrategy();
+    }
+
+    public void setDirection(Direction direction){
+        if(rrEncoder != null)
+            rrEncoder.setDirection(direction.toRR());
+        this.direction = direction;
+    }
+
+    public Direction getDirection() {
+        return direction;
     }
 }

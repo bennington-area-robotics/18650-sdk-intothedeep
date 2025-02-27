@@ -88,7 +88,7 @@ public class Pose {
     private final double yaw, pitch, roll;
     private final long acquisitionTime;
 
-    private Pose(double x, double y, double z, double yaw, double pitch, double roll, AngleUnit angleUnit, DistanceUnit distanceUnit, long acquisitionTime){
+    private Pose(double x, double y, double z, double yaw, double pitch, double roll, AngleUnit angleUnit, DistanceUnit distanceUnit, long acquisitionTime) {
         this.x = distanceUnit.fromUnit(distanceUnit, x);
         this.y = distanceUnit.fromUnit(distanceUnit, y);
         this.z = distanceUnit.fromUnit(distanceUnit, z);
@@ -98,7 +98,7 @@ public class Pose {
         this.acquisitionTime = acquisitionTime;
     }
 
-    public static Pose from(Pose2d rrPose){
+    public static Pose from(Pose2d rrPose) {
         return new Pose(
                 rrPose.getX(),
                 rrPose.getY(),
@@ -112,7 +112,7 @@ public class Pose {
         );
     }
 
-    public static Pose from(Pose2D navPose){
+    public static Pose from(Pose2D navPose) {
         return new Pose(
                 navPose.getX(DistanceUnit.INCH),
                 navPose.getY(DistanceUnit.INCH),
@@ -126,14 +126,14 @@ public class Pose {
         );
     }
 
-    public static Pose from(Pose3D navPose3D){
+    public static Pose from(Pose3D navPose3D) {
         Position position = navPose3D.getPosition();
         YawPitchRollAngles angles = navPose3D.getOrientation();
         return new Pose(
                 position.x,
                 position.y,
                 position.z,
-                angles.getYaw(AngleUnit.DEGREES),
+                AngleUnit.DEGREES.normalize(angles.getYaw(AngleUnit.DEGREES) + 180),
                 angles.getPitch(AngleUnit.DEGREES),
                 angles.getRoll(AngleUnit.DEGREES),
                 AngleUnit.DEGREES,
@@ -142,13 +142,13 @@ public class Pose {
         );
     }
 
-    public Pose(double xInches, double yInches, double headingDegrees){
+    public Pose(double xInches, double yInches, double headingDegrees) {
         this(
                 xInches,
                 yInches,
                 0,
                 headingDegrees,
-                0 ,
+                0,
                 0,
                 AngleUnit.DEGREES,
                 DistanceUnit.INCH,
@@ -156,13 +156,13 @@ public class Pose {
         );
     }
 
-    public Pose(double xInches, double yInches, double zInches, double yawDegrees, double pitchDegrees, double rollDegrees){
+    public Pose(double xInches, double yInches, double zInches, double yawDegrees, double pitchDegrees, double rollDegrees) {
         this(
                 xInches,
                 yInches,
                 0,
                 yawDegrees,
-                0 ,
+                0,
                 0,
                 AngleUnit.DEGREES,
                 DistanceUnit.INCH,
@@ -170,7 +170,7 @@ public class Pose {
         );
     }
 
-    public Pose(double xInches, double yInches){
+    public Pose(double xInches, double yInches) {
         this(xInches, yInches, 0);
     }
 
@@ -196,16 +196,16 @@ public class Pose {
     }
 
     /**
-     * @apiNote equivalent to heading()
      * @return the yaw angle in degrees.
+     * @apiNote equivalent to heading()
      */
     public double yaw() {
         return yaw;
     }
 
     /**
-     * @apiNote equivalent to yaw()
      * @return the heading angle in degrees.
+     * @apiNote equivalent to yaw()
      */
     public double heading() {
         return yaw;
@@ -224,7 +224,6 @@ public class Pose {
     public double roll() {
         return roll;
     }
-
 
 
     /**
@@ -252,36 +251,36 @@ public class Pose {
     }
 
     /**
-     * @apiNote equivalent to heading()
      * @param unit the angle unit to return the angle in
      * @return the yaw angle in the provided angle unit.
+     * @apiNote equivalent to heading()
      */
     public double yaw(AngleUnit unit) {
         return unit.fromUnit(AngleUnit.DEGREES, yaw);
     }
 
     /**
-     * @apiNote equivalent to heading()
      * @param unit the angle unit to return the angle in
      * @return the heading angle in the provided angle unit.
+     * @apiNote equivalent to heading()
      */
     public double heading(AngleUnit unit) {
         return unit.fromUnit(AngleUnit.DEGREES, yaw);
     }
 
     /**
-     * @apiNote equivalent to heading()
      * @param unit the angle unit to return the angle in
      * @return the pitch angle in the provided angle unit.
+     * @apiNote equivalent to heading()
      */
     public double pitch(AngleUnit unit) {
         return unit.fromUnit(AngleUnit.DEGREES, pitch);
     }
 
     /**
-     * @apiNote equivalent to heading()
      * @param unit the angle unit to return the angle in
      * @return the roll angle in the provided angle unit.
+     * @apiNote equivalent to heading()
      */
     public double roll(AngleUnit unit) {
         return unit.fromUnit(AngleUnit.DEGREES, roll);
@@ -297,54 +296,54 @@ public class Pose {
         );
     }
 
-    public Pose plusX(double xOffsetInches){
-        return withOffset(x + xOffsetInches,0,0,0,0,0);
+    public Pose plusX(double xOffsetInches) {
+        return withOffset(x + xOffsetInches, 0, 0, 0, 0, 0);
     }
 
-    public Pose plusY(double yOffsetInches){
-        return withOffset(0, y + yOffsetInches,0,0,0,0);
+    public Pose plusY(double yOffsetInches) {
+        return withOffset(0, y + yOffsetInches, 0, 0, 0, 0);
     }
 
-    public Pose plusZ(double zOffsetInches){
-        return withOffset(0,0,z + zOffsetInches,0,0,0);
+    public Pose plusZ(double zOffsetInches) {
+        return withOffset(0, 0, z + zOffsetInches, 0, 0, 0);
     }
 
-    public Pose plusYaw(double yawOffsetInches){
-        return withOffset(0,0,0,yaw + yawOffsetInches,0,0);
+    public Pose plusYaw(double yawOffsetInches) {
+        return withOffset(0, 0, 0, yaw + yawOffsetInches, 0, 0);
     }
 
-    public Pose plusPitch(double pitchOffsetInches){
-        return withOffset(0,0,0,0,pitch + pitchOffsetInches,0);
+    public Pose plusPitch(double pitchOffsetInches) {
+        return withOffset(0, 0, 0, 0, pitch + pitchOffsetInches, 0);
     }
 
-    public Pose plusRoll(double rollOffsetInches){
-        return withOffset(0,0,0,0,0, roll + rollOffsetInches);
+    public Pose plusRoll(double rollOffsetInches) {
+        return withOffset(0, 0, 0, 0, 0, roll + rollOffsetInches);
     }
 
-    public double distanceTo(Pose otherPose){
+    public double distanceTo(Pose otherPose) {
         double dx = otherPose.x - x;
         double dy = otherPose.y - y;
         double dz = otherPose.z - z;
         return Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2) + Math.pow(dz, 2));
     }
 
-    public Pose2d toRR(){
+    public Pose2d toRR() {
         return new Pose2d(x, y, heading(AngleUnit.RADIANS));
     }
 
-    public Pose2D toNav(){
+    public Pose2D toNav() {
         return new Pose2D(DistanceUnit.INCH, x, y, AngleUnit.DEGREES, yaw);
     }
 
-    public Pose3D toNav3D(){
+    public Pose3D toNav3D() {
         return new Pose3D(new Position(DistanceUnit.INCH, x, y, z, acquisitionTime), new YawPitchRollAngles(AngleUnit.DEGREES, yaw, pitch, roll, acquisitionTime));
     }
 
-    public Position getPosition(){
+    public Position getPosition() {
         return new Position(DistanceUnit.INCH, x, y, z, 0);
     }
 
-    public YawPitchRollAngles getAngles(){
+    public YawPitchRollAngles getAngles() {
         return new YawPitchRollAngles(AngleUnit.DEGREES, yaw, pitch, roll, 0);
     }
 

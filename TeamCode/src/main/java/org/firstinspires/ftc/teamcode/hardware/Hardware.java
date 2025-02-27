@@ -30,9 +30,9 @@ public class Hardware {
         Hardware.hardwareMap = hardwareMap;
         Hardware.hubs = hardwareMap.getAll(LynxModule.class);
 
-        hubs.forEach(hub -> {
-            hub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
-        });
+        hubs.forEach(hub ->
+            hub.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO)
+        );
     }
 
     public static List<LynxModule> getHubs() {
@@ -58,12 +58,22 @@ public class Hardware {
      * @return the motor object associated with the passed name.
      */
     public static SmartMotor getMotor(String name) {
+        return getMotor(name, false);
+    }
+
+    /**
+     * Retrieves the hardware object for the given motor. If the motor has already been retrieved, this will return the same cached motor object.
+     *
+     * @param name the name of the motor.
+     * @return the motor object associated with the passed name.
+     */
+    public static SmartMotor getMotor(String name, boolean hasExternalEncoder) {
         assertInitialized();
         Optional<?> hardwareOptional = getHardwareOptional(motors, name);
         if (hardwareOptional.isPresent())
             return (SmartMotor) hardwareOptional.get();
 
-        SmartMotor smartMotor = new SmartMotor(hardwareMap.get(DcMotorEx.class, name));
+        SmartMotor smartMotor = new SmartMotor(hardwareMap.get(DcMotorEx.class, name), hasExternalEncoder);
         motors.add(smartMotor);
         caches.add(smartMotor);
         return smartMotor;
@@ -95,6 +105,7 @@ public class Hardware {
     }
 
     public static SmartTouchSensor getTouchSensor(String name){
+        assertInitialized();
         Optional<?> hardwareOptional = getHardwareOptional(touchSensors, name);
         if(hardwareOptional.isPresent())
             return (SmartTouchSensor) hardwareOptional.get();
@@ -111,15 +122,17 @@ public class Hardware {
      * @return the hardware object requested.
      */
     public static <T> T getOther(Class<? extends T> type, String name) {
+        assertInitialized();
         return hardwareMap.get(type, name);
     }
 
     public static void invalidateCaches() {
-        hubs.forEach(LynxModule::clearBulkCache);
+        assertInitialized();
         caches.forEach(Caching::invalidateCache);
     }
 
     public static void setCachingStrategy(Caching.CachingStrategy strategy){
+        assertInitialized();
         caches.forEach(caching -> caching.setStrategy(strategy));
     }
 

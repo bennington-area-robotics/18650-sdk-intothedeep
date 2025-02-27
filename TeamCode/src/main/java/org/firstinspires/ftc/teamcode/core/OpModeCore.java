@@ -70,11 +70,7 @@ public abstract class OpModeCore extends LinearOpMode{
 
         Hardware.init(hardwareMap);
 
-        lynxModules = Hardware.getHubs();
-
-        for(LynxModule module : lynxModules){
-            module.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
-        }
+        this.prettyTelem = new PrettyTelemetry(telemetry);
 
         //initialize hardware
         driveBase = new DriveBase(hardwareMap);
@@ -112,9 +108,7 @@ public abstract class OpModeCore extends LinearOpMode{
 
         StandardTrackingWheelLocalizer.reverseEncoders();
 
-
         // always configure telemetry last
-        this.prettyTelem = new PrettyTelemetry(telemetry);
         configureTelemetry();
     }
 
@@ -184,16 +178,10 @@ public abstract class OpModeCore extends LinearOpMode{
     }
 
     public void tick(){
-        updateMotorServoCache();
+        Hardware.invalidateCaches();
         arm.tick();
         collector.tick();
         prettyTelem.update();
         tickTimer.reset();
-    }
-
-    public void updateMotorServoCache(){
-        for(LynxModule module : lynxModules){
-            module.clearBulkCache();
-        }
     }
 }
