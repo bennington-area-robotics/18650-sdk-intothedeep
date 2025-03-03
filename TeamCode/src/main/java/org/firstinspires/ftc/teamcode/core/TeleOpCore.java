@@ -29,7 +29,7 @@ public abstract class TeleOpCore extends OpModeCore {
         Gamepad gamepad2 = new Gamepad();
         gamepad2.copy(this.gamepad2);
 
-        checkGamepad(gamepad1, previousGamepad1, gamepad2, previousGamepad2);
+        checkGamepad(gamepad1, gamepad2, previousGamepad1, previousGamepad2);
 
         //save the last gamepad state to compare again later
         previousGamepad1.copy(gamepad1);

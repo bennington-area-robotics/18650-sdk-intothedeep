@@ -14,8 +14,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.teamcode.drive.roadrunner.util.Encoder;
 
 public class SmartMotor implements DcMotorEx, Caching {
-    //todo motor cluster - control multiple motors at once, handle using the same PID, and direction differences
-    //todo report the motor current draw for some things
+    //todo: motor cluster - control multiple motors at once, handle using the same PID, and direction differences
+    //todo: report the motor current draw for some things
 
     private final DcMotorEx motor;
 

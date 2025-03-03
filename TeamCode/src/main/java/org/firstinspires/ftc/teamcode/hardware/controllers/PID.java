@@ -1,93 +1,124 @@
 package org.firstinspires.ftc.teamcode.hardware.controllers;
 
 import com.qualcomm.robotcore.util.ElapsedTime;
-
 import org.firstinspires.ftc.teamcode.hardware.Direction;
 
+import java.util.function.DoubleSupplier;
+
+/**
+ * A PID controller that implements a Proportional-Integral-Derivative (PID) control loop.
+ * This class is designed to be used for controlling systems like motors, servos, or any other
+ * system where you need to apply feedback control to reach a target value.
+ * <p>
+ * The controller uses PIDF (Proportional, Integral, Derivative, and Feedforward) terms to calculate
+ * the output based on the error between the target and actual values.
+ */
 public class PID implements ControlAlgorithm {
-    double i, lastError, tolerance, minimum, lastResult;
+    protected double integral, lastError, tolerance, minimum, lastResult;
+    protected final ElapsedTime timer = new ElapsedTime();
+    private Direction direction;
 
-    public final PIDFConstants constants;
-    private final ElapsedTime timer = new ElapsedTime();
-    Direction direction;
+    protected final DoubleSupplier kP, kI, kD, kF;
 
-    /**
-     * Creates a PIDF controller which can be used to easily apply a control loop to almost anything.
-     *
-     * @param tolerance the distance at which the controller considers having reached the target.
-     */
-    public PID(PIDFConstants constants, double tolerance){
-        this.constants = constants;
-        this.direction = Direction.FORWARD;
+    protected PID(DoubleSupplier kP, DoubleSupplier kI, DoubleSupplier kD, DoubleSupplier kF, double tolerance) {
+        this.kP = kP;
+        this.kI = kI;
+        this.kD = kD;
+        this.kF = kF;
         this.tolerance = tolerance;
     }
 
+    /**
+     * Sets the direction of the PID controller. This will determine whether the output
+     * should be reversed or not.
+     *
+     * @param direction The direction to set for the controller. It can be either {@link Direction#FORWARD} or {@link Direction#REVERSE}.
+     */
     public void setDirection(Direction direction) {
         this.direction = direction;
     }
 
+    /**
+     * Gets the current direction of the PID controller.
+     *
+     * @return The current direction of the controller.
+     */
     public Direction getDirection() {
         return direction;
     }
 
-    /**
-     * Calculates the output of the PID based on the error from the target. Note that errors and outputs are directional.
-     * This means that a negative error input will yield a negative (or approaching negative) output value.
-     *
-     * @param currentError the current (directional) error value from the target.
-     * @return the directional output power of the PID.
-     */
-    public double calc(double currentError){
-        return calc(currentError, constants);
+    public double calc(double target, double actual) {
+        return calc(target, actual, kP.getAsDouble(), kI.getAsDouble(), kD.getAsDouble(), kF.getAsDouble());
     }
 
-    /**
-     * Calculates the output of the PID based on the error from the target. Note that errors and outputs are directional.
-     * This means that a negative error input will yield a negative (or approaching negative) output value.
-     *
-     * @param currentError the current (directional) error value from the target.
-     * @return the directional output power of the PID.
-     */
-    double calc(double currentError, PIDFConstants constants){
-        if(Math.abs(currentError) > tolerance) {
+    protected double calc(double target, double actual, double kP, double kI, double kD, double kF) {
+        double currentError = target - actual;
+
+        if (Math.abs(currentError) > tolerance) {
             double timeChange = timer.milliseconds();
             timer.reset();
 
-            double p = constants.p * currentError;
+            double p = kP * currentError;
 
-            i += constants.i * (currentError * (timeChange));
+            integral += kI * currentError * timeChange;
 
-            if (i > constants.maxI)
-                i = constants.maxI;
-            else if (i < -constants.maxI)
-                i = -constants.maxI;
-
-            double d = constants.d * (currentError - lastError);
+            double d = kD * (currentError - lastError);
 
             lastError = currentError;
 
-            double output;
+            double output = p + integral + d + kF;
 
-            output = (p + i + d + constants.f);
-
-            if(direction == Direction.REVERSE) {
+            if (direction == Direction.REVERSE) {
                 output = -output;
             }
 
             lastResult = output;
-
-        }else {
+        } else {
             lastResult = 0;
         }
+
+        // Return the last calculated output.
         return lastResult;
     }
 
-    public double result(){
+    /**
+     * Gets the most recent result from the PID controller.
+     * This is the output of the last call to {@link #calc(double, double)}.
+     *
+     * @return The last calculated output of the PID controller.
+     */
+    public double result() {
         return lastResult;
     }
 
-    public PID setTolerance(double tolerance){
+    /**
+     * Sets the tolerance for the PID controller.
+     * If the error is within this tolerance, the controller will stop adjusting the output.
+     *
+     * @param tolerance The tolerance value to set.
+     */
+    public void setTolerance(double tolerance) {
         this.tolerance = tolerance;
-        return this;
+    }
+
+
+    public static class Builder {
+        private DoubleSupplier kP = () -> 0, kI = () -> 0, kD = () -> 0, kF = () -> 0;
+        private double tolerance;
+
+        public Builder setKP(double kP) { this.kP = () -> kP; return this; }
+        public Builder setKI(double kI) { this.kI = () -> kI; return this; }
+        public Builder setKD(double kD) { this.kD = () -> kD; return this; }
+        public Builder setKF(double kF) { this.kF = () -> kF; return this; }
+        public Builder setKP(DoubleSupplier kP) { this.kP = kP; return this; }
+        public Builder setKI(DoubleSupplier kI) { this.kI = kI; return this; }
+        public Builder setKD(DoubleSupplier kD) { this.kD = kD; return this; }
+        public Builder setKF(DoubleSupplier kF) { this.kF = kF; return this; }
+        public Builder setTolerance(double tolerance) {
+            this.tolerance = tolerance;
+            return this;
+        }
+
+        public PID build() { return new PID(kP, kI, kD, kF, tolerance); }
     }
 }

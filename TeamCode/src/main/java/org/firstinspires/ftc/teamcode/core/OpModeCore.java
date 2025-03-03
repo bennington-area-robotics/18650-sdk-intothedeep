@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.core;
 
+import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -7,6 +8,7 @@ import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.utilities.GameState;
+import org.firstinspires.ftc.teamcode.utilities.PersistentStorage;
 import org.firstinspires.ftc.teamcode.utilities.PrettyTelemetry;
 import org.firstinspires.ftc.teamcode.vision.MultiAprilTagReader;
 import org.firstinspires.ftc.teamcode.components.Arm;
@@ -69,8 +71,9 @@ public abstract class OpModeCore extends LinearOpMode{
         instance = this;
 
         Hardware.init(hardwareMap);
+        PersistentStorage.init(hardwareMap);
 
-        this.prettyTelem = new PrettyTelemetry(telemetry);
+        this.prettyTelem = new PrettyTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
         //initialize hardware
         driveBase = new DriveBase(hardwareMap);

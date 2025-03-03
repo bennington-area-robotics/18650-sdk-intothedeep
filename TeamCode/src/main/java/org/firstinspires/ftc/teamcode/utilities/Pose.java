@@ -286,6 +286,17 @@ public class Pose {
         return unit.fromUnit(AngleUnit.DEGREES, roll);
     }
 
+    /**
+     * Creates a new Pose with the specified offsets added to the current pose.
+     *
+     * @param xOffsetInches     The offset to add to the x coordinate (in inches).
+     * @param yOffsetInches     The offset to add to the y coordinate (in inches).
+     * @param zOffsetInches     The offset to add to the z coordinate (in inches).
+     * @param yawOffsetDegrees  The offset to add to the yaw angle (in degrees).
+     * @param pitchOffsetDegrees The offset to add to the pitch angle (in degrees).
+     * @param rollOffsetDegrees  The offset to add to the roll angle (in degrees).
+     * @return A new Pose with the updated values.
+     */
     public Pose withOffset(
             double xOffsetInches, double yOffsetInches, double zOffsetInches,
             double yawOffsetDegrees, double pitchOffsetDegrees, double rollOffsetDegrees
@@ -296,30 +307,60 @@ public class Pose {
         );
     }
 
+    /**
+     * @param xOffsetInches The amount to add to the x coordinate (in inches).
+     * @return A new Pose with the x coordinate offset by the given amount.
+     */
     public Pose plusX(double xOffsetInches) {
-        return withOffset(x + xOffsetInches, 0, 0, 0, 0, 0);
+        return withOffset(xOffsetInches, 0, 0, 0, 0, 0);
     }
 
+    /**
+     * @param yOffsetInches The amount to add to the y coordinate (in inches).
+     * @return A new Pose with the y coordinate offset by the given amount.
+     */
     public Pose plusY(double yOffsetInches) {
-        return withOffset(0, y + yOffsetInches, 0, 0, 0, 0);
+        return withOffset(0, yOffsetInches, 0, 0, 0, 0);
     }
 
+    /**
+     * @param zOffsetInches The amount to add to the z coordinate (in inches).
+     * @return A new Pose with the z coordinate offset by the given amount.
+     */
     public Pose plusZ(double zOffsetInches) {
-        return withOffset(0, 0, z + zOffsetInches, 0, 0, 0);
+        return withOffset(0, 0, zOffsetInches, 0, 0, 0);
     }
 
-    public Pose plusYaw(double yawOffsetInches) {
-        return withOffset(0, 0, 0, yaw + yawOffsetInches, 0, 0);
+    /**
+     * @param yawOffsetDegrees The amount to add to the yaw (heading) angle (in degrees).
+     * @return A new Pose with the yaw angle offset by the given amount.
+     */
+    public Pose plusYaw(double yawOffsetDegrees) {
+        return withOffset(0, 0, 0, yawOffsetDegrees, 0, 0);
     }
 
-    public Pose plusPitch(double pitchOffsetInches) {
-        return withOffset(0, 0, 0, 0, pitch + pitchOffsetInches, 0);
+    /**
+     * @param pitchOffsetDegrees The amount to add to the pitch angle (in degrees).
+     * @return A new Pose with the pitch angle offset by the given amount.
+     */
+    public Pose plusPitch(double pitchOffsetDegrees) {
+        return withOffset(0, 0, 0, 0, pitchOffsetDegrees, 0);
     }
 
-    public Pose plusRoll(double rollOffsetInches) {
-        return withOffset(0, 0, 0, 0, 0, roll + rollOffsetInches);
+    /**
+     * @param rollOffsetDegrees The amount to add to the roll angle (in degrees).
+     * @return A new Pose with the roll angle offset by the given amount.
+     */
+    public Pose plusRoll(double rollOffsetDegrees) {
+        return withOffset(0, 0, 0, 0, 0, rollOffsetDegrees);
     }
 
+    /**
+     * Calculates the Euclidean distance between this Pose and another Pose.
+     *
+     * @param otherPose The Pose to calculate the distance to.
+     * @return The distance to the other Pose in inches.
+     */
     public double distanceTo(Pose otherPose) {
         double dx = otherPose.x - x;
         double dy = otherPose.y - y;
@@ -327,26 +368,52 @@ public class Pose {
         return Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2) + Math.pow(dz, 2));
     }
 
+    /**
+     * Converts this Pose into a Road Runner Pose2d.
+     *
+     * @return A {@link Pose2d} with the same x, y, and heading values, using radians for heading.
+     */
     public Pose2d toRR() {
         return new Pose2d(x, y, heading(AngleUnit.RADIANS));
     }
 
+    /**
+     * Converts this Pose into an FTC Navigation Pose2D.
+     *
+     * @return A {@link Pose2D} representation of this Pose.
+     */
     public Pose2D toNav() {
         return new Pose2D(DistanceUnit.INCH, x, y, AngleUnit.DEGREES, yaw);
     }
 
+    /**
+     * Converts this Pose into an FTC Navigation Pose3D.
+     *
+     * @return A {@link Pose3D} representation of this Pose.
+     */
     public Pose3D toNav3D() {
         return new Pose3D(new Position(DistanceUnit.INCH, x, y, z, acquisitionTime), new YawPitchRollAngles(AngleUnit.DEGREES, yaw, pitch, roll, acquisitionTime));
     }
 
+    /**
+     * @return A {@link Position} object representing this Pose's position.
+     */
     public Position getPosition() {
         return new Position(DistanceUnit.INCH, x, y, z, 0);
     }
 
+    /**
+     * @return A {@link YawPitchRollAngles} object representing this Pose's orientation.
+     */
     public YawPitchRollAngles getAngles() {
         return new YawPitchRollAngles(AngleUnit.DEGREES, yaw, pitch, roll, 0);
     }
 
+    /**
+     * Provides a formatted string representation of the Pose.
+     *
+     * @return A string representing the Pose's position and orientation.
+     */
     @NonNull
     @Override
     public String toString() {

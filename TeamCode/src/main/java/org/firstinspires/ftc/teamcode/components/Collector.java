@@ -11,7 +11,6 @@ import org.firstinspires.ftc.teamcode.hardware.ScoringElementColor;
 import org.firstinspires.ftc.teamcode.hardware.SmartColorSensor;
 import org.firstinspires.ftc.teamcode.hardware.SmartMotor;
 import org.firstinspires.ftc.teamcode.hardware.SmartServo;
-import org.firstinspires.ftc.teamcode.hardware.controllers.PIDFConstants;
 import org.firstinspires.ftc.teamcode.hardware.controllers.PID;
 import org.firstinspires.ftc.teamcode.hardware.Direction;
 import org.firstinspires.ftc.teamcode.drive.roadrunner.util.Encoder;
@@ -30,7 +29,13 @@ public class Collector {
     double KF = wristKF;
     private final Encoder wristEncoder;
 
-    PID PID = new PID(PIDFConstants.of(wristKP, wristKI, wristKD, wristKF, wristMaxI), 1);
+    PID PID = new PID.Builder()
+            .setTolerance(1)
+            .setKP(() -> wristKP)
+            .setKI(() -> wristKI)
+            .setKD(() -> wristKD)
+            .setKF(() -> wristKF)
+            .build();
 
     public int wristTarget;
 
@@ -71,10 +76,6 @@ public class Collector {
         }
         return timer.milliseconds();
     }
-
-
-    //grip
-
 
     public void setWristPower(double wristPower) {
         this.wristPower = wristPower;
@@ -221,8 +222,6 @@ public class Collector {
             KF = wristKF * Math.sin(Math.toRadians(getWristAngle() + arm.getAngle())) * wristKCOS;
         }
 
-        PID.constants.set(wristKP, wristKI, wristKD, KF, wristMaxI);
-
         PID.setDirection(Direction.REVERSE);
 
         switch (wristMode) {
@@ -233,13 +232,13 @@ public class Collector {
                 wristMotor.setPower(wristPower);
                 break;
             case STAY_PARALLEL:
-                wristMotor.setPower(PID.calc(getWristAngle() - (90 - arm.getAngle())));
+                wristMotor.setPower(PID.calc(90 - arm.getAngle(), getWristAngle()));
                 break;
             case STAY_PERPENDICULAR:
-                wristMotor.setPower(PID.calc(getWristAngle() - (arm.getAngle() - 90)));
+                wristMotor.setPower(PID.calc(arm.getAngle() - 90, getWristAngle()));
                 break;
             case MOVE_TO_TARGET:
-                wristMotor.setPower(PID.calc(getWristAngle() - wristTarget));
+                wristMotor.setPower(PID.calc(wristTarget, getWristAngle()));
                 break;
         }
     }

@@ -12,9 +12,8 @@ import org.firstinspires.ftc.teamcode.hardware.Hardware;
 import org.firstinspires.ftc.teamcode.hardware.SmartEncoder;
 import org.firstinspires.ftc.teamcode.hardware.SmartMotor;
 import org.firstinspires.ftc.teamcode.hardware.SmartTouchSensor;
-import org.firstinspires.ftc.teamcode.hardware.controllers.BidirectionalPID;
-import org.firstinspires.ftc.teamcode.hardware.controllers.PIDFConstants;
-import org.firstinspires.ftc.teamcode.drive.roadrunner.util.Encoder;
+import org.firstinspires.ftc.teamcode.hardware.controllers.DirectionalPID;
+import org.firstinspires.ftc.teamcode.hardware.controllers.GravityPID;
 
 import java.util.function.Consumer;
 
@@ -38,22 +37,35 @@ public class Arm {
     public static double COLLECTION_ANGLE = 0.0;
     public static double SPECIMEN_ANGLE = 55;
 
-    public static double downwardKP = 0.000375, downwardKI = 0, downwardKD = 0.05, downwardKF = -0.175, downwardMaxI = 0;
-    public static double upwardKP = 0.025, upwardKI = 0, upwardKD = 0.15, upwardKF = 0.325, upwardMaxI = 0;
-    public static double extensionKP = 0.2, extensionKI, extensionKD, extensionKF = 0.15, extensionMaxI;
-    public static double retractionKP = 0.1, retractionKI, retractionKD, retractionKF = -0.5, retractionMaxI;
+    public static double angleKP = 0.025, angleKI = 0, angleKD = 0.15, angleKF = 0.325, angleKG = 0;
+    public static double extensionKP = 0.2, extensionKI, extensionKD, extensionKF = 0.15;
+    public static double retractionKP = 0.2, retractionKI, retractionKD, retractionKF = 0.45;
 
-    private final BidirectionalPID anglePid = new BidirectionalPID(
-            PIDFConstants.of(upwardKP, upwardKI, upwardKD, upwardKF, upwardMaxI),
-            PIDFConstants.of(downwardKP, downwardKI, downwardKD, downwardKF, downwardMaxI),
-            0.75
-    );
+    private final GravityPID anglePid = new GravityPID.Builder()
+            .setGravityFunction((g, actual) -> g * Math.sin(Math.toRadians(getAngle())) * (19 + getExtension()))
 
-    private final BidirectionalPID extensionPid = new BidirectionalPID(
-            PIDFConstants.of(extensionKP, extensionKI, extensionKD, extensionKF, extensionMaxI),
-            PIDFConstants.of(retractionKP, retractionKI, retractionKD, retractionKF, retractionMaxI),
-            0.4
-    );
+            .p(() -> angleKP)
+            .i(() -> angleKI)
+            .d(() -> angleKD)
+            .f(() -> angleKF)
+            .g(() -> angleKG)
+
+            .tolerance(0.75)
+            .build();
+
+    private final DirectionalPID extensionPid = new DirectionalPID.Builder()
+            .forwardKP(() -> extensionKP)
+            .forwardKI(() -> extensionKI)
+            .forwardKD(() -> extensionKD)
+            .forwardKF(() -> extensionKF)
+
+            .reverseKP(() -> retractionKP)
+            .reverseKI(() -> retractionKI)
+            .reverseKD(() -> retractionKD)
+            .reverseKF(() -> retractionKF)
+
+            .tolerance(0.75)
+            .build();
     //</editor-fold>
 
     private final SmartMotor angleMotorRight;
@@ -301,10 +313,7 @@ public class Arm {
 
     private double lastAnglePower;
     private double getAnglePower(){
-        anglePid.reverseSet.set(downwardKP, downwardKI, downwardKD,downwardKF, downwardMaxI);
-        anglePid.forwardSet.set(upwardKP, upwardKI, upwardKD, upwardKF, upwardMaxI);
-
-        lastAnglePower = anglePid.calc(targetAngle - getAngle());
+        lastAnglePower = anglePid.calc(targetAngle, getAngle());
 
         return lastAnglePower;
     }
@@ -315,10 +324,7 @@ public class Arm {
 
     double lastExtensionPower;
     private double getExtensionPower(){
-        extensionPid.forwardSet.set(extensionKP, extensionKI, extensionKD, extensionKF, extensionMaxI);
-        extensionPid.reverseSet.set(retractionKP, retractionKI, retractionKD, retractionKF, retractionMaxI);
-
-        lastExtensionPower = extensionPid.calc(targetExtension - getExtension());
+        lastExtensionPower = extensionPid.calc(targetExtension, getExtension());
 
         return lastExtensionPower;
     }
@@ -360,6 +366,7 @@ public class Arm {
             return false;
 
         targetExtension = inches;
+
         return true;
     }
 }

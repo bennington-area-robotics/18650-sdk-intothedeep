@@ -50,7 +50,7 @@ public class PrettyTelemetry {
 
         if(dashTelemetry != null){
             for (int i = 0; i < dashValueCaptions.size(); i++) {
-                dashTelemetry.addData(dashValueCaptions.get(i), dashValueProducers.get(i));
+                dashTelemetry.addData(dashValueCaptions.get(i), dashValueProducers.get(i).value());
             }
 
             dashTelemetry.update();

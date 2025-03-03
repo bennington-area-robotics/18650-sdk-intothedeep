@@ -5,12 +5,15 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Gamepad;
 
 import org.firstinspires.ftc.teamcode.core.TeleOpCore;
+import org.firstinspires.ftc.teamcode.utilities.PersistentStorage;
 
 @Config
 @TeleOp(name="Arm Tuner")
 public class ArmTuner extends TeleOpCore {
     public static double targetAngle = 0;
     public static double targetExtension = 0;
+    private int storedIndex = 0;
+
     /**
      * Check for button updates on all controllers.
      *
@@ -34,5 +37,21 @@ public class ArmTuner extends TeleOpCore {
         }
 
         arm.setTargetAngle(targetAngle);
+
+        if(gamepad1.x && !lastGamepad1.x){
+            storedIndex = PersistentStorage.getInt("temp1821", 0);
+            PersistentStorage.saveInt("temp1821", storedIndex + 1);
+        }
+
+        if(gamepad1.y && !lastGamepad1.y){
+            PersistentStorage.clear();
+        }
+    }
+
+    @Override
+    protected void configureTelemetry() {
+        super.configureTelemetry();
+        prettyTelem.addDataToDashboard("Arm Angle", arm::getAngle);
+        prettyTelem.addDataToDashboard("temp1821", () -> storedIndex);
     }
 }
