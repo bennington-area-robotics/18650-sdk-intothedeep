@@ -288,6 +288,10 @@ public class Arm {
         }
     }
 
+    public double getAnglePower(){
+        return anglePid.result();
+    }
+
     int tickCount = 0;
 
     /**
@@ -299,27 +303,12 @@ public class Arm {
         if(tiltLimitSensor.isPressed())
             resetAngle();
 
-        //update the caches
-        getAngle();
-        getExtension();
-
         if(runningMacro != null && tickCount % 5 == 0){
             runningMacro.accept(this);
         }
 
         tickPIDF();
         tickCount++;
-    }
-
-    private double lastAnglePower;
-    private double getAnglePower(){
-        lastAnglePower = anglePid.calc(targetAngle, getAngle());
-
-        return lastAnglePower;
-    }
-
-    public double getLastAnglePower(){
-        return lastAnglePower;
     }
 
     double lastExtensionPower;
@@ -337,10 +326,10 @@ public class Arm {
      * Runs a cycle on the PIDF control loop for the arm.
      */
     private void tickPIDF(){
-        double anglePower = getAnglePower();
+        anglePid.calc(targetAngle, getAngle());
 
-        angleMotorRight.setPower(anglePower);
-        angleMotorLeft.setPower(anglePower);
+        angleMotorRight.setPower(anglePid.result());
+        angleMotorLeft.setPower(anglePid.result());
 
         extensionMotor.setPower(getExtensionPower());
     }

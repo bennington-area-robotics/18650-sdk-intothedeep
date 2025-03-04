@@ -135,8 +135,8 @@ public abstract class OpModeCore extends LinearOpMode{
                 .addData("Target Angle", () -> arm.getTargetAngle())
                 .addData("Current Extension", () -> arm.getExtension())
                 .addData("Target Extension", () -> arm.getTargetExtension())
-                .addData("Last Angle Power", () -> arm.getLastAnglePower())
-                .addData("Last Extension Power", () -> arm.getLastExtensionPower())
+                .addData("Tilt Power", () -> arm.getAnglePower())
+                .addData("Extension Power", () -> arm.getLastExtensionPower())
                 .addData("Tilt Limit Sensor Pressed?", () -> arm.tiltLimitSensor.isPressed())
                 .addData("Extension Limit Sensor Pressed?", () -> arm.extensionLimitSensor.isPressed());
 
