@@ -12,7 +12,7 @@ import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 @Config
-public class SmartColorSensor implements NormalizedColorSensor, Caching {
+public class SmartColorSensor extends Device implements NormalizedColorSensor, Caching {
     //configuration
     public static float HUE_THRESHOLD = 20.0f;
     public static float RED_HUE = 25.0f;
@@ -27,7 +27,8 @@ public class SmartColorSensor implements NormalizedColorSensor, Caching {
 
     HardwareCache<NormalizedRGBA> colorCache;
 
-    SmartColorSensor(NormalizedColorSensor colorSensor) {
+    SmartColorSensor(NormalizedColorSensor colorSensor, String configName) {
+        super(configName);
         this.colorSensor = colorSensor;
         colorCache = new HardwareCache<>(colorSensor::getNormalizedColors);
         colorSensor.setGain(GAIN);

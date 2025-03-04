@@ -2,32 +2,34 @@ package org.firstinspires.ftc.teamcode.hardware;
 
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import org.firstinspires.ftc.teamcode.drive.roadrunner.util.Encoder;
+import org.firstinspires.ftc.teamcode.utilities.PersistentStorage;
 
 /**
  * SmartEncoder is a wrapper around either a RoadRunner Encoder or a DcMotorEx encoder,
  * providing caching and additional functionality like resetting offsets and direction control.
  */
-public class SmartEncoder implements Caching {
+public class SmartEncoder extends Device implements Caching {
     private final HardwareCache<Integer> positionCache;
     private final HardwareCache<Double> velocityCache;
-    private int tickOffsetToZero = 0;
-
-    private Encoder rrEncoder;
+    private final Encoder rrEncoder;
     private final boolean usesRRBase;
+    private final String storageKey;
 
+    private int tickOffsetToZero;
     private Direction direction = Direction.FORWARD;
-
-    // TODO: Save tick offset persistently
 
     /**
      * Constructs a SmartEncoder that directly reads from a DcMotorEx encoder.
      *
      * @param motor The motor with an internal encoder.
      */
-    SmartEncoder(DcMotorEx motor) {
+    SmartEncoder(DcMotorEx motor, String name) {
+        super(name);
+        this.rrEncoder = null;
         this.positionCache = new HardwareCache<>(motor::getCurrentPosition);
         this.velocityCache = new HardwareCache<>(motor::getVelocity);
         this.usesRRBase = false;
+        this.storageKey = "encoder_angle_offset(" + name + ")";
     }
 
     /**
@@ -35,12 +37,15 @@ public class SmartEncoder implements Caching {
      *
      * @param rrEncoder The RoadRunner Encoder instance.
      */
-    SmartEncoder(Encoder rrEncoder) {
+    SmartEncoder(Encoder rrEncoder, String name) {
+        super(name);
         this.rrEncoder = rrEncoder;
         this.direction = Direction.of(rrEncoder.getDirection());
         this.positionCache = new HardwareCache<>(this.rrEncoder::getCurrentPosition);
         this.velocityCache = new HardwareCache<>(this.rrEncoder::getCorrectedVelocity);
         this.usesRRBase = true;
+        this.storageKey = "encoder_angle_offset(" + name + ")";
+        this.tickOffsetToZero = PersistentStorage.getInt(storageKey, 0);
     }
 
     /**
@@ -109,10 +114,12 @@ public class SmartEncoder implements Caching {
      */
     public void reset() {
         tickOffsetToZero = positionCache.read();
+        PersistentStorage.saveInt(storageKey, tickOffsetToZero);
     }
 
     public void resetAs(int position) {
         tickOffsetToZero = positionCache.read() - position;
+        PersistentStorage.saveInt(storageKey, tickOffsetToZero);
     }
 
     /**

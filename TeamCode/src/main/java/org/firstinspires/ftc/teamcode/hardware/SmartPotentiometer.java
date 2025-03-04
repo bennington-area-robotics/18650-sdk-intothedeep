@@ -4,14 +4,15 @@ import com.qualcomm.robotcore.hardware.AnalogInput;
 import org.firstinspires.ftc.teamcode.utilities.PersistentStorage;
 
 /**
- * A class that represents a potentiometer (variable resistor) with intelligent zeroing and persistent storage.
+ * A class that converts an analog signal into a potentiometer based absolute encoder with intelligent zeroing, caching, and persistent storage.
  * This class allows reading angular positions, adjusting offsets, and saving calibration values for future use.
  */
-public class SmartPotentiometer {
+public class SmartPotentiometer extends Device implements Caching{
 	private final AnalogInput input;
 	private final double maxAngle, maxVoltage, voltsPerDegree;
 	private final String storageKey;
 	private double offsetToZero;
+	private final HardwareCache<Double> rawAngleCache;
 
 	/**
 	 * Constructs a `SmartPotentiometer` instance with the given parameters.
@@ -22,12 +23,14 @@ public class SmartPotentiometer {
 	 * @param maxVoltage The maximum voltage output of the potentiometer at its highest position.
 	 */
 	SmartPotentiometer(AnalogInput input, String name, double maxAngle, double maxVoltage) {
+		super(name);
 		this.input = input;
 		this.maxAngle = maxAngle;
 		this.maxVoltage = maxVoltage;
 		this.voltsPerDegree = maxVoltage / maxAngle;
 		this.storageKey = "potentiometer_angle_offset(" + name + ")";
 		this.offsetToZero = PersistentStorage.getDouble(storageKey, 0);
+		this.rawAngleCache = new HardwareCache<>(() -> input.getVoltage() / voltsPerDegree);
 	}
 
 	/**
@@ -46,7 +49,7 @@ public class SmartPotentiometer {
 	 * @return The raw angular position in degrees.
 	 */
 	public double getRawAngle() {
-		return input.getVoltage() / voltsPerDegree;
+		return rawAngleCache.read();
 	}
 
 	/**
@@ -84,5 +87,29 @@ public class SmartPotentiometer {
 		return angle == maxAngle ? 0 : angle;
 	}
 
-	//todo make an angle utility to handle this ^ for us.
+	/**
+	 *
+	 */
+	@Override
+	public void invalidateCache(){
+		rawAngleCache.invalidateCache();
+	}
+
+	/**
+	 *
+	 */
+	@Override
+	public void updateCache(){
+		rawAngleCache.updateCache();
+	}
+
+	@Override
+	public void setStrategy(CachingStrategy strategy){
+		rawAngleCache.setStrategy(strategy);
+	}
+
+	@Override
+	public CachingStrategy getStrategy(){
+		return rawAngleCache.getStrategy();
+	}
 }

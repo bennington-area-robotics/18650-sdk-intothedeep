@@ -17,7 +17,7 @@ import org.firstinspires.ftc.robotcore.internal.camera.delegating.SwitchableCame
 import org.firstinspires.ftc.robotcore.internal.system.Deadline;
 import org.firstinspires.ftc.teamcode.utilities.Pose;
 
-public class SmartCamera implements CameraName {
+public class SmartCamera extends Device implements CameraName {
     private final CameraName cameraName;
     private final String name;
     private final Pose pose;
@@ -30,6 +30,7 @@ public class SmartCamera implements CameraName {
      * @param pose pose of the camera relative to the robot. The pitch is adjusted -90 degrees for the processor.
      */
     SmartCamera(CameraName cameraName, String name, Pose pose){
+        super(name);
         this.cameraName = cameraName;
         this.name = cameraName.toString();
         this.pose = pose.plusPitch(-90);

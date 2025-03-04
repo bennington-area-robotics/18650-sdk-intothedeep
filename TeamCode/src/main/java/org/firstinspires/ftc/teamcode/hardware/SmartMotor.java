@@ -13,26 +13,26 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.teamcode.drive.roadrunner.util.Encoder;
 
-public class SmartMotor implements DcMotorEx, Caching {
-    //todo: motor cluster - control multiple motors at once, handle using the same PID, and direction differences
-    //todo: report the motor current draw for some things
+public class SmartMotor extends Device implements DcMotorEx, Caching {
 
     private final DcMotorEx motor;
 
-    SmartEncoder encoder;
+    private final SmartEncoder encoder;
 
-    SmartMotor(DcMotorEx motor){
+    SmartMotor(DcMotorEx motor, String name){
+        super(name);
         this.motor = motor;
-        this.encoder = new SmartEncoder(motor);
+        this.encoder = new SmartEncoder(motor, name);
     }
 
-    SmartMotor(DcMotorEx motor, boolean hasExternalEncoder){
+    SmartMotor(DcMotorEx motor, String name, boolean hasExternalEncoder){
+        super(name);
         if(hasExternalEncoder){
             this.motor = motor;
-            this.encoder = new SmartEncoder(new Encoder(motor));
+            this.encoder = new SmartEncoder(new Encoder(motor), name);
         } else {
             this.motor = motor;
-            this.encoder = new SmartEncoder(motor);
+            this.encoder = new SmartEncoder(motor, name);
         }
     }
 

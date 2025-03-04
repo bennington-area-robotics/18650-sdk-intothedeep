@@ -3,12 +3,13 @@ package org.firstinspires.ftc.teamcode.hardware;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.ServoController;
 
-public class SmartServo implements Servo, Caching {
+public class SmartServo extends Device implements Servo, Caching {
     private final Servo baseServo;
 
     HardwareCache<Double> positionCache;
 
-    SmartServo(Servo baseServo){
+    SmartServo(Servo baseServo, String configName){
+        super(configName);
         this.baseServo = baseServo;
         positionCache = new HardwareCache<>(baseServo::getPosition);
     }

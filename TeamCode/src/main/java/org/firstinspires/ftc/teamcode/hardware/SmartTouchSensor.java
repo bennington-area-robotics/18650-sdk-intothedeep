@@ -2,16 +2,18 @@ package org.firstinspires.ftc.teamcode.hardware;
 
 import com.qualcomm.robotcore.hardware.TouchSensor;
 
-public class SmartTouchSensor implements TouchSensor, Caching {
+public class SmartTouchSensor extends Device implements TouchSensor, Caching {
 
     private final TouchSensor touchSensor;
 
-    HardwareCache<Boolean> pressingCache;
-    HardwareCache<Double> valueCache;
+    private final HardwareCache<Boolean> pressingCache;
+    private final HardwareCache<Double> valueCache;
 
-    SmartTouchSensor(TouchSensor touchSensor){
+    SmartTouchSensor(TouchSensor touchSensor, String configName){
+        super(configName);
         this.touchSensor = touchSensor;
         pressingCache = new HardwareCache<>(touchSensor::isPressed);
+        valueCache = new HardwareCache<>(touchSensor::getValue);
     }
 
     /**
@@ -22,7 +24,7 @@ public class SmartTouchSensor implements TouchSensor, Caching {
      */
     @Override
     public double getValue() {
-        return touchSensor.getValue();
+        return valueCache.read();
     }
 
     /**
@@ -100,6 +102,7 @@ public class SmartTouchSensor implements TouchSensor, Caching {
     @Override
     public void invalidateCache() {
         pressingCache.invalidateCache();
+        valueCache.invalidateCache();
     }
 
     /**
@@ -108,20 +111,15 @@ public class SmartTouchSensor implements TouchSensor, Caching {
     @Override
     public void updateCache() {
         pressingCache.updateCache();
+        valueCache.updateCache();
     }
 
-    /**
-     * @param strategy
-     */
     @Override
     public void setStrategy(CachingStrategy strategy) {
         pressingCache.setStrategy(strategy);
         valueCache.setStrategy(strategy);
     }
 
-    /**
-     * @return
-     */
     @Override
     public CachingStrategy getStrategy() {
         return pressingCache.getStrategy();

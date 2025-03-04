@@ -1,8 +1,8 @@
 package org.firstinspires.ftc.teamcode.hardware;
 
 import com.qualcomm.hardware.lynx.LynxModule;
+import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.HardwareDevice;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -15,12 +15,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+/** @noinspection MismatchedQueryAndUpdateOfCollection*/
 public class Hardware {
     private static final List<SmartCamera> cameras = new ArrayList<>();
     private static final List<SmartMotor> motors = new ArrayList<>();
     private static final List<SmartColorSensor> colorSensors = new ArrayList<>();
     private static final List<SmartTouchSensor> touchSensors = new ArrayList<>();
     private static final List<SmartServo> servos = new ArrayList<>();
+    private static final List<SmartPotentiometer> potentiometers = new ArrayList<>();
+    private static final List<Device> devices = new ArrayList<>();
     private static final List<Caching> caches = new ArrayList<>();
 
     private static HardwareMap hardwareMap;
@@ -42,12 +45,14 @@ public class Hardware {
 
     public static SmartCamera getCamera(String name, Pose pose){
         assertInitialized();
-        Optional<SmartCamera> hardwareOptional = cameras.stream().filter(camera -> camera.getName().equals(name)).findAny();
+
+        Optional<Device> hardwareOptional = getDevice(name);
         if (hardwareOptional.isPresent())
-            return hardwareOptional.get();
+            return (SmartCamera) hardwareOptional.get();
 
         SmartCamera camera = new SmartCamera(hardwareMap.get(CameraName.class, name), name, pose);
         cameras.add(camera);
+        devices.add(camera);
         return camera;
     }
 
@@ -69,24 +74,28 @@ public class Hardware {
      */
     public static SmartMotor getMotor(String name, boolean hasExternalEncoder) {
         assertInitialized();
-        Optional<?> hardwareOptional = getHardwareOptional(motors, name);
+
+        Optional<Device> hardwareOptional = getDevice(name);
         if (hardwareOptional.isPresent())
             return (SmartMotor) hardwareOptional.get();
 
-        SmartMotor smartMotor = new SmartMotor(hardwareMap.get(DcMotorEx.class, name), hasExternalEncoder);
+        SmartMotor smartMotor = new SmartMotor(hardwareMap.get(DcMotorEx.class, name), name, hasExternalEncoder);
         motors.add(smartMotor);
+        devices.add(smartMotor);
         caches.add(smartMotor);
         return smartMotor;
     }
 
     public static SmartColorSensor getColorSensor(String name) {
         assertInitialized();
-        Optional<?> hardwareOptional = getHardwareOptional(colorSensors, name);
-        if(hardwareOptional.isPresent())
+
+        Optional<Device> hardwareOptional = getDevice(name);
+        if (hardwareOptional.isPresent())
             return (SmartColorSensor) hardwareOptional.get();
         
-        SmartColorSensor smartColorSensor =  new SmartColorSensor(hardwareMap.get(NormalizedColorSensor.class, name));
+        SmartColorSensor smartColorSensor =  new SmartColorSensor(hardwareMap.get(NormalizedColorSensor.class, name), name);
         colorSensors.add(smartColorSensor);
+        devices.add(smartColorSensor);
         caches.add(smartColorSensor);
         return smartColorSensor;
     }
@@ -94,26 +103,44 @@ public class Hardware {
     public static SmartServo getServo(String name){
         assertInitialized();
 
-        Optional<?> hardwareOptional = getHardwareOptional(servos, name);
-        if(hardwareOptional.isPresent())
+        Optional<Device> hardwareOptional = getDevice(name);
+        if (hardwareOptional.isPresent())
             return (SmartServo) hardwareOptional.get();
 
-        SmartServo servo = new SmartServo(hardwareMap.get(Servo.class, name));
+        SmartServo servo = new SmartServo(hardwareMap.get(Servo.class, name), name);
         servos.add(servo);
+        devices.add(servo);
         caches.add(servo);
         return servo;
     }
 
     public static SmartTouchSensor getTouchSensor(String name){
         assertInitialized();
-        Optional<?> hardwareOptional = getHardwareOptional(touchSensors, name);
-        if(hardwareOptional.isPresent())
+
+        Optional<Device> hardwareOptional = getDevice(name);
+        if (hardwareOptional.isPresent())
             return (SmartTouchSensor) hardwareOptional.get();
 
-        SmartTouchSensor smartTouchSensor = new SmartTouchSensor(hardwareMap.get(TouchSensor.class, name));
+        SmartTouchSensor smartTouchSensor = new SmartTouchSensor(hardwareMap.get(TouchSensor.class, name), name);
         touchSensors.add(smartTouchSensor);
+        devices.add(smartTouchSensor);
         caches.add(smartTouchSensor);
         return smartTouchSensor;
+    }
+
+    public static SmartPotentiometer getPotentiometer(String name, double maxAngle, double maxVoltage){
+        assertInitialized();
+
+        Optional<Device> hardwareOptional = getDevice(name);
+        if (hardwareOptional.isPresent())
+            return (SmartPotentiometer) hardwareOptional.get();
+
+        AnalogInput input = hardwareMap.get(AnalogInput.class, name);
+        SmartPotentiometer potentiometer = new SmartPotentiometer(input, name, maxAngle, maxVoltage);
+        potentiometers.add(potentiometer);
+        devices.add(potentiometer);
+        caches.add(potentiometer);
+        return potentiometer;
     }
 
     /**
@@ -141,7 +168,7 @@ public class Hardware {
             throw new HardwareMapNotInitializedException();
     }
 
-    private static Optional<? extends HardwareDevice> getHardwareOptional(List<? extends HardwareDevice> list, String name){
-        return list.stream().filter(colorSensor -> colorSensor.getDeviceName().equals(name)).findAny();
+    private static Optional<Device> getDevice(String configName){
+        return devices.stream().filter(device -> device.configName.equals(configName)).findFirst();
     }
 }
