@@ -111,6 +111,10 @@ public class SmartEncoder implements Caching {
         tickOffsetToZero = positionCache.read();
     }
 
+    public void resetAs(int position) {
+        tickOffsetToZero = positionCache.read() - position;
+    }
+
     /**
      * Sets the direction of the encoder.
      *

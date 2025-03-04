@@ -2,9 +2,10 @@ package org.firstinspires.ftc.teamcode.utilities;
 
 import com.acmerobotics.dashboard.config.Config;
 
-import org.firstinspires.ftc.teamcode.components.Arm;
 import org.firstinspires.ftc.teamcode.components.Collector;
 import org.firstinspires.ftc.teamcode.components.DriveBase;
+import org.firstinspires.ftc.teamcode.components.TelescopingArm;
+import org.firstinspires.ftc.teamcode.components.TiltBase;
 
 @Config
 public class GameState {
@@ -22,16 +23,19 @@ public class GameState {
 
 
     private final DriveBase driveBase;
-    private final Arm arm;
     private final Collector collector;
     private Runnable tickRunnable;
 
+    private final TiltBase tiltBase;
+    private final TelescopingArm telescopingArm;
+
     private Stage currentStage;
 
-    public GameState(DriveBase driveBase, Arm arm, Collector collector) {
+    public GameState(DriveBase driveBase, TiltBase tiltBase, TelescopingArm telescopingArm, Collector collector) {
         this.driveBase = driveBase;
-        this.arm = arm;
         this.collector = collector;
+        this.tiltBase = tiltBase;
+        this.telescopingArm = telescopingArm;
     }
 
     public Stage findCurrentStage(){
@@ -117,19 +121,19 @@ public class GameState {
     }
 
     private boolean armExtended(){
-        return errorTolerable(arm.getExtension(), 38, 3);
+        return errorTolerable(telescopingArm.getExtension(), 38, 3);
     }
 
     private boolean armRetracted(){
-        return errorTolerable(arm.getExtension(), 0, 3);
+        return errorTolerable(telescopingArm.getExtension(), 0, 3);
     }
 
     private boolean armVertical(){
-        return errorTolerable(arm.getAngle(), 90, 5);
+        return errorTolerable(tiltBase.getAngle(), 90, 5);
     }
 
     private boolean armHorizontal(){
-        return errorTolerable(arm.getAngle(), 0, 5);
+        return errorTolerable(tiltBase.getAngle(), 0, 5);
     }
 
     private boolean atBasket(){

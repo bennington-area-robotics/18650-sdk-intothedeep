@@ -1,17 +1,27 @@
 package org.firstinspires.ftc.teamcode.hardware;
 
 import com.qualcomm.robotcore.hardware.AnalogInput;
-
 import org.firstinspires.ftc.teamcode.utilities.PersistentStorage;
 
+/**
+ * A class that represents a potentiometer (variable resistor) with intelligent zeroing and persistent storage.
+ * This class allows reading angular positions, adjusting offsets, and saving calibration values for future use.
+ */
 public class SmartPotentiometer {
 	private final AnalogInput input;
 	private final double maxAngle, maxVoltage, voltsPerDegree;
 	private final String storageKey;
-
 	private double offsetToZero;
 
-	SmartPotentiometer(AnalogInput input, String name, double maxAngle, double maxVoltage){
+	/**
+	 * Constructs a `SmartPotentiometer` instance with the given parameters.
+	 *
+	 * @param input      The `AnalogInput` representing the potentiometer's analog sensor.
+	 * @param name       The unique name used for persistent storage of the offset value.
+	 * @param maxAngle   The maximum angle (in degrees) the potentiometer can measure.
+	 * @param maxVoltage The maximum voltage output of the potentiometer at its highest position.
+	 */
+	SmartPotentiometer(AnalogInput input, String name, double maxAngle, double maxVoltage) {
 		this.input = input;
 		this.maxAngle = maxAngle;
 		this.maxVoltage = maxVoltage;
@@ -20,26 +30,59 @@ public class SmartPotentiometer {
 		this.offsetToZero = PersistentStorage.getDouble(storageKey, 0);
 	}
 
-	public double getAngle(){
-		return normalizeDegrees(getRawAngle() + offsetToZero);
+	/**
+	 * Gets the current angle of the potentiometer, adjusted for the stored offset.
+	 *
+	 * @return The adjusted angular position in degrees.
+	 */
+	public double getAngle() {
+		return normalizeAngle(getRawAngle() + offsetToZero, maxAngle);
 	}
 
-	public double getRawAngle(){
+	/**
+	 * Gets the raw angle of the potentiometer without applying any offset.
+	 * This is calculated based on the sensor's voltage and the conversion factor.
+	 *
+	 * @return The raw angular position in degrees.
+	 */
+	public double getRawAngle() {
 		return input.getVoltage() / voltsPerDegree;
 	}
 
-	public void reset(){
+	/**
+	 * Resets the potentiometer's zero position to the current raw angle.
+	 * This effectively sets the current position as the new zero and saves the offset persistently.
+	 */
+	public void reset() {
 		offsetToZero = -getRawAngle();
 		PersistentStorage.saveDouble(storageKey, offsetToZero);
 	}
 
-	private double normalizeDegrees(double angle){
-		if(angle > 0 && angle <= 360){
-			return angle;
-		}else if(angle < 0){
-			return normalizeDegrees(angle + 360);
-		}else {
-			return angle % 360;
-		}
+	/**
+	 * Removes any previous offset of the angle.
+	 */
+	public void clearOffset() {
+		offsetToZero = 0;
+		PersistentStorage.saveDouble(storageKey, offsetToZero);
 	}
+
+	/**
+	 * Normalizes an angle to be within the range [0, maxAngle].
+	 * Ensures that negative angles wrap around and large angles are reduced within bounds.
+	 *
+	 * @param angle    The angle to be normalized.
+	 * @param maxAngle The maximum allowable angle before wrapping occurs.
+	 * @return The normalized angle within the range [0, maxAngle). Returns in the units of angle & maxAngle.
+	 */
+	private static double normalizeAngle(double angle, double maxAngle) {
+		angle %= maxAngle;
+
+		if (angle < 0) {
+			angle += maxAngle;
+		}
+
+		return angle == maxAngle ? 0 : angle;
+	}
+
+	//todo make an angle utility to handle this ^ for us.
 }

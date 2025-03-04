@@ -2,40 +2,32 @@ package org.firstinspires.ftc.teamcode.components;
 
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.hardware.Hardware;
 import org.firstinspires.ftc.teamcode.hardware.ScoringElementColor;
 import org.firstinspires.ftc.teamcode.hardware.SmartColorSensor;
+import org.firstinspires.ftc.teamcode.hardware.SmartEncoder;
 import org.firstinspires.ftc.teamcode.hardware.SmartMotor;
 import org.firstinspires.ftc.teamcode.hardware.SmartServo;
-import org.firstinspires.ftc.teamcode.hardware.controllers.PID;
+import org.firstinspires.ftc.teamcode.hardware.controllers.GravityPID;
 import org.firstinspires.ftc.teamcode.hardware.Direction;
-import org.firstinspires.ftc.teamcode.drive.roadrunner.util.Encoder;
 
 @Config
 public class Collector {
+    //todo similar to arm, split this into wrist, tilt wrist, and grip
 
     //config
     public static float WRIST_TICKS_PER_DEGREE = 8192f/360f;
     public static float OPEN_POSITION = 0.4f, CLOSED_POSITION = 0; //grip
     public static int UP_POSITION = 90, DOWN_POSITION = -20; //wrist
     public static float LENGTH = 5f;
-    public static double wristKP = 0.009, wristKI, wristKD = 0.02, wristKF = -0.035, wristMaxI, wristKCOS =6;
-    public static double wristOffset = 0;
+    public static double wristKP = 0.009, wristKI, wristKD = 0.02, wristKF = -0.035, wristKG = 0;
 
     double KF = wristKF;
-    private final Encoder wristEncoder;
+    private final SmartEncoder wristEncoder;
 
-    PID PID = new PID.Builder()
-            .setTolerance(1)
-            .setKP(() -> wristKP)
-            .setKI(() -> wristKI)
-            .setKD(() -> wristKD)
-            .setKF(() -> wristKF)
-            .build();
+    GravityPID PID;
 
     public int wristTarget;
 
@@ -43,24 +35,35 @@ public class Collector {
     final SmartServo gripServo;
     private final SmartMotor wristMotor;
     private WristMode wristMode;
-    private final Arm arm;
+    private final TiltBase tiltBase;
     private double wristPower = 0.0;
 
     public enum WristMode {
         MOVE_TO_TARGET, STAY_PARALLEL, STAY_PERPENDICULAR, FLOAT, SET_POWER
     }
 
-    public Collector(Arm arm, HardwareMap hardwareMap, String colorSensorName, String wristMotorName, String gripServoName){
+    public Collector(TiltBase tiltBase, String colorSensorName, String wristMotorName, String gripServoName){
         this.colorSensor = Hardware.getColorSensor(colorSensorName);
         this.gripServo = Hardware.getServo(gripServoName);
-        this.wristMotor = Hardware.getMotor(wristMotorName);
-        this.arm = arm;
-        this.wristEncoder = new Encoder(hardwareMap.get(DcMotorEx.class, wristMotorName));
+        this.wristMotor = Hardware.getMotor(wristMotorName, true);
+        this.tiltBase = tiltBase;
+        this.wristEncoder = wristMotor.getEncoder();
+
+        PID = new GravityPID.Builder()
+                .p(() -> wristKP)
+                .i(() -> wristKI)
+                .d(() -> wristKD)
+                .f(() -> wristKF)
+                .g(() -> wristKG)
+                .setGravityFunction((target, actual) -> Math.sin(Math.toRadians(tiltBase.getAngle() + getWristAngle())))
+                .tolerance(1)
+                .build();
 
         resetPositionAsTop();
         wristMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         wristMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         setWristMode(WristMode.FLOAT);
+
     }
 
     public double moveWristToBlocking(int angle, Runnable runnable){
@@ -163,7 +166,7 @@ public class Collector {
     }
 
     public double getWristAngle(){
-        return (wristEncoder.getCurrentPosition() / WRIST_TICKS_PER_DEGREE) + wristOffset;
+        return (wristEncoder.getPosition() / WRIST_TICKS_PER_DEGREE);
     }
 
     public WristMode getWristMode(){
@@ -179,7 +182,7 @@ public class Collector {
     }
 
     public double getWristVelocity(){
-        return wristEncoder.getCorrectedVelocity() / WRIST_TICKS_PER_DEGREE;
+        return wristEncoder.getVelocity() / WRIST_TICKS_PER_DEGREE;
     }
 
     public int getWristTarget() {
@@ -203,25 +206,10 @@ public class Collector {
     }
 
     public void resetPositionAsTop(){
-        wristMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        wristMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        wristOffset = 130;
-    }
-
-    public void resetPositionAs(double angle){
-        wristMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        wristMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        wristOffset = angle;
+        wristEncoder.resetAs(130);
     }
 
     public void tick(){
-        if (wristTarget < getWristAngle()){
-             KF = wristKF * -1;
-             KF*=0.25;
-        } else {
-            KF = wristKF * Math.sin(Math.toRadians(getWristAngle() + arm.getAngle())) * wristKCOS;
-        }
-
         PID.setDirection(Direction.REVERSE);
 
         switch (wristMode) {
@@ -232,10 +220,10 @@ public class Collector {
                 wristMotor.setPower(wristPower);
                 break;
             case STAY_PARALLEL:
-                wristMotor.setPower(PID.calc(90 - arm.getAngle(), getWristAngle()));
+                wristMotor.setPower(PID.calc(90 - tiltBase.getAngle(), getWristAngle()));
                 break;
             case STAY_PERPENDICULAR:
-                wristMotor.setPower(PID.calc(arm.getAngle() - 90, getWristAngle()));
+                wristMotor.setPower(PID.calc(tiltBase.getAngle() - 90, getWristAngle()));
                 break;
             case MOVE_TO_TARGET:
                 wristMotor.setPower(PID.calc(wristTarget, getWristAngle()));

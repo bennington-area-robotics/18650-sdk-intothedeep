@@ -8,7 +8,7 @@ import org.firstinspires.ftc.teamcode.core.TeleOpCore;
 
 @TeleOp(name = "1 - Main TeleOp")
 public class MainTeleOp extends TeleOpCore {
-    private boolean manualArm = false;
+    private final boolean manualArm = false;
 
     //<editor-fold desc="Config">
     public static float LOW_POWER_MODIFIER = 0.25f;
@@ -48,8 +48,8 @@ public class MainTeleOp extends TeleOpCore {
         }
 
         if(gamepad1.dpad_right && !previousGamepad1.dpad_right) {
-            arm.setTargetAngle(30);
-            arm.setTargetExtension(9.5);
+            tilt.setTargetAngle(30);
+            telescoping.setTargetExtension(9.5);
             collector.setWristMode(Collector.WristMode.MOVE_TO_TARGET);
             collector.wristTo(-34);
         }
@@ -60,16 +60,18 @@ public class MainTeleOp extends TeleOpCore {
         // else bring arm all the way up
         if(gamepad1.dpad_down && !previousGamepad1.dpad_down){
             if(manualArm){
-                arm.setTargetAngle(Math.max(arm.getTargetAngle() - 15, 0));
+                tilt.setTargetAngle(Math.max(tilt.getTargetAngle() - 15, 0));
             }else{
                 collector.wristUp();
-                arm.collectionPosition();
+                telescoping.setTargetExtension(0);
+                tilt.setTargetAngle(0);
+                // STOPSHIP: 3/3/2025 NEEDS A NEW SYSTEM FOR CONTROLLED SET-DOWN
             }
         }else if(gamepad1.dpad_up && !previousGamepad1.dpad_up){
             if(manualArm){
-                arm.setTargetAngle(Math.min(arm.getTargetAngle() + 15, 100));
+                tilt.setTargetAngle(Math.min(tilt.getTargetAngle() + 15, 100));
             }else {
-                if (!arm.setTargetAngle(100))
+                if (!tilt.setTargetAngle(100))
                     this.gamepad1.rumbleBlips(100);
             }
         }
