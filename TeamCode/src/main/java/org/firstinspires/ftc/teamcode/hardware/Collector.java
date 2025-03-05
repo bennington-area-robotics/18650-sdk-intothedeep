@@ -21,10 +21,10 @@ public class Collector {
     public static int UP_POSITION = 90, DOWN_POSITION = 0; //wristMotor
     public static float DEFAULT_POSITION = 1.0f, ROTATED_POSITION = 0.0f;//wristServo
     public static float LENGTH = 5f;
-    public static double upWristKP = 0.009, upWristKI, upWristKD = 0, upWristKF = -0.035, upWristMaxI,  upWristKCOS =6;
+    public static double upWristKP = 0.0075, upWristKI = 0.0001, upWristKD = 0.005, upWristKF = -0.2, upWristMaxI,  upWristKCOS = 1;
     public static double wristOffset = 0;
 
-    public static double downWristKP, downWristKI, downWristKD, downWristKF, downWristMaxI, downWristKCOS;
+    public static double downWristKP = 0.005, downWristKI = 0.001, downWristKD = 0.1, downWristKF, downWristMaxI, downWristKCOS= 1;
 
     double KF = upWristKF;
     private final Encoder wristEncoder;
@@ -258,14 +258,8 @@ public class Collector {
 
         double passedUpKF = upWristKF * Math.sin(Math.toRadians(getWristAngle() + arm.getAngle())) * upWristKCOS;
         double passedDownKF = downWristKF * Math.sin(Math.toRadians(getWristAngle() + arm.getAngle())) * downWristKCOS;
-        if (wristTarget < getWristAngle()){
-            KF = upWristKF * -1;
-            KF*=0.25;
-        } else {
-            KF = upWristKF * Math.sin(Math.toRadians(getWristAngle() + arm.getAngle())) * upWristKCOS;
-        }
 
-        upwardPID.setConstants(upWristKP, upWristKI, upWristKD, KF, upWristMaxI);
+        upwardPID.setConstants(upWristKP, upWristKI, upWristKD, passedUpKF, upWristMaxI);
         downwardPID.setConstants(downWristKP, downWristKI, downWristKD, passedDownKF, downWristMaxI);
 
         upwardPID.setDirection(Direction.REVERSE);
