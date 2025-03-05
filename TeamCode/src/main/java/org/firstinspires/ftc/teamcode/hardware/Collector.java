@@ -17,7 +17,7 @@ public class Collector {
 
     //config
     public static float WRIST_TICKS_PER_DEGREE = 8192f/360f;
-    public static float OPEN_POSITION = 0.9f, CLOSED_POSITION = 0.5f; //grip
+    public static float OPEN_POSITION = 0.5f, CLOSED_POSITION = 0.7f; //grip
     public static int UP_POSITION = 90, DOWN_POSITION = 0; //wristMotor
     public static float DEFAULT_POSITION = 1.0f, ROTATED_POSITION = 0.0f;//wristServo
     public static float LENGTH = 5f;
@@ -258,14 +258,9 @@ public class Collector {
 
         double passedUpKF = upWristKF * Math.sin(Math.toRadians(getWristAngle() + arm.getAngle())) * upWristKCOS;
         double passedDownKF = downWristKF * Math.sin(Math.toRadians(getWristAngle() + arm.getAngle())) * downWristKCOS;
-        if (wristTarget < getWristAngle()){
-            KF = upWristKF * -1;
-            KF*=0.25;
-        } else {
-            KF = upWristKF * Math.sin(Math.toRadians(getWristAngle() + arm.getAngle())) * upWristKCOS;
-        }
 
-        upwardPID.setConstants(upWristKP, upWristKI, upWristKD, KF, upWristMaxI);
+
+        upwardPID.setConstants(upWristKP, upWristKI, upWristKD, passedUpKF, upWristMaxI);
         downwardPID.setConstants(downWristKP, downWristKI, downWristKD, passedDownKF, downWristMaxI);
 
         upwardPID.setDirection(Direction.REVERSE);
@@ -285,12 +280,12 @@ public class Collector {
                 wristMotor.setPower(upwardPID.calc(getWristAngle() - (arm.getAngle() - 90)));
                 break;
             case MOVE_TO_TARGET:
-                /*if(getWristAngle() < wristTarget){
+                if(getWristAngle() < wristTarget){
                     wristMotor.setPower(upwardPID.calc(getWristAngle() - wristTarget));
                 } else if (getWristAngle() > wristTarget){
                     wristMotor.setPower(downwardPID.calc(getWristAngle() - wristTarget));
-                }*/
-                wristMotor.setPower(upwardPID.calc(getWristAngle() - wristTarget));
+                }
+                //wristMotor.setPower(upwardPID.calc(getWristAngle() - wristTarget));
 
                 break;
         }

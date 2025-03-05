@@ -26,6 +26,8 @@ public class Arm {
 
     public static double MAX_HORIZONTAL_EXTENSION = 38.0;
 
+
+    public static double angleTolerance = 0.4;
     public static double DELIVERY_EXTENSION = 38.0;
     public static double DELIVERY_ANGLE = 95.0;
 
@@ -33,14 +35,15 @@ public class Arm {
     public static double COLLECTION_ANGLE = 0.0;
     public static double SPECIMEN_ANGLE = 55;
 
-    public static double downwardKP = 0.02, downwardKI = 0, downwardKD = 0, downwardKF = 0, downwardMaxI = 0;
-    public static double upwardKP = 0.04, upwardKI = 0.001, upwardKD = 0.1, upwardKF = 0.23, upwardMaxI = 0;
+    public static double downwardKP = 0.02, downwardKI = 0, downwardKD = 0.1, downwardKF = 0, downwardMaxI = 0;
+    public static double upwardKP = 0.065, upwardKI = 0.001, upwardKD = 0.1, upwardKF = 0.23, upwardMaxI = 0;
     public static double extensionKP = 0.2, extensionKI, extensionKD, extensionKF = 0.15, extensionMaxI;
     public static double retractionKP = 0.1, retractionKI, retractionKD, retractionKF = -0.5, retractionMaxI;
     public static double rotationKF = 0.25, rotationKCOS = 1;
     public static double downwardKFMultiplier = 0;
     public static double minThreshold = 0.15;
-    public static double verticalKD = 0.1;
+    public static double verticalKD = 0.1, verticalKP = 0.02;
+    public static double KPFactor = 1;
 
     private final PID downwardPID = new PID(downwardKP, downwardKI, downwardKD, downwardKF, downwardMaxI, 0.75);
     private final PID upwardPID = new PID(upwardKP, upwardKI, upwardKD, upwardKF, upwardMaxI, 0.75);
@@ -416,7 +419,10 @@ public class Arm {
         if(runningMacro != null && tickCount % 5 == 0){
             runningMacro.accept(this);
         }
-
+        if(Math.abs(targetAngle - getAngle()) < angleTolerance){
+            angleMotorRight.setPower(0);
+            angleMotorLeft.setPower(0);
+        }
         tickPIDF();
         tickCount++;
     }
@@ -431,12 +437,15 @@ public class Arm {
             }
             else {downwardKF = rotationKF * -1 * Math.cos(Math.toRadians(getAngle()));}*/
             if (targetAngle >= 80) {
-                upwardPID.setConstants(upwardKP,upwardKI, verticalKD, upwardKF, upwardMaxI);
+                upwardPID.setConstants(verticalKP, upwardKI, verticalKD, 0, upwardMaxI);
             } else {
                 upwardPID.setConstants(upwardKP, upwardKI, upwardKD, upwardKF, upwardMaxI);
             }
             downwardPID.setConstants(downwardKP, downwardKI, downwardKD, downwardKF, downwardMaxI);
-
+            double closeKP = upwardKP * KPFactor;
+            if (targetAngle - getAngle() < 1.2){
+                upwardPID.setConstants(closeKP, upwardKI, upwardKD, upwardKF, upwardMaxI);
+            }
 
             if (targetAngle < getAngle()) {
                 lastAnglePower = downwardPID.calc(targetAngle - getAngle());

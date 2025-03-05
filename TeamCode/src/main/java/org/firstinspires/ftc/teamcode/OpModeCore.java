@@ -226,8 +226,8 @@ public class OpModeCore extends LinearOpMode {
 
     public void tick(){
         updateMotorServoCache();
-        //checkGamepad();
-        checkBothGamepads();
+        checkGamepad();
+        //checkBothGamepads();
         checkForScoringElement();
         driveBase.update();
         arm.tick();
@@ -348,8 +348,8 @@ public class OpModeCore extends LinearOpMode {
 
         gamepadTimer.reset();
 
-        //driveBase.moveUsingPower(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x);
-        driveBase.moveWithAcceleration(gamepad2.left_stick_x, gamepad2.left_stick_y, gamepad2.right_stick_x);
+        driveBase.moveUsingPower(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x);
+        //driveBase.moveUsingRR(gamepad2.left_stick_x, gamepad2.left_stick_y, gamepad2.right_stick_x);
         //save the last gamepad state to compare again later
         previousGamepad1.copy(gamepad1);
         previousGamepad2.copy(gamepad2);

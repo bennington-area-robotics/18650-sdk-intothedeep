@@ -11,11 +11,12 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 public class DriveBase extends ConfiguredMecanumDrive {
     public static float TRANSLATIONAL_VELOCITY_MULTIPLIER = 40f;
     public static float HEADING_VELOCITY_MULTIPLIER = 3f;
-
+    public static int inputExponent = 2;
     private double powerFactor = 1;
 
     private boolean lowPowerMode = false;
     public static double lowPowerMax = 0.5;
+    public static double minPowerThreshold = 0.1;
 
     private double lastX = 0;
     private double lastY = 0;
@@ -48,9 +49,9 @@ public class DriveBase extends ConfiguredMecanumDrive {
 
     public void moveWithAcceleration(double targetX, double targetY, double targetTurn) {
         // Apply quadratic scaling to inputs (maintains sign but makes control more precise)
-        targetX = Math.signum(targetX) * Math.pow(Math.abs(targetX), 2);
-        targetY = Math.signum(targetY) * Math.pow(Math.abs(targetY), 2);
-        targetTurn = Math.signum(targetTurn) * Math.pow(Math.abs(targetTurn), 2);
+        targetX = Math.signum(targetX) * Math.pow(Math.abs(targetX), inputExponent);
+        targetY = Math.signum(targetY) * Math.pow(Math.abs(targetY), inputExponent);
+        targetTurn = Math.signum(targetTurn) * Math.pow(Math.abs(targetTurn), inputExponent);
 
         boolean isZeroInputTranslation = Math.abs(targetX) < 0.05 && Math.abs(targetY) < 0.05;
         boolean isZeroInputRotation = Math.abs(targetTurn) < 0.05;
@@ -188,8 +189,13 @@ public class DriveBase extends ConfiguredMecanumDrive {
             leftRear = Math.signum(leftRear) * Math.min(lowPowerMax, Math.abs(leftRear));
             rightRear = Math.signum(rightRear) * Math.min(lowPowerMax, Math.abs(rightRear));
             rightFront = Math.signum(rightFront) * Math.min(lowPowerMax, Math.abs(rightFront));
-
         }
+
+        leftFront = Math.signum(leftFront) * Math.max(minPowerThreshold, Math.abs(leftFront));
+        leftRear = Math.signum(leftRear) * Math.max(minPowerThreshold, Math.abs(leftRear));
+        rightRear = Math.signum(rightRear) * Math.max(minPowerThreshold, Math.abs(rightRear));
+        rightFront = Math.signum(rightFront) * Math.max(minPowerThreshold, Math.abs(rightFront));
+
         setMotorPowers(leftFront, leftRear, rightRear, rightFront);
     }
 
