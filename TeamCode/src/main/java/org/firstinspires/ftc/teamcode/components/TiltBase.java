@@ -9,6 +9,7 @@ import org.firstinspires.ftc.teamcode.hardware.SmartEncoder;
 import org.firstinspires.ftc.teamcode.hardware.SmartMotor;
 import org.firstinspires.ftc.teamcode.hardware.SmartTouchSensor;
 import org.firstinspires.ftc.teamcode.hardware.controllers.GravityPID;
+import org.firstinspires.ftc.teamcode.utilities.Await;
 
 public class TiltBase {
 	//<editor-fold desc="Config">
@@ -16,7 +17,7 @@ public class TiltBase {
 
 	public static double angleKP = 0.025, angleKI = 0, angleKD = 0.15, angleKF = 0.325, angleKG = 0;
 
-	private final GravityPID anglePid;
+	private final GravityPID pid;
 	//</editor-fold>
 
 	private final SmartMotor angleMotorRight;
@@ -56,7 +57,7 @@ public class TiltBase {
 
 		targetAngle = getAngle();
 
-		anglePid = new GravityPID.Builder()
+		pid = new GravityPID.Builder()
 				.setGravityFunction((g, actual) -> g * Math.sin(Math.toRadians(getAngle())) * (19 + telescopingArm.getExtension()))
 
 				.p(() -> angleKP)
@@ -100,22 +101,6 @@ public class TiltBase {
 	}
 
 	/**
-	 * Checks if the passed target angle in inches is valid, then sets the target extension if so.
-	 * A target angle is valid if the arm will not extend past the horizontal extension limit when at that target angle, and the current target extension.
-	 *
-	 * @param degrees the target angle in degrees.
-	 * @return whether the operation was successful (whether it passed the checks).
-	 */
-	private boolean setTargetAngleIgnoreMacro(@FloatRange(from=0, to=100) double degrees){
-		if(isValidAngle(degrees)){
-			targetAngle = degrees;
-			return true;
-		}
-
-		return false;
-	}
-
-	/**
 	 * Sets the current angle as the zero position.
 	 */
 	public void resetAngle(){
@@ -135,17 +120,22 @@ public class TiltBase {
 	}
 
 	public double getPower(){
-		return anglePid.result();
+		return pid.result();
+	}
+
+	public boolean isBusy(){
+		return pid.result() != 0;
 	}
 
 	/**
 	 * Runs a cycle on the PIDF control loop for the arm.
 	 */
 	private void tickPIDF(){
-		anglePid.calc(targetAngle, getAngle());
+		if(pid.result() != 0 && pid.calc(targetAngle, getAngle()) == 0)
+			Await.notifyChange();
 
-		angleMotorRight.setPower(anglePid.result());
-		angleMotorLeft.setPower(anglePid.result());
+		angleMotorRight.setPower(pid.result());
+		angleMotorLeft.setPower(pid.result());
 	}
 
 	public boolean isValidAngle(double degrees){

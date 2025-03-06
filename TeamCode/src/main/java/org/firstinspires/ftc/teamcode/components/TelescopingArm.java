@@ -6,6 +6,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import org.firstinspires.ftc.teamcode.hardware.SmartMotor;
 import org.firstinspires.ftc.teamcode.hardware.SmartTouchSensor;
 import org.firstinspires.ftc.teamcode.hardware.controllers.DirectionalPID;
+import org.firstinspires.ftc.teamcode.utilities.Await;
 
 public class TelescopingArm {
 	//<editor-fold desc="Config">
@@ -18,7 +19,7 @@ public class TelescopingArm {
 	public static double extensionKP = 0.2, extensionKI, extensionKD, extensionKF = 0.15;
 	public static double retractionKP = 0.2, retractionKI, retractionKD, retractionKF = 0.45;
 
-	private final DirectionalPID extensionPid = new DirectionalPID.Builder()
+	private final DirectionalPID pid = new DirectionalPID.Builder()
 			.forwardKP(() -> extensionKP)
 			.forwardKI(() -> extensionKI)
 			.forwardKD(() -> extensionKD)
@@ -115,14 +116,21 @@ public class TelescopingArm {
 	}
 
 	public double getPower(){
-		return extensionPid.result();
+		return pid.result();
+	}
+
+	public boolean isBusy(){
+		return pid.result() != 0;
 	}
 
 	/**
 	 * Runs a cycle on the PIDF control loop for the arm.
 	 */
 	private void tickPIDF(){
-		spool.setPower(extensionPid.calc(targetExtension, getExtension()));
+		if(pid.result() != 0 && pid.calc(targetExtension, getExtension()) == 0)
+			Await.notifyChange();
+
+		spool.setPower(pid.result());
 	}
 
 	public boolean isValidExtension(double inches){

@@ -1,29 +1,26 @@
 package org.firstinspires.ftc.teamcode.core;
 
-import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.hardware.lynx.LynxModule;
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.teamcode.components.ArmController;
 import org.firstinspires.ftc.teamcode.components.TelescopingArm;
 import org.firstinspires.ftc.teamcode.components.TiltBase;
 import org.firstinspires.ftc.teamcode.utilities.GameState;
-import org.firstinspires.ftc.teamcode.utilities.PersistentStorage;
 import org.firstinspires.ftc.teamcode.utilities.PrettyTelemetry;
 import org.firstinspires.ftc.teamcode.vision.MultiAprilTagReader;
 import org.firstinspires.ftc.teamcode.components.Collector;
 import org.firstinspires.ftc.teamcode.components.DriveBase;
 import org.firstinspires.ftc.teamcode.utilities.Pose;
-import org.firstinspires.ftc.teamcode.drive.StandardTrackingWheelLocalizer;
 import org.firstinspires.ftc.teamcode.hardware.Hardware;
 
 import java.util.List;
 import java.util.Locale;
 
 @Config
-public abstract class OpModeCore extends LinearOpMode {
+public abstract class OpModeCore extends BasicOpModeCore {
 
 	//<editor-fold desc="Fields">
 	//components
@@ -34,13 +31,9 @@ public abstract class OpModeCore extends LinearOpMode {
 	protected static TelescopingArm telescoping;
 	protected static TiltBase tilt;
 	protected static GameState gameState;
-	protected ElapsedTime tickTimer, gamepadTimer;
+	protected static ArmController arm;
 	protected List<LynxModule> lynxModules;
-	protected PrettyTelemetry prettyTelem;
-	//protected final FtcDashboard dashboard = FtcDashboard.getInstance();
-
-	protected boolean collectorArmed = false;
-	protected boolean isHighPower = false;
+	protected ElapsedTime tickTimer;
 	//</editor-fold>
 
 	//<editor-fold desc="Instance Getters">
@@ -51,27 +44,12 @@ public abstract class OpModeCore extends LinearOpMode {
 	public static PrettyTelemetry getTelemetry(){
 		return instance.prettyTelem;
 	}
-
-	public static Collector getCollector(){
-		return collector;
-	}
-
-	public static DriveBase getDriveBase(){
-		return driveBase;
-	}
-
-	public static GameState getAutopilot(){
-		return gameState;
-	}
 	//</editor-fold>
 
+	@Override
 	protected void initialize(){
+		super.initialize();
 		instance = this;
-
-		Hardware.init(hardwareMap);
-		PersistentStorage.init(hardwareMap);
-
-		this.prettyTelem = new PrettyTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
 		//initialize hardware
 		driveBase = new DriveBase(hardwareMap);
@@ -108,19 +86,18 @@ public abstract class OpModeCore extends LinearOpMode {
 				)
 		);
 
-		tickTimer = new ElapsedTime();
-		gamepadTimer = new ElapsedTime();
+		arm = new ArmController(telescoping, tilt);
 
-		StandardTrackingWheelLocalizer.reverseEncoders();
+		tickTimer = new ElapsedTime();
 
 		// always configure telemetry last
 		configureTelemetry();
 	}
 
+	@Override
 	protected void configureTelemetry(){
 
 		prettyTelem.addLine("System Status")
-				.addData("Collector Armed?", () -> collectorArmed)
 				.addData("Tick Time", () -> Math.round(tickTimer.milliseconds()))
 				.addData("Stage", () -> gameState.findCurrentStage())
 				.addData("Localization: ", () -> driveBase.getPoseSimple())
@@ -183,11 +160,10 @@ public abstract class OpModeCore extends LinearOpMode {
 	}
 
 	public void tick(){
-		Hardware.invalidateCaches();
+		super.tick();
 		tilt.tick();
 		telescoping.tick();
 		collector.tick();
-		prettyTelem.update();
 		tickTimer.reset();
 	}
 }

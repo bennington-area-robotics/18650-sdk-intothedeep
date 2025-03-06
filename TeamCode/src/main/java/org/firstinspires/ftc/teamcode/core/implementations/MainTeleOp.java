@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.core.implementations;
 
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Gamepad;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.components.Collector;
 import org.firstinspires.ftc.teamcode.core.TeleOpCore;
@@ -9,12 +10,21 @@ import org.firstinspires.ftc.teamcode.core.TeleOpCore;
 @TeleOp(name = "1 - Main TeleOp")
 public class MainTeleOp extends TeleOpCore {
     private final boolean manualArm = false;
+    private boolean isHighPower = false;
+    protected ElapsedTime gamepadTimer;
 
     //<editor-fold desc="Config">
     public static float LOW_POWER_MODIFIER = 0.25f;
     public static float HIGH_POWER_MODIFIER = 0.75f;
     public static float MAX_INCHES_PER_SECOND = 9f;
     //</editor-fold>
+
+
+    @Override
+    protected void initialize(){
+        super.initialize();
+        gamepadTimer = new ElapsedTime();
+    }
 
     @Override
     protected void checkGamepad(Gamepad gamepad1, Gamepad gamepad2, Gamepad lastGamepad1, Gamepad lastGamepad2) {
@@ -34,10 +44,6 @@ public class MainTeleOp extends TeleOpCore {
                 collector.wristUp();
         }
 
-        if(gamepad1.y && !previousGamepad1.y){
-            collectorArmed = !collectorArmed;
-        }
-
         if(gamepad1.x && !previousGamepad1.x) {
             isHighPower = !isHighPower;
             if (isHighPower) {
@@ -55,7 +61,7 @@ public class MainTeleOp extends TeleOpCore {
         }
 
         //dpad down -> if arm is in manual mode move arm down 15 degrees,
-        // else bring arm all the way down and pull the arm all the way in
+        // else bring arm pull the arm all the way in and all the way down
         //dpad up -? if arm is in manual mode move arm up 15 degrees,
         // else bring arm all the way up
         if(gamepad1.dpad_down && !previousGamepad1.dpad_down){
@@ -63,9 +69,8 @@ public class MainTeleOp extends TeleOpCore {
                 tilt.setTargetAngle(Math.max(tilt.getTargetAngle() - 15, 0));
             }else{
                 collector.wristUp();
-                telescoping.setTargetExtension(0);
-                tilt.setTargetAngle(0);
-                // STOPSHIP: 3/3/2025 NEEDS A NEW SYSTEM FOR CONTROLLED SET-DOWN
+                arm.telescopeToAsync(0)
+                        .thenRun(() -> arm.tiltTo(0));
             }
         }else if(gamepad1.dpad_up && !previousGamepad1.dpad_up){
             if(manualArm){
