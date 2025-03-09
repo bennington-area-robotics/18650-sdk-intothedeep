@@ -8,6 +8,7 @@ import com.acmerobotics.roadrunner.trajectory.Trajectory;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.teamcode.drive.ConfiguredMecanumDrive;
+import org.firstinspires.ftc.teamcode.drive.StandardTrackingWheelLocalizer;
 import org.firstinspires.ftc.teamcode.utilities.Pose;
 
 @Config
@@ -20,6 +21,7 @@ public class DriveBase extends ConfiguredMecanumDrive {
     public DriveBase(HardwareMap hardwareMap) {
         super(hardwareMap);
         setPoseEstimate(new Pose2d(0, 63, Math.toRadians(-90)));
+        StandardTrackingWheelLocalizer.reverseEncoders();
     }
 
     /**

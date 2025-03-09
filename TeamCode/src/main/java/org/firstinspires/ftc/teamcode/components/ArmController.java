@@ -18,7 +18,7 @@ public class ArmController {
 
 	public void tiltTo(double angle){
 		tilt.setTargetAngle(angle);
-		while(!tilt.isBusy()){
+		while(tilt.isBusy()){
 			tilt.tick();
 			OpModeCore.getTelemetry().update();
 		}
@@ -33,7 +33,7 @@ public class ArmController {
 
 	public void telescopeTo(double extension){
 		telescoping.setTargetExtension(extension);
-		while(!telescoping.isBusy()){
+		while(telescoping.isBusy()){
 			telescoping.tick();
 			OpModeCore.getTelemetry().update();
 		}

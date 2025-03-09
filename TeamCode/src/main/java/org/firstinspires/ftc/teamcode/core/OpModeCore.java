@@ -2,7 +2,6 @@ package org.firstinspires.ftc.teamcode.core;
 
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.hardware.lynx.LynxModule;
-import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.components.ArmController;
@@ -17,7 +16,6 @@ import org.firstinspires.ftc.teamcode.utilities.Pose;
 import org.firstinspires.ftc.teamcode.hardware.Hardware;
 
 import java.util.List;
-import java.util.Locale;
 
 @Config
 public abstract class OpModeCore extends BasicOpModeCore {
@@ -68,7 +66,6 @@ public abstract class OpModeCore extends BasicOpModeCore {
 
 		collector = new Collector(
 				tilt,
-				"colorSensor",
 				"wristMotor",
 				"gripServo"
 		);
@@ -94,7 +91,6 @@ public abstract class OpModeCore extends BasicOpModeCore {
 		configureTelemetry();
 	}
 
-	@Override
 	protected void configureTelemetry(){
 
 		prettyTelem.addLine("System Status")
@@ -130,24 +126,9 @@ public abstract class OpModeCore extends BasicOpModeCore {
 				.addData("Up?", () -> collector.isWristUp())
 				.addData("Down?", () -> collector.isWristDown());
 
-		prettyTelem.addLine("Color Sensor")
-				.addData("HSV", this::getHSV)
-				.addData("RGB", this::getRGB)
-				.addData("Scoring Color", () -> collector.colorSensor.getScoringElementColor());
-
 		prettyTelem.addLine("April Tags")
 				.addData("Left Camera", () -> aprilTagReader.getFirstPose(0).toString())
 				.addData("Right Camera", () -> aprilTagReader.getFirstPose(1).toString());
-	}
-
-	protected String getHSV(){
-		float[] hsv = collector.colorSensor.getHSV();
-		return String.format(Locale.ENGLISH, "Hue: %.3f Saturation: %.3f Value: %.3f", hsv[0], hsv[1], hsv[2]);
-	}
-
-	protected String getRGB(){
-		NormalizedRGBA rgba = collector.colorSensor.getNormalizedColors();
-		return String.format(Locale.ENGLISH, "Red: %.3f Green: %.3f Blue: %.3f", rgba.red, rgba.green, rgba.blue);
 	}
 
 	@Override

@@ -5,8 +5,6 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.hardware.Hardware;
-import org.firstinspires.ftc.teamcode.hardware.ScoringElementColor;
-import org.firstinspires.ftc.teamcode.hardware.SmartColorSensor;
 import org.firstinspires.ftc.teamcode.hardware.SmartEncoder;
 import org.firstinspires.ftc.teamcode.hardware.SmartMotor;
 import org.firstinspires.ftc.teamcode.hardware.SmartServo;
@@ -31,7 +29,6 @@ public class Collector {
 
     public int wristTarget;
 
-    public final SmartColorSensor colorSensor;
     final SmartServo gripServo;
     private final SmartMotor wristMotor;
     private WristMode wristMode;
@@ -42,18 +39,22 @@ public class Collector {
         MOVE_TO_TARGET, STAY_PARALLEL, STAY_PERPENDICULAR, FLOAT, SET_POWER
     }
 
-    public Collector(TiltBase tiltBase, String colorSensorName, String wristMotorName, String gripServoName){
-        this.colorSensor = Hardware.getColorSensor(colorSensorName);
+    public Collector(TiltBase tiltBase, String wristMotorName, String gripServoName){
         this.gripServo = Hardware.getServo(gripServoName);
         this.wristMotor = Hardware.getMotor(wristMotorName, true);
         this.tiltBase = tiltBase;
         this.wristEncoder = wristMotor.getEncoder();
 
         PID = new GravityPID.Builder()
-                .p(() -> wristKP)
-                .i(() -> wristKI)
-                .d(() -> wristKD)
-                .f(() -> wristKF)
+                .forwardKP(() -> wristKP)
+                .forwardKI(() -> wristKI)
+                .forwardKD(() -> wristKD)
+                .forwardKF(() -> wristKF)
+
+                .reverseKP(() -> wristKP)
+                .reverseKI(() -> wristKI)
+                .reverseKD(() -> wristKD)
+                .reverseKF(() -> wristKF)
                 .g(() -> wristKG)
                 .setGravityFunction((target, actual) -> Math.sin(Math.toRadians(tiltBase.getAngle() + getWristAngle())))
                 .tolerance(1)
@@ -154,11 +155,7 @@ public class Collector {
     }
 
     public boolean isHoldingSample(){
-        return isGripClosed() && colorSensor.getScoringElementColor() != ScoringElementColor.NONE;
-    }
-
-    public boolean isHoldingSample(ScoringElementColor elementColor){
-        return isGripClosed() && colorSensor.getScoringElementColor() == elementColor;
+        return isGripClosed();
     }
 
     public double getGripPosition(){

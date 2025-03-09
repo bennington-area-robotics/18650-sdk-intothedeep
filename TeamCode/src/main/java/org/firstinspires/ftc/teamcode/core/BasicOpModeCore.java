@@ -24,11 +24,6 @@ public abstract class BasicOpModeCore extends LinearOpMode {
 		Hardware.init(hardwareMap);
 		PersistentStorage.init(hardwareMap);
 		this.prettyTelem = new PrettyTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
-		StandardTrackingWheelLocalizer.reverseEncoders();
-	}
-
-	protected void configureTelemetry(){
-
 	}
 
 	public void tick(){

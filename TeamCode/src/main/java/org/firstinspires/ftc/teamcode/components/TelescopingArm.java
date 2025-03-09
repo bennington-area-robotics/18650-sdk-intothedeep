@@ -127,7 +127,10 @@ public class TelescopingArm {
 	 * Runs a cycle on the PIDF control loop for the arm.
 	 */
 	private void tickPIDF(){
-		if(pid.result() != 0 && pid.calc(targetExtension, getExtension()) == 0)
+		double lastResult = pid.result();
+		pid.calc(targetExtension, getExtension());
+
+		if(lastResult != 0 && pid.result() == 0)
 			Await.notifyChange();
 
 		spool.setPower(pid.result());

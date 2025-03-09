@@ -15,7 +15,9 @@ public class TiltBase {
 	//<editor-fold desc="Config">
 	public static float ARM_TICKS_PER_DEGREE = 65f; //this is a good estimate as of 1/24/2025
 
-	public static double angleKP = 0.025, angleKI = 0, angleKD = 0.15, angleKF = 0.325, angleKG = 0;
+	public static double forwardKP = 0.025, forwardKI = 0, forwardKD = 0.15, forwardKF = 0.325;
+	public static double reverseKP = 0.025, reverseKI = 0, reverseKD = 0.15, reverseKF = 0.325;
+	public static double kG = 0;
 
 	private final GravityPID pid;
 	//</editor-fold>
@@ -60,11 +62,17 @@ public class TiltBase {
 		pid = new GravityPID.Builder()
 				.setGravityFunction((g, actual) -> g * Math.sin(Math.toRadians(getAngle())) * (19 + telescopingArm.getExtension()))
 
-				.p(() -> angleKP)
-				.i(() -> angleKI)
-				.d(() -> angleKD)
-				.f(() -> angleKF)
-				.g(() -> angleKG)
+				.forwardKP(() -> forwardKP)
+				.forwardKI(() -> forwardKI)
+				.forwardKD(() -> forwardKD)
+				.forwardKF(() -> forwardKF)
+
+				.reverseKP(() -> reverseKP)
+				.reverseKI(() -> reverseKI)
+				.reverseKD(() -> reverseKD)
+				.reverseKF(() -> reverseKF)
+
+				.g(() -> kG)
 
 				.tolerance(0.75)
 				.build();
@@ -131,7 +139,10 @@ public class TiltBase {
 	 * Runs a cycle on the PIDF control loop for the arm.
 	 */
 	private void tickPIDF(){
-		if(pid.result() != 0 && pid.calc(targetAngle, getAngle()) == 0)
+		double lastResult = pid.result();
+		pid.calc(targetAngle, getAngle());
+
+		if(lastResult != 0 && pid.result() == 0)
 			Await.notifyChange();
 
 		angleMotorRight.setPower(pid.result());

@@ -87,6 +87,10 @@ public class SmartPotentiometer extends Device implements Caching{
 		return angle == maxAngle ? 0 : angle;
 	}
 
+	public double getVoltage(){
+		return input.getVoltage();
+	}
+
 	/**
 	 *
 	 */
