@@ -298,9 +298,6 @@ public class OpModeCore extends LinearOpMode {
 
         if (gamepad1.dpad_left && !previousGamepad1.dpad_left){
             arm.setTargetAngle(armVariable);
-            arm.setTargetExtension(16.2);
-            collector.setWristMode(Collector.WristMode.MOVE_TO_TARGET);
-            collector.wristTo(posVariable);
             //collector.setWristMode(Collector.WristMode.STAY_PERPENDICULAR);
         }
 

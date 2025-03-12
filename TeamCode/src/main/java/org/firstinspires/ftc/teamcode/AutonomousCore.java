@@ -147,7 +147,7 @@ public class AutonomousCore extends LinearOpMode {
                         new Pose(0, 0, 0)
                 )
         );
-        initializeStartingPosition();
+        //initializeStartingPosition();
         configureTelemetry();
 
         //TODO FOR EBEN - finish implementing this
@@ -380,7 +380,7 @@ public class AutonomousCore extends LinearOpMode {
 
 
         blueObservationSamplePushPath();
-        collector.moveWristToBlocking(0, this::tick, false);
+        //collector.moveWristToBlocking(0, this::tick, false);
 
 
 
