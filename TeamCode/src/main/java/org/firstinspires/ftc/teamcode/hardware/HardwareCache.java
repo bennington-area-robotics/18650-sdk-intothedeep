@@ -11,7 +11,7 @@ import org.firstinspires.ftc.robotcore.external.Supplier;
 public class HardwareCache<T> implements Caching {
     private T cachedValue;
     private boolean cacheValid = false;
-    private CachingStrategy strategy = CachingStrategy.UPDATE_WHEN_INVALIDATED;
+    private Strategy strategy = Strategy.UPDATE_WHEN_INVALIDATED;
     private final Supplier<T> valueSupplier;
     private boolean cacheRead = false;
 
@@ -26,12 +26,12 @@ public class HardwareCache<T> implements Caching {
 
     /**
      * Invalidates the cache based on the current caching strategy.
-     * If the strategy is {@link CachingStrategy#UPDATE_WHEN_INVALIDATED},
+     * If the strategy is {@link Strategy#UPDATE_WHEN_INVALIDATED},
      * the cache will be immediately refreshed upon invalidation.
      */
     @Override
     public void invalidateCache() {
-        if (strategy == CachingStrategy.UPDATE_WHEN_INVALIDATED) {
+        if (strategy == Strategy.UPDATE_WHEN_INVALIDATED) {
             updateCache();
         } else {
             this.cacheValid = false;
@@ -91,7 +91,7 @@ public class HardwareCache<T> implements Caching {
      *
      * @param strategy The new caching strategy.
      */
-    public void setStrategy(CachingStrategy strategy) {
+    public void setStrategy(Strategy strategy) {
         this.strategy = strategy;
         cacheValid = false;
         cacheRead = false;
@@ -102,7 +102,7 @@ public class HardwareCache<T> implements Caching {
      *
      * @return The active caching strategy.
      */
-    public CachingStrategy getStrategy() {
+    public Strategy getStrategy() {
         return strategy;
     }
 }

@@ -94,7 +94,7 @@ public class SmartEncoder extends Device implements Caching {
      * @param strategy The caching strategy to use.
      */
     @Override
-    public void setStrategy(CachingStrategy strategy) {
+    public void setStrategy(Strategy strategy) {
         positionCache.setStrategy(strategy);
         velocityCache.setStrategy(strategy);
     }
@@ -105,7 +105,7 @@ public class SmartEncoder extends Device implements Caching {
      * @return The current caching strategy.
      */
     @Override
-    public CachingStrategy getStrategy() {
+    public Strategy getStrategy() {
         return positionCache.getStrategy();
     }
 

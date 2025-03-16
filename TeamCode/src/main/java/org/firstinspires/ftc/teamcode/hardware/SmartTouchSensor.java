@@ -115,13 +115,13 @@ public class SmartTouchSensor extends Device implements TouchSensor, Caching {
     }
 
     @Override
-    public void setStrategy(CachingStrategy strategy) {
+    public void setStrategy(Strategy strategy) {
         pressingCache.setStrategy(strategy);
         valueCache.setStrategy(strategy);
     }
 
     @Override
-    public CachingStrategy getStrategy() {
+    public Strategy getStrategy() {
         return pressingCache.getStrategy();
     }
 }

@@ -61,12 +61,12 @@ public class SmartMotor extends Device implements DcMotorEx, Caching {
     }
 
     @Override
-    public void setStrategy(CachingStrategy strategy) {
+    public void setStrategy(Strategy strategy) {
         encoder.setStrategy(strategy);
     }
 
     @Override
-    public CachingStrategy getStrategy() {
+    public Strategy getStrategy() {
         return encoder.getStrategy();
     }
 

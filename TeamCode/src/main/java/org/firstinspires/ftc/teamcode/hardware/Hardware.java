@@ -135,7 +135,7 @@ public class Hardware {
         if (hardwareOptional.isPresent())
             return (SmartPotentiometer) hardwareOptional.get();
 
-        AnalogInput input = hardwareMap.get(AnalogInput.class, name);
+        SmartAnalogInput input = new SmartAnalogInput(hardwareMap.get(AnalogInput.class, name), name);
         SmartPotentiometer potentiometer = new SmartPotentiometer(input, name, maxAngle, maxVoltage);
         potentiometers.add(potentiometer);
         devices.add(potentiometer);
@@ -158,7 +158,7 @@ public class Hardware {
         caches.forEach(Caching::invalidateCache);
     }
 
-    public static void setCachingStrategy(Caching.CachingStrategy strategy){
+    public static void setCachingStrategy(Caching.Strategy strategy){
         assertInitialized();
         caches.forEach(caching -> caching.setStrategy(strategy));
     }

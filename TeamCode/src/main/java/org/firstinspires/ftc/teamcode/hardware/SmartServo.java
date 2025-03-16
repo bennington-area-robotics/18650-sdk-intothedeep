@@ -197,7 +197,7 @@ public class SmartServo extends Device implements Servo, Caching {
      * @param strategy
      */
     @Override
-    public void setStrategy(CachingStrategy strategy) {
+    public void setStrategy(Strategy strategy) {
         positionCache.setStrategy(strategy);
     }
 
@@ -205,7 +205,7 @@ public class SmartServo extends Device implements Servo, Caching {
      * @return
      */
     @Override
-    public CachingStrategy getStrategy() {
+    public Strategy getStrategy() {
         return positionCache.getStrategy();
     }
 }

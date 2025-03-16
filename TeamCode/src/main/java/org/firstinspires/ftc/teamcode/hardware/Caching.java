@@ -5,11 +5,11 @@ public interface Caching {
 
     void updateCache();
 
-    void setStrategy(CachingStrategy strategy);
+    void setStrategy(Strategy strategy);
 
-    CachingStrategy getStrategy();
+    Strategy getStrategy();
 
-    enum CachingStrategy{
+    enum Strategy {
         /**
          * When the cache is updated, the first read is from the cache. The second read will invalidate the cache and update the cache before reading..
          */

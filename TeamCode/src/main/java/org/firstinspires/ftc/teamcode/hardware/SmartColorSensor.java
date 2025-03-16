@@ -203,7 +203,7 @@ public class SmartColorSensor extends Device implements NormalizedColorSensor, C
      * @param strategy
      */
     @Override
-    public void setStrategy(CachingStrategy strategy) {
+    public void setStrategy(Strategy strategy) {
         colorCache.setStrategy(strategy);
     }
 
@@ -211,7 +211,7 @@ public class SmartColorSensor extends Device implements NormalizedColorSensor, C
      * @return
      */
     @Override
-    public CachingStrategy getStrategy() {
+    public Strategy getStrategy() {
         return colorCache.getStrategy();
     }
 }

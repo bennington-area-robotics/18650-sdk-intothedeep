@@ -1,14 +1,19 @@
 package org.firstinspires.ftc.teamcode.hardware;
 
+import androidx.annotation.NonNull;
+
 import com.qualcomm.robotcore.hardware.AnalogInput;
 import org.firstinspires.ftc.teamcode.utilities.PersistentStorage;
+
+import java.util.ArrayDeque;
 
 /**
  * A class that converts an analog signal into a potentiometer based absolute encoder with intelligent zeroing, caching, and persistent storage.
  * This class allows reading angular positions, adjusting offsets, and saving calibration values for future use.
+ * It uses a rolling average to filter the direct voltage output for better consistency.
  */
 public class SmartPotentiometer extends Device implements Caching{
-	private final AnalogInput input;
+	private final SmartAnalogInput input;
 	private final double maxAngle, maxVoltage, voltsPerDegree;
 	private final String storageKey;
 	private double offsetToZero;
@@ -22,7 +27,7 @@ public class SmartPotentiometer extends Device implements Caching{
 	 * @param maxAngle   The maximum angle (in degrees) the potentiometer can measure.
 	 * @param maxVoltage The maximum voltage output of the potentiometer at its highest position.
 	 */
-	SmartPotentiometer(AnalogInput input, String name, double maxAngle, double maxVoltage) {
+	SmartPotentiometer(SmartAnalogInput input, String name, double maxAngle, double maxVoltage) {
 		super(name);
 		this.input = input;
 		this.maxAngle = maxAngle;
@@ -108,12 +113,12 @@ public class SmartPotentiometer extends Device implements Caching{
 	}
 
 	@Override
-	public void setStrategy(CachingStrategy strategy){
+	public void setStrategy(Strategy strategy){
 		rawAngleCache.setStrategy(strategy);
 	}
 
 	@Override
-	public CachingStrategy getStrategy(){
+	public Strategy getStrategy(){
 		return rawAngleCache.getStrategy();
 	}
 }
