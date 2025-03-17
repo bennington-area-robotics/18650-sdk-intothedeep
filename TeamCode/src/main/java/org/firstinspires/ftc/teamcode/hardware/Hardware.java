@@ -9,6 +9,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.TouchSensor;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.CameraName;
+import org.firstinspires.ftc.teamcode.hardware.filters.DataFilter;
 import org.firstinspires.ftc.teamcode.utilities.Pose;
 
 import java.util.ArrayList;
@@ -136,6 +137,21 @@ public class Hardware {
             return (SmartPotentiometer) hardwareOptional.get();
 
         SmartAnalogInput input = new SmartAnalogInput(hardwareMap.get(AnalogInput.class, name), name);
+        SmartPotentiometer potentiometer = new SmartPotentiometer(input, name, maxAngle, maxVoltage);
+        potentiometers.add(potentiometer);
+        devices.add(potentiometer);
+        caches.add(potentiometer);
+        return potentiometer;
+    }
+
+    public static SmartPotentiometer getPotentiometer(String name, double maxAngle, double maxVoltage, DataFilter filter){
+        assertInitialized();
+
+        Optional<Device> hardwareOptional = getDevice(name);
+        if (hardwareOptional.isPresent())
+            return (SmartPotentiometer) hardwareOptional.get();
+
+        SmartAnalogInput input = new SmartAnalogInput(hardwareMap.get(AnalogInput.class, name), name, filter);
         SmartPotentiometer potentiometer = new SmartPotentiometer(input, name, maxAngle, maxVoltage);
         potentiometers.add(potentiometer);
         devices.add(potentiometer);

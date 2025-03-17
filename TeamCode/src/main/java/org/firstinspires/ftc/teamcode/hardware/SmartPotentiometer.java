@@ -1,16 +1,11 @@
 package org.firstinspires.ftc.teamcode.hardware;
 
-import androidx.annotation.NonNull;
-
-import com.qualcomm.robotcore.hardware.AnalogInput;
 import org.firstinspires.ftc.teamcode.utilities.PersistentStorage;
-
-import java.util.ArrayDeque;
 
 /**
  * A class that converts an analog signal into a potentiometer based absolute encoder with intelligent zeroing, caching, and persistent storage.
  * This class allows reading angular positions, adjusting offsets, and saving calibration values for future use.
- * It uses a rolling average to filter the direct voltage output for better consistency.
+ * It uses a data filter on the direct voltage output for better consistency.
  */
 public class SmartPotentiometer extends Device implements Caching{
 	private final SmartAnalogInput input;

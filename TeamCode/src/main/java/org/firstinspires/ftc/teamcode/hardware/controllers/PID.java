@@ -1,7 +1,7 @@
 package org.firstinspires.ftc.teamcode.hardware.controllers;
 
 import com.qualcomm.robotcore.util.ElapsedTime;
-import org.firstinspires.ftc.teamcode.hardware.Direction;
+import org.firstinspires.ftc.teamcode.utilities.Direction;
 
 import java.util.function.DoubleSupplier;
 

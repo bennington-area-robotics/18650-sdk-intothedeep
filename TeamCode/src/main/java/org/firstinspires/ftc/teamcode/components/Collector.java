@@ -9,7 +9,7 @@ import org.firstinspires.ftc.teamcode.hardware.SmartEncoder;
 import org.firstinspires.ftc.teamcode.hardware.SmartMotor;
 import org.firstinspires.ftc.teamcode.hardware.SmartServo;
 import org.firstinspires.ftc.teamcode.hardware.controllers.GravityPID;
-import org.firstinspires.ftc.teamcode.hardware.Direction;
+import org.firstinspires.ftc.teamcode.utilities.Direction;
 
 @Config
 public class Collector {

@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.hardware;
 
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import org.firstinspires.ftc.teamcode.drive.roadrunner.util.Encoder;
+import org.firstinspires.ftc.teamcode.utilities.Direction;
 import org.firstinspires.ftc.teamcode.utilities.PersistentStorage;
 
 /**

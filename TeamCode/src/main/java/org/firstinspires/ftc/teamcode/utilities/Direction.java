@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.hardware;
+package org.firstinspires.ftc.teamcode.utilities;
 
 import org.firstinspires.ftc.teamcode.drive.roadrunner.util.Encoder;
 
