@@ -20,12 +20,13 @@ public class Collector {
     public static float OPEN_POSITION = 0.4f, CLOSED_POSITION = 0; //grip
     public static int UP_POSITION = 90, DOWN_POSITION = -20; //wrist
     public static float LENGTH = 5f;
-    public static double wristKP = 0.009, wristKI, wristKD = 0.02, wristKF = -0.035, wristKG = 0;
+    public static double upKP = 0.009, upKI, upKD = 0.02, upKF = -0.035;
+    public static double downKP = 0.009, downKI, downKD = 0.02, downKF = -0.035;
+    public static double kG = 0;
 
-    double KF = wristKF;
     private final SmartEncoder wristEncoder;
 
-    GravityPID PID;
+    GravityPID pid;
 
     public int wristTarget;
 
@@ -45,26 +46,27 @@ public class Collector {
         this.tiltBase = tiltBase;
         this.wristEncoder = wristMotor.getEncoder();
 
-        PID = new GravityPID.Builder()
-                .forwardKP(() -> wristKP)
-                .forwardKI(() -> wristKI)
-                .forwardKD(() -> wristKD)
-                .forwardKF(() -> wristKF)
+        pid = new GravityPID.Builder()
+                .forwardKP(() -> upKP)
+                .forwardKI(() -> upKI)
+                .forwardKD(() -> upKD)
+                .forwardKF(() -> upKF)
 
-                .reverseKP(() -> wristKP)
-                .reverseKI(() -> wristKI)
-                .reverseKD(() -> wristKD)
-                .reverseKF(() -> wristKF)
-                .g(() -> wristKG)
+                .reverseKP(() -> downKP)
+                .reverseKI(() -> downKI)
+                .reverseKD(() -> downKD)
+                .reverseKF(() -> downKF)
+                .g(() -> kG)
                 .setGravityFunction((target, actual) -> Math.sin(Math.toRadians(tiltBase.getAngle() + getWristAngle())))
                 .tolerance(1)
                 .build();
 
-        resetPositionAsTop();
+        pid.setDirection(Direction.FORWARD);
+        wristEncoder.reset();
+        wristEncoder.setDirection(Direction.FORWARD);
         wristMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         wristMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         setWristMode(WristMode.FLOAT);
-
     }
 
     public double moveWristToBlocking(int angle, Runnable runnable){
@@ -207,8 +209,6 @@ public class Collector {
     }
 
     public void tick(){
-        PID.setDirection(Direction.REVERSE);
-
         switch (wristMode) {
             case FLOAT:
                 wristMotor.setPower(0);
@@ -217,13 +217,13 @@ public class Collector {
                 wristMotor.setPower(wristPower);
                 break;
             case STAY_PARALLEL:
-                wristMotor.setPower(PID.calc(90 - tiltBase.getAngle(), getWristAngle()));
+                wristMotor.setPower(pid.calc(90 - tiltBase.getAngle(), getWristAngle()));
                 break;
             case STAY_PERPENDICULAR:
-                wristMotor.setPower(PID.calc(tiltBase.getAngle() - 90, getWristAngle()));
+                wristMotor.setPower(pid.calc(tiltBase.getAngle() - 90, getWristAngle()));
                 break;
             case MOVE_TO_TARGET:
-                wristMotor.setPower(PID.calc(wristTarget, getWristAngle()));
+                wristMotor.setPower(pid.calc(wristTarget, getWristAngle()));
                 break;
         }
     }

@@ -105,4 +105,13 @@ public class HardwareCache<T> implements Caching {
     public Strategy getStrategy() {
         return strategy;
     }
+
+    /**
+     * Updates the cache, then returns the new value.
+     * @return the newly cached value.
+     */
+    public T updateAndGet(){
+        updateCache();
+        return cachedValue;
+    }
 }

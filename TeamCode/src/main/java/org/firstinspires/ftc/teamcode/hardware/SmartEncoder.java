@@ -114,12 +114,12 @@ public class SmartEncoder extends Device implements Caching {
      * Resets the encoder by setting the current position as the new zero.
      */
     public void reset() {
-        tickOffsetToZero = positionCache.read();
+        tickOffsetToZero = positionCache.updateAndGet();
         PersistentStorage.saveInt(storageKey, tickOffsetToZero);
     }
 
     public void resetAs(int position) {
-        tickOffsetToZero = positionCache.read() - position;
+        tickOffsetToZero = positionCache.updateAndGet() - position;
         PersistentStorage.saveInt(storageKey, tickOffsetToZero);
     }
 
