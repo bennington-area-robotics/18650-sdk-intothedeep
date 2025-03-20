@@ -2,7 +2,6 @@ package org.firstinspires.ftc.teamcode.utilities;
 
 import com.acmerobotics.dashboard.config.Config;
 
-import org.firstinspires.ftc.teamcode.components.Collector;
 import org.firstinspires.ftc.teamcode.components.DriveBase;
 import org.firstinspires.ftc.teamcode.components.TelescopingArm;
 import org.firstinspires.ftc.teamcode.components.TiltBase;
@@ -12,7 +11,7 @@ public class GameState {
     //todo these will be different per-side (these are for blue)
     private static final Pose basketPose = new Pose( 53, 57, 0);
     private static final Pose submersiblePoseA = new Pose(0, 30, 0);
-    //todo there should be multiple paths to go for
+    //todo THIS CLASS DOES NOT WORK, UPDATE TO USE NEW GRIP/PITCH/ROLL CLASSES BEFORE USE
 
     //Blue Alliance Areas
     public static final Area basketArea = new Area(new Pose(15, 72), new Pose(72, 24));
@@ -23,7 +22,6 @@ public class GameState {
 
 
     private final DriveBase driveBase;
-    private final Collector collector;
     private Runnable tickRunnable;
 
     private final TiltBase tiltBase;
@@ -31,9 +29,8 @@ public class GameState {
 
     private Stage currentStage;
 
-    public GameState(DriveBase driveBase, TiltBase tiltBase, TelescopingArm telescopingArm, Collector collector) {
+    public GameState(DriveBase driveBase, TiltBase tiltBase, TelescopingArm telescopingArm) {
         this.driveBase = driveBase;
-        this.collector = collector;
         this.tiltBase = tiltBase;
         this.telescopingArm = telescopingArm;
     }
@@ -55,7 +52,7 @@ public class GameState {
             }
         }else {
             if (nearSubmersible()) {
-                if ((!armReadyToCollect() && collector.isWristTargetUp())) {
+                if ((!armReadyToCollect() /*&& collector.isWristTargetUp()*/)) {
                     return Stage.PREPARE_TO_COLLECT;
                 }else {
                     return Stage.AWAIT_USER_INTERVENTION;
@@ -160,7 +157,7 @@ public class GameState {
     }
 
     private boolean holdingSample(){
-        return collector.isHoldingSample();
+        return false; //collector.isHoldingSample();
     }
 
     private boolean errorTolerable(double number1, double number2, double tolerance){

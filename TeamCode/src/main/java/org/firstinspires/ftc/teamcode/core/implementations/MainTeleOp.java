@@ -4,7 +4,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.teamcode.components.Collector;
+import org.firstinspires.ftc.teamcode.components.PitchWrist;
 import org.firstinspires.ftc.teamcode.core.TeleOpCore;
 
 @TeleOp(name = "1 - Main TeleOp")
@@ -31,17 +31,17 @@ public class MainTeleOp extends TeleOpCore {
         //toggle grip on pressing a, if failed to detect if open or closed, default to close.
         if(gamepad1.a){
             if(!previousGamepad1.a) {
-                if (!collector.toggleGrip()) {
-                    collector.closeGrip();
+                if (!grip.toggleGrip()) {
+                    grip.closeGrip();
                 }
             }
         }
 
         //toggle wrist on pressing b, if failed to detect if up or down, default to up.
         if(gamepad1.b && !previousGamepad1.b){
-            collector.setWristMode(Collector.WristMode.MOVE_TO_TARGET);
-            if(!collector.toggleWrist())
-                collector.wristUp();
+            pitch.setMode(PitchWrist.Mode.MOVE_TO_TARGET);
+            if(!pitch.toggle())
+                pitch.pitchUp();
         }
 
         if(gamepad1.x && !previousGamepad1.x) {
@@ -56,8 +56,8 @@ public class MainTeleOp extends TeleOpCore {
         if(gamepad1.dpad_right && !previousGamepad1.dpad_right) {
             tilt.setTargetAngle(30);
             telescoping.setTargetExtension(9.5);
-            collector.setWristMode(Collector.WristMode.MOVE_TO_TARGET);
-            collector.wristTo(-34);
+            pitch.setMode(PitchWrist.Mode.MOVE_TO_TARGET);
+            pitch.pitchTo(-34);
         }
 
         //dpad down -> if arm is in manual mode move arm down 15 degrees,
@@ -68,7 +68,7 @@ public class MainTeleOp extends TeleOpCore {
             if(manualArm){
                 tilt.setTargetAngle(Math.max(tilt.getTargetAngle() - 15, 0));
             }else{
-                collector.wristUp();
+                pitch.pitchUp();
                 arm.telescopeToAsync(0)
                         .thenRun(() -> arm.tiltToAsync(0));
             }
@@ -80,6 +80,14 @@ public class MainTeleOp extends TeleOpCore {
                     this.gamepad1.rumbleBlips(100);
             }
         }
+
+        double extensionOffset =  gamepad1.left_trigger - gamepad1.right_trigger * -1;
+        if(extensionOffset < 0.02){
+            if(!telescoping.setTargetExtension(telescoping.getExtension() + extensionOffset))
+                this.gamepad1.rumbleBlips(10);
+        }
+
+        //todo add specimen delivery macro
 
         gamepadTimer.reset();
 

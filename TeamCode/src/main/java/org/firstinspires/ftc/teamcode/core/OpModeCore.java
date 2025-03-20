@@ -5,12 +5,12 @@ import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.components.ArmController;
+import org.firstinspires.ftc.teamcode.components.Grip;
+import org.firstinspires.ftc.teamcode.components.PitchWrist;
+import org.firstinspires.ftc.teamcode.components.RollWrist;
 import org.firstinspires.ftc.teamcode.components.TelescopingArm;
 import org.firstinspires.ftc.teamcode.components.TiltBase;
-import org.firstinspires.ftc.teamcode.utilities.GameState;
-import org.firstinspires.ftc.teamcode.utilities.PrettyTelemetry;
 import org.firstinspires.ftc.teamcode.vision.MultiAprilTagReader;
-import org.firstinspires.ftc.teamcode.components.Collector;
 import org.firstinspires.ftc.teamcode.components.DriveBase;
 import org.firstinspires.ftc.teamcode.utilities.Pose;
 import org.firstinspires.ftc.teamcode.hardware.Hardware;
@@ -24,11 +24,12 @@ public abstract class OpModeCore extends BasicOpModeCore {
 	//components
 	protected static MultiAprilTagReader aprilTagReader;
 	protected static OpModeCore instance;
-	protected static Collector collector;
+	protected static Grip grip;
+	protected static PitchWrist pitch;
+	protected static RollWrist roll;
 	protected static DriveBase driveBase;
 	protected static TelescopingArm telescoping;
 	protected static TiltBase tilt;
-	protected static GameState gameState;
 	protected static ArmController arm;
 	protected List<LynxModule> lynxModules;
 	protected ElapsedTime tickTimer;
@@ -60,13 +61,17 @@ public abstract class OpModeCore extends BasicOpModeCore {
 		);
 
 
-		collector = new Collector(
+		grip = new Grip(
+				Hardware.getServo("gripServo")
+		);
+		pitch = new PitchWrist(
 				tilt,
-				"wristMotor",
-				"gripServo"
+				Hardware.getMotor("wristMotor", true)
+		);
+		roll = new RollWrist(
+				Hardware.getServo("wristServo")
 		);
 
-		gameState = new GameState(driveBase, tilt, telescoping, collector);
 
 		aprilTagReader = new MultiAprilTagReader(
 				Hardware.getCamera(
@@ -91,47 +96,43 @@ public abstract class OpModeCore extends BasicOpModeCore {
 
 		prettyTelem.addLine("System Status")
 				.addData("Tick Time", () -> Math.round(tickTimer.milliseconds()))
-				.addData("Stage", () -> gameState.findCurrentStage())
 				.addData("Localization: ", () -> driveBase.getPoseSimple())
 		;
-		prettyTelem.addLine("Game State")
-				.addData("In Basket Area", () -> gameState.inBasketArea())
-				.addData("In Submersible Collection Area", () -> gameState.isInSubmersibleCollectionArea())
-				.addData("In Observation Collection Area", () -> gameState.inObservationZoneCollectionArea())
-				.addData("In Specimen Delivery Area", () -> gameState.inSpecimenDeliveryArea())
-		;
 
-		prettyTelem.addLine("Arm Status")
+		prettyTelem.addLine("Tilt")
 				.addData("Current Angle", () -> tilt.getAngle())
 				.addData("Target Angle", () -> tilt.getTargetAngle())
-				.addData("Current Extension", () -> telescoping.getExtension())
-				.addData("Target Extension", () -> telescoping.getTargetExtension())
-				.addData("Tilt Power", () -> tilt.getPower())
-				.addData("Extension Power", () -> telescoping.getPower())
-				.addData("Tilt Limit Sensor Pressed?", () -> tilt.limitSensor.isPressed())
-				.addData("Extension Limit Sensor Pressed?", () -> telescoping.limitSensor.isPressed());
+				.addData("Power", () -> tilt.getPower())
+				.addData("Limit Sensor Pressed?", () -> tilt.limitSensor.isPressed());
+
+		prettyTelem.addLine("Extension")
+				.addData("Current Length", () -> telescoping.getExtension())
+				.addData("Target Length", () -> telescoping.getTargetExtension())
+				.addData("Power", () -> telescoping.getPower())
+				.addData("Limit Sensor Pressed?", () -> telescoping.limitSensor.isPressed());
 
 		prettyTelem.addLine("Grip")
-				.addData("Position", () -> collector.getGripPosition())
-				.addData("Open?", () -> collector.isGripOpen())
-				.addData("Closed?", () -> collector.isGripClosed());
+				.addData("Position", () -> grip.getGripPosition())
+				.addData("Open?", () -> grip.isGripOpen())
+				.addData("Closed?", () -> grip.isGripClosed());
 
-		prettyTelem.addLine("Wrist")
-				.addData("Position", () -> collector.getWristAngle())
-				.addData("Target", collector::getWristTarget)
-				.addData("Up?", () -> collector.isWristUp())
-				.addData("Down?", () -> collector.isWristDown());
+		prettyTelem.addLine("Pitch Wrist")
+				.addData("Position", () -> pitch.getAngle())
+				.addData("Target", pitch::getTargetAngle)
+				.addData("Power", pitch::getWristPower)
+				.addData("Up/Down", () -> pitch.isUp() ? "Up" : pitch.isDown() ? "Down" : "No");
 
 		prettyTelem.addLine("April Tags")
 				.addData("Left Camera", () -> aprilTagReader.getFirstPose(0).toString())
 				.addData("Right Camera", () -> aprilTagReader.getFirstPose(1).toString());
+
 	}
 
 	public void tick(){
 		super.tick();
 		tilt.tick();
 		telescoping.tick();
-		collector.tick();
+		pitch.tick();
 		tickTimer.reset();
 	}
 }
