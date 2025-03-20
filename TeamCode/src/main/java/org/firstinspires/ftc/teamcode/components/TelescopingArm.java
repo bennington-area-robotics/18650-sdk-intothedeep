@@ -1,13 +1,15 @@
 package org.firstinspires.ftc.teamcode.components;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 import org.firstinspires.ftc.teamcode.hardware.SmartMotor;
 import org.firstinspires.ftc.teamcode.hardware.SmartTouchSensor;
 import org.firstinspires.ftc.teamcode.hardware.controllers.DirectionalPID;
-import org.firstinspires.ftc.teamcode.utilities.Await;
+import org.firstinspires.ftc.teamcode.utilities.Notifier;
 
+@Config
 public class TelescopingArm {
 	//<editor-fold desc="Config">
 
@@ -16,8 +18,8 @@ public class TelescopingArm {
 
 	public static double MAX_HORIZONTAL_EXTENSION = 38.0;
 
-	public static double extensionKP = 0.2, extensionKI, extensionKD, extensionKF = 0.15;
-	public static double retractionKP = 0.2, retractionKI, retractionKD, retractionKF = 0.45;
+	public static double extensionKP = 0.35, extensionKI, extensionKD, extensionKF = 0.15;
+	public static double retractionKP = 0.35, retractionKI, retractionKD, retractionKF = -0.45;
 
 	private final DirectionalPID pid = new DirectionalPID.Builder()
 			.forwardKP(() -> extensionKP)
@@ -30,12 +32,13 @@ public class TelescopingArm {
 			.reverseKD(() -> retractionKD)
 			.reverseKF(() -> retractionKF)
 
-			.tolerance(0.75)
+			.tolerance(0.1)
 			.build();
 	//</editor-fold>
 
 	private final SmartMotor spool;
 	public final SmartTouchSensor limitSensor;
+	public final Notifier noLongerBusyNotifier = new Notifier();
 
 	/**
 	 * Target extension of the arm in inches past the minimum extension (not extended at all)
@@ -120,7 +123,7 @@ public class TelescopingArm {
 	}
 
 	public boolean isBusy(){
-		return pid.result() != 0;
+		return Math.abs(targetExtension - getExtension()) > pid.getTolerance();
 	}
 
 	/**
@@ -130,8 +133,9 @@ public class TelescopingArm {
 		double lastResult = pid.result();
 		pid.calc(targetExtension, getExtension());
 
-		if(lastResult != 0 && pid.result() == 0)
-			Await.notifyChange();
+		if(lastResult != 0 && pid.result() == 0){
+			noLongerBusyNotifier.notifyWaitingThreads();
+		}
 
 		spool.setPower(pid.result());
 	}

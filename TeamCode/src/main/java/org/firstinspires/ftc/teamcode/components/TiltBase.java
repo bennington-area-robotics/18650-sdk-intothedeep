@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.components;
 
 import androidx.annotation.FloatRange;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
@@ -9,14 +10,15 @@ import org.firstinspires.ftc.teamcode.hardware.SmartEncoder;
 import org.firstinspires.ftc.teamcode.hardware.SmartMotor;
 import org.firstinspires.ftc.teamcode.hardware.SmartTouchSensor;
 import org.firstinspires.ftc.teamcode.hardware.controllers.GravityPID;
-import org.firstinspires.ftc.teamcode.utilities.Await;
+import org.firstinspires.ftc.teamcode.utilities.Notifier;
 
+@Config
 public class TiltBase {
 	//<editor-fold desc="Config">
 	public static float ARM_TICKS_PER_DEGREE = 65f; //this is a good estimate as of 1/24/2025
 
-	public static double forwardKP = 0.025, forwardKI = 0, forwardKD = 0.15, forwardKF = 0.325;
-	public static double reverseKP = 0.025, reverseKI = 0, reverseKD = 0.15, reverseKF = 0.325;
+	public static double forwardKP = 0.065, forwardKI = 0, forwardKD = 0.1, forwardKF = 0.25;
+	public static double reverseKP = 0.02, reverseKI = 0, reverseKD = 0.1, reverseKF = 0;
 	public static double kG = 0;
 
 	private final GravityPID pid;
@@ -29,6 +31,8 @@ public class TiltBase {
 	public final SmartTouchSensor limitSensor;
 
 	private final TelescopingArm telescopingArm;
+
+	public final Notifier noLongerBusyNotifier = new Notifier();
 
 	/**
 	 * Target angle of the arm in degrees relative to the base. 0 is horizontal, while 90 is vertical.
@@ -85,7 +89,7 @@ public class TiltBase {
 	 * @return the angle of the arm relative to the base.
 	 */
 	public double getAngle(){
-		return (angleEncoder.getPosition() - tickOffsetToZero) / ARM_TICKS_PER_DEGREE;
+		return angleEncoder.getPosition() / ARM_TICKS_PER_DEGREE;
 	}
 
 	public double getTargetAngle() {
@@ -112,7 +116,7 @@ public class TiltBase {
 	 * Sets the current angle as the zero position.
 	 */
 	public void resetAngle(){
-		tickOffsetToZero = angleEncoder.getPosition();
+		angleEncoder.reset();
 	}
 
 	/**
@@ -132,7 +136,7 @@ public class TiltBase {
 	}
 
 	public boolean isBusy(){
-		return pid.result() != 0;
+		return Math.abs(targetAngle - getAngle()) > pid.getTolerance();
 	}
 
 	/**
@@ -143,7 +147,7 @@ public class TiltBase {
 		pid.calc(targetAngle, getAngle());
 
 		if(lastResult != 0 && pid.result() == 0)
-			Await.notifyChange();
+			noLongerBusyNotifier.notifyWaitingThreads();
 
 		angleMotorRight.setPower(pid.result());
 		angleMotorLeft.setPower(pid.result());

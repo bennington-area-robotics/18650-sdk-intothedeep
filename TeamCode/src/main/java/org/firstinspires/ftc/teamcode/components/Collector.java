@@ -13,20 +13,20 @@ import org.firstinspires.ftc.teamcode.utilities.Direction;
 
 @Config
 public class Collector {
-    //todo similar to arm, split this into wrist, tilt wrist, and grip
+    //todo similar to arm, split this into pitchWrist, rollWrist, and grip
 
     //config
     public static float WRIST_TICKS_PER_DEGREE = 8192f/360f;
     public static float OPEN_POSITION = 0.4f, CLOSED_POSITION = 0; //grip
-    public static int UP_POSITION = 90, DOWN_POSITION = -20; //wrist
+    public static int UP_POSITION = 90, DOWN_POSITION = 0; //wrist
     public static float LENGTH = 5f;
-    public static double upKP = 0.009, upKI, upKD = 0.02, upKF = -0.035;
-    public static double downKP = 0.009, downKI, downKD = 0.02, downKF = -0.035;
-    public static double kG = 0;
+    public static double upKP = 0.005, upKI = 0.0000, upKD = 0.03, upKF = 0.1;
+    public static double downKP = 0.005, downKI = 0.000, downKD = 0.0, downKF = -0.05;
+    public static double kG = 0.3;
 
     private final SmartEncoder wristEncoder;
 
-    GravityPID pid;
+    private final GravityPID pid;
 
     public int wristTarget;
 

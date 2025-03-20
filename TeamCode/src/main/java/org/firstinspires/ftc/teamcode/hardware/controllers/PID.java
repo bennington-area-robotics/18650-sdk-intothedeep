@@ -101,6 +101,10 @@ public class PID implements ControlAlgorithm {
         this.tolerance = tolerance;
     }
 
+    public double getTolerance(){
+        return tolerance;
+    }
+
 
     public static class Builder {
         private DoubleSupplier kP = () -> 0, kI = () -> 0, kD = () -> 0, kF = () -> 0;

@@ -70,7 +70,7 @@ public class MainTeleOp extends TeleOpCore {
             }else{
                 collector.wristUp();
                 arm.telescopeToAsync(0)
-                        .thenRun(() -> arm.tiltTo(0));
+                        .thenRun(() -> arm.tiltToAsync(0));
             }
         }else if(gamepad1.dpad_up && !previousGamepad1.dpad_up){
             if(manualArm){

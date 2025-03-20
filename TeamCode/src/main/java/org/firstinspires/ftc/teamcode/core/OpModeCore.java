@@ -38,10 +38,6 @@ public abstract class OpModeCore extends BasicOpModeCore {
 	public static OpModeCore getInstance(){
 		return instance;
 	}
-
-	public static PrettyTelemetry getTelemetry(){
-		return instance.prettyTelem;
-	}
 	//</editor-fold>
 
 	@Override
@@ -129,15 +125,6 @@ public abstract class OpModeCore extends BasicOpModeCore {
 		prettyTelem.addLine("April Tags")
 				.addData("Left Camera", () -> aprilTagReader.getFirstPose(0).toString())
 				.addData("Right Camera", () -> aprilTagReader.getFirstPose(1).toString());
-	}
-
-	@Override
-	public void runOpMode(){
-		initialize();
-		waitForStart();
-		while(opModeIsActive()){
-			tick();
-		}
 	}
 
 	public void tick(){
