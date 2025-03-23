@@ -227,8 +227,9 @@ public class OpModeCore extends LinearOpMode {
 
     public void tick(){
         updateMotorServoCache();
-        //checkGamepad();
-        checkBothGamepads();
+        driveBase.updatePoseEstimate();
+        checkGamepad();
+        //checkBothGamepads();
         checkForScoringElement();
         driveBase.update();
         arm.tick();
@@ -420,11 +421,16 @@ public class OpModeCore extends LinearOpMode {
             collector.wristTo(collectionPosVariable);
         }
         if(gamepad1.right_bumper && !previousGamepad1.right_bumper){
-            driveBase.setPoseEstimate(new Pose2d( -36, 50, Math.toRadians(90)));
-            Trajectory moveToRung = driveBase.trajectoryBuilder(driveBase.getPoseEstimate(), true)
+            driveBase.setPoseEstimate(new Pose2d( -36, 50, Math.toRadians(-90)));
+            Trajectory moveToRung = driveBase.trajectoryBuilder(driveBase.getPoseEstimate())
                     .splineToLinearHeading(new Pose2d(-12, 40, Math.toRadians(-90)), Math.toRadians(-90))
                     .build();
-            driveBase.followTrajectoryAsync(moveToRung);
+            driveBase.followTrajectory(moveToRung);
+            while(driveBase.isBusy()){
+                driveBase.updatePoseEstimate();
+                driveBase.update();
+                prettyTelem.update();
+            }
 
 
         }

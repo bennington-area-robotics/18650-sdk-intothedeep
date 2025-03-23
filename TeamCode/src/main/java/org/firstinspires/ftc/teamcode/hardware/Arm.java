@@ -42,7 +42,7 @@ public class Arm {
     public static double rotationKF = 0.25, rotationKCOS = 1;
     public static double downwardKFMultiplier = 0;
     public static double minThreshold = 0.15;
-    public static double verticalKD = 0.1, verticalKP = 0.02;
+    public static double verticalKD = 0.1, verticalKP = 0.045;
     public static double KPFactor = 1;
 
     private final PID downwardPID = new PID(downwardKP, downwardKI, downwardKD, downwardKF, downwardMaxI, 0.75);
