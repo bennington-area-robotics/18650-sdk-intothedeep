@@ -43,6 +43,8 @@ public class Collector {
     private double wristPower = 0.0;
     public static int submersibleCollectionPosition = 60;
 
+    public static double upPower, downPower = 0;
+
     public enum WristMode {
         MOVE_TO_TARGET, STAY_PARALLEL, STAY_PERPENDICULAR, FLOAT, SET_POWER
     }
@@ -101,7 +103,7 @@ public class Collector {
     }
 
     public double getWristPower() {
-        return wristPower;
+        return wristMotor.getPower();
     }
 
     public void openGrip(){
@@ -241,6 +243,7 @@ public class Collector {
         return wristTarget;
     }
 
+
     /**
      * Attempts to toggle the wrist target between up and down. If the target is not up or down, the target will not be changed.
      * @return whether the wrist target was changed.
@@ -271,8 +274,8 @@ public class Collector {
 
     public void tick(){
 
-        double passedUpKF = upWristKF * Math.sin(Math.toRadians(getWristAngle() + arm.getAngle())) * upWristKCOS;
-        double passedDownKF = downWristKF * Math.sin(Math.toRadians(getWristAngle() + arm.getAngle())) * downWristKCOS;
+        double passedUpKF = upWristKF + ( Math.sin(Math.toRadians(getWristAngle() + arm.getAngle())) * upWristKCOS);
+        double passedDownKF = downWristKF + (Math.sin(Math.toRadians(getWristAngle() + arm.getAngle())) * downWristKCOS);
 
 
         upwardPID.setConstants(upWristKP, upWristKI, upWristKD, passedUpKF, upWristMaxI);
@@ -280,6 +283,9 @@ public class Collector {
 
         upwardPID.setDirection(Direction.REVERSE);
         downwardPID.setDirection(Direction.REVERSE);
+
+        upPower = upwardPID.calc(getWristAngle() - wristTarget);
+        downPower = downwardPID.calc(getWristAngle() - wristTarget);
 
         switch (wristMode) {
             case FLOAT:
@@ -296,9 +302,9 @@ public class Collector {
                 break;
             case MOVE_TO_TARGET:
                 if(getWristAngle() < wristTarget){
-                    wristMotor.setPower(upwardPID.calc(getWristAngle() - wristTarget));
+                    wristMotor.setPower(upPower);
                 } else if (getWristAngle() > wristTarget){
-                    wristMotor.setPower(downwardPID.calc(getWristAngle() - wristTarget));
+                    wristMotor.setPower(downPower);
                 }
                 //wristMotor.setPower(upwardPID.calc(getWristAngle() - wristTarget));
 

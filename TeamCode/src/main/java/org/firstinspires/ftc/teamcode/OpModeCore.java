@@ -189,8 +189,10 @@ public class OpModeCore extends LinearOpMode {
 
         prettyTelem.addLine("Wrist")
                 .addData("Position", () -> collector.getWristAngle())
+                .addData("Angle from ground", () -> collector.getWristAngle() + arm.getAngle())
                 .addData("Target", collector::getWristTarget)
                 .addData("Velocity", () -> collector.getWristVelocity())
+                .addData("Power", () -> collector.getWristPower())
                 .addData("Up?", () -> collector.isWristUp())
                 .addData("Down?", () -> collector.isWristDown())
                 .addData("Rotated?", () -> collector.isWristRotated())
@@ -437,7 +439,9 @@ public class OpModeCore extends LinearOpMode {
                 driveBase.update();
                 prettyTelem.update();
             }*/
-            driveBase.squareUp();
+            //driveBase.squareUp();
+            collector.setWristMode(Collector.WristMode.MOVE_TO_TARGET);
+            collector.wristTo(collectionPosVariable);
 
 
         }

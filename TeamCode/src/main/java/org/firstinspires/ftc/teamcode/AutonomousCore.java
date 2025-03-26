@@ -47,8 +47,8 @@ public class AutonomousCore extends LinearOpMode {
 
     private static AutonomousCore instance;
     ElapsedTime tickTimer;
-    private static Arm arm;
-    private static Collector collector;
+    public static Arm arm;
+    public static Collector collector;
     private PrettyTelemetry prettyTelem;
 
     public static AutonomousCore getInstance(){

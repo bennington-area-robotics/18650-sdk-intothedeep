@@ -28,14 +28,6 @@ public class AutoTemplate extends LinearOpMode {
 
     //TODO FOR EBEN - clean up this code! remove the unnecessary code if its commented, implement the methods I added here
 
-    public static double blueStartX = -23.5;
-    public static double blueStartY = 63;
-    public static double blueStartAng = 90;
-
-    public static double redStartX = 0;
-    public static double redStartY = -63;
-    public static double redStartAng = -90;
-
     public static TrajectoryVelocityConstraint velocityConstraint = ConfiguredMecanumDrive.getVelocityConstraint(
             30,
             2,
@@ -44,30 +36,15 @@ public class AutoTemplate extends LinearOpMode {
     public static TrajectoryAccelerationConstraint accelerationConstraint = ConfiguredMecanumDrive.getAccelerationConstraint(
             20);
 
-    private static AutonomousCore instance;
-    ElapsedTime tickTimer;
-    private static Arm arm;
-    private static Collector collector;
-    private PrettyTelemetry prettyTelem;
+    protected ElapsedTime tickTimer;
+    protected Arm arm;
+    protected Collector collector;
+    protected PrettyTelemetry prettyTelem;
 
-    public static AutonomousCore getInstance(){
-        return instance;
-    }
-
-    public static Telemetry getTelemetry(){
-        return instance.telemetry;
-    }
-
-    public static boolean DELIVER_SPECIMEN = true;
-    public static AutoTask task = AutoTask.PUSH_SAMPLES_TO_OBSERVATION_ZONE;
-
-    public enum AutoTask {
-        PUSH_SAMPLES_TO_OBSERVATION_ZONE, PUSH_SAMPLES_TO_NET_ZONE, PARK_IN_OBSERVATION_ZONE, PARK_LEVEL_1_ASCENT
-    }
-    private AprilTagReader aprilTagReader;
-    private DriveBase drive;
-    private final Pose2d blueStartPose = new Pose(blueStartX, blueStartY, blueStartAng).toRR();
-    private final Pose2d redStartPose = new Pose(redStartX, redStartY, redStartAng).toRR();
+    protected AprilTagReader aprilTagReader;
+    protected DriveBase drive;
+    private static Pose2d blueStartPose;
+    private static Pose2d redStartPose;
 
     //private final Pose2d lastEndPose = startPose;
 
@@ -78,6 +55,18 @@ public class AutoTemplate extends LinearOpMode {
         waitForStart();
 
         run();
+    }
+
+    public void setStartPose(double x, double y, double heading){
+        blueStartPose = new Pose(x, y, heading).toRR();
+        redStartPose = new Pose(x, y, heading).toRR();
+
+    }
+    public Pose2d getRedStartPose(){
+        return redStartPose;
+    }
+    public Pose2d getBlueStartPose(){
+        return blueStartPose;
     }
 
     /**
