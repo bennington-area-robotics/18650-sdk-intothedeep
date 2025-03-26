@@ -40,7 +40,7 @@ public class OpModeCore extends LinearOpMode {
     //</editor-fold>
 
     public static boolean startAfterAscent = true;
-
+    public static double squareUpAngle = 90;
     //<editor-fold desc="Fields">
     //components
     private static MultiAprilTagReader aprilTagReader;
@@ -60,6 +60,7 @@ public class OpModeCore extends LinearOpMode {
     private boolean collectorArmed = false;
     private boolean isHighPower = true;
     private boolean manualArm = false;
+    public static boolean dualControllers = false;
 
     private String testValue = "UNSET";
     //</editor-fold>
@@ -113,7 +114,6 @@ public class OpModeCore extends LinearOpMode {
         collector = new Collector(
                 arm,
                 hardwareMap,
-                "colorSensor",
                 "wristMotor",
                 "gripServo",
                 "wristServo"
@@ -173,6 +173,7 @@ public class OpModeCore extends LinearOpMode {
                 .addData("Current Angle", () -> arm.getAngle())
                 .addData("Target Angle", () -> arm.getTargetAngle())
                 .addData("Current Extension", () -> arm.getExtension())
+                .addData("Current Extension w/ Encoder", () -> arm.getExtensionEncoderPosition())
                 .addData("Target Extension", () -> arm.getTargetExtension())
                 .addData("Last Angle Power", () -> arm.getLastAnglePower())
                 .addData("kF", () -> arm.upwardKF)
@@ -195,18 +196,18 @@ public class OpModeCore extends LinearOpMode {
                 .addData("Rotated?", () -> collector.isWristRotated())
                 .addData("Default?", () -> collector.isWristDefault());
 
-        prettyTelem.addLine("Color Sensor")
+        /*prettyTelem.addLine("Color Sensor")
                 .addData("HSV", this::getHSV)
                 .addData("RGB", this::getRGB)
-                .addData("Scoring Color", () -> collector.colorSensor.getScoringElementColor());
-
+                //.addData("Scoring Color", () -> collector.colorSensor.getScoringElementColor());
+        */
         prettyTelem.addLine("April Tags")
                 .addData("Left Camera", () -> aprilTagReader.getFirstPose(0).toString())
                 .addData("Right Camera", () -> aprilTagReader.getFirstPose(1).toString());
         prettyTelem.addLine("Check Both Gamepads");
     }
 
-    private String getHSV(){
+    /*private String getHSV(){
         float[] hsv = collector.colorSensor.getHSV();
         return String.format(Locale.ENGLISH,"Hue: %.3f Saturation: %.3f Value: %.3f", hsv[0], hsv[1], hsv[2]);
     }
@@ -214,7 +215,7 @@ public class OpModeCore extends LinearOpMode {
     private String getRGB(){
         NormalizedRGBA rgba = collector.colorSensor.getRGBA();
         return String.format(Locale.ENGLISH,"Red: %.3f Green: %.3f Blue: %.3f", rgba.red, rgba.green, rgba.blue);
-    }
+    }*/
 
     @Override
     public void runOpMode() {
@@ -228,9 +229,14 @@ public class OpModeCore extends LinearOpMode {
     public void tick(){
         updateMotorServoCache();
         driveBase.updatePoseEstimate();
-        checkGamepad();
+        if(dualControllers){
+            checkBothGamepads();
+        } else {
+            checkGamepad();
+        }
+
         //checkBothGamepads();
-        checkForScoringElement();
+        //checkForScoringElement();
         driveBase.update();
         arm.tick();
         collector.tick();
@@ -244,13 +250,13 @@ public class OpModeCore extends LinearOpMode {
         }
     }
 
-    public void checkForScoringElement(){
+    /*public void checkForScoringElement(){
         if(collectorArmed){
             if(collector.colorSensor.getScoringElementColor() != ScoringElementColor.NONE){
                 collector.closeGrip();
             }
         }
-    }
+    }*/
 
     public void checkBothGamepads(){
         //store the current gamepads since this state can change while in a check cycle
@@ -421,7 +427,7 @@ public class OpModeCore extends LinearOpMode {
             collector.wristTo(collectionPosVariable);
         }
         if(gamepad1.right_bumper && !previousGamepad1.right_bumper){
-            driveBase.setPoseEstimate(new Pose2d( -36, 50, Math.toRadians(-90)));
+            /*driveBase.setPoseEstimate(new Pose2d( -36, 50, Math.toRadians(-90)));
             Trajectory moveToRung = driveBase.trajectoryBuilder(driveBase.getPoseEstimate())
                     .splineToLinearHeading(new Pose2d(-12, 40, Math.toRadians(-90)), Math.toRadians(-90))
                     .build();
@@ -430,7 +436,8 @@ public class OpModeCore extends LinearOpMode {
                 driveBase.updatePoseEstimate();
                 driveBase.update();
                 prettyTelem.update();
-            }
+            }*/
+            driveBase.squareUp();
 
 
         }
@@ -451,6 +458,12 @@ public class OpModeCore extends LinearOpMode {
             }
         }
 
+        if(gamepad1.left_stick_button && gamepad1.right_stick_button){
+            arm.setTargetAngle(100);
+            arm.setTargetExtension(arm.MAX_ARM_EXTENSION);
+            collector.setWristMode(Collector.WristMode.MOVE_TO_TARGET);
+            collector.wristTo(posVariable);
+        }
 
         if(Math.abs(-gamepad1.left_trigger + gamepad1.right_trigger) > 0.1){
             arm.killMacro();

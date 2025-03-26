@@ -190,7 +190,7 @@ public class Autopilot {
     }
 
     private boolean holdingSample(){
-        return collector.holdingSample();
+        return false;
     }
 
     private boolean errorTolerable(double number1, double number2, double tolerance){

@@ -22,6 +22,7 @@ public class Arm {
     public static float ARM_TICKS_PER_DEGREE = 65f; //this is a good estimate as of 1/24/2025
 
     public static float ARM_TICKS_PER_INCH = 190f;
+    public static double ENCODER_TICKS_PER_INCH = 38952.0/37.984;
     public static double MAX_ARM_EXTENSION = 38.5;
 
     public static double MAX_HORIZONTAL_EXTENSION = 38.0;
@@ -57,6 +58,7 @@ public class Arm {
     private final DcMotorEx extensionMotor;
 
     private final Encoder angleEncoder;
+    private final Encoder extensionEncoder;
     public final TouchSensor tiltLimitSensor;
     public final TouchSensor extensionLimitSensor;
 
@@ -75,6 +77,8 @@ public class Arm {
     private double targetAngle = 0;
 
     private double tickOffsetToZero;
+
+    private double extensionMotorTickOffsetToZero;
 
     private double cachedAngle;
 
@@ -108,6 +112,7 @@ public class Arm {
         this.tiltLimitSensor = hardwareMap.get(TouchSensor.class, tiltSensorName);
         this.extensionLimitSensor = hardwareMap.get(TouchSensor.class, extensionSensorName);
         this.angleEncoder = new Encoder(angleMotorRight);
+        this.extensionEncoder = new Encoder(angleMotorLeft);
 
         this.extensionMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         this.angleMotorLeft.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -119,12 +124,14 @@ public class Arm {
         this.angleMotorLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         this.angleMotorRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         this.angleEncoder.setDirection(Encoder.Direction.FORWARD);
+        this.extensionEncoder.setDirection(Encoder.Direction.FORWARD);
         this.extensionMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         //</editor-fold>
 
 
         resetExtension();
         resetAngle();
+        resetExtensionEncoder();
 
         targetAngle = getAngle();
         targetExtension = getExtension();
@@ -136,8 +143,12 @@ public class Arm {
      *
      * @return the angle of the arm relative to the base.
      */
-    public double getAngle(){
+    public double getAngle() {
         return (angleEncoder.getCurrentPosition() - tickOffsetToZero) / ARM_TICKS_PER_DEGREE;
+    }
+
+    public double getExtensionEncoderPosition(){
+        return (extensionEncoder.getCurrentPosition() - extensionMotorTickOffsetToZero) / ENCODER_TICKS_PER_INCH;
     }
 
     public double getAngleVelocity(){
@@ -154,6 +165,7 @@ public class Arm {
     public double getExtension(){
         return extensionMotor.getCurrentPosition() / ARM_TICKS_PER_INCH;
     }
+
 
     public double getExtensionVelocity(){
         return extensionMotor.getCurrentPosition() / ARM_TICKS_PER_INCH;
@@ -287,6 +299,11 @@ public class Arm {
      */
     public void resetAngle(){
         tickOffsetToZero = angleEncoder.getCurrentPosition();
+    }
+
+    public void resetExtensionEncoder() {
+        extensionMotorTickOffsetToZero = extensionEncoder.getCurrentPosition();
+
     }
     public void resetAngleAfterAscent(){
         tickOffsetToZero -= 100 * ARM_TICKS_PER_DEGREE;

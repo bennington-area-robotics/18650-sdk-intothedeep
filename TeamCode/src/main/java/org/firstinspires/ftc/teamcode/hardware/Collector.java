@@ -34,7 +34,7 @@ public class Collector {
     PID downwardPID = new PID(downWristKP, downWristKI, downWristKD, downWristKF, downWristMaxI, 1);
     public int wristTarget;
 
-    public final ColorSensor colorSensor;
+    //public final ColorSensor colorSensor;
     final Servo gripServo;
     final Servo wristServo;
     private final DcMotor wristMotor;
@@ -48,7 +48,21 @@ public class Collector {
     }
 
     public Collector(Arm arm, HardwareMap hardwareMap, String colorSensorName, String wristMotorName, String gripServoName, String wristServoName){
-        this.colorSensor = new ColorSensor(hardwareMap, colorSensorName);
+        //this.colorSensor = new ColorSensor(hardwareMap, colorSensorName);
+        this.gripServo = hardwareMap.get(Servo.class, gripServoName);
+        this.wristMotor = hardwareMap.get(DcMotor.class, wristMotorName);
+        this.arm = arm;
+        this.wristEncoder = new Encoder(hardwareMap.get(DcMotorEx.class, wristMotorName));
+        this.wristServo = hardwareMap.get(Servo.class, wristServoName);
+
+        resetPositionAs(0);
+        wristMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        wristMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        setWristMode(WristMode.FLOAT);
+    }
+
+    public Collector(Arm arm, HardwareMap hardwareMap, String wristMotorName, String gripServoName, String wristServoName){
+
         this.gripServo = hardwareMap.get(Servo.class, gripServoName);
         this.wristMotor = hardwareMap.get(DcMotor.class, wristMotorName);
         this.arm = arm;
@@ -191,13 +205,13 @@ public class Collector {
         return Helper.errorTolerable(wristTarget, DOWN_POSITION, 5);
     }
 
-    public boolean holdingSample(){
+    /*public boolean holdingSample(){
         return isGripClosed() && colorSensor.getScoringElementColor() != ScoringElementColor.NONE;
     }
 
     public boolean holdingSample(ScoringElementColor elementColor){
         return isGripClosed() && colorSensor.getScoringElementColor() == elementColor;
-    }
+    }*/
 
     public double getGripPosition(){
         return gripServo.getPosition();

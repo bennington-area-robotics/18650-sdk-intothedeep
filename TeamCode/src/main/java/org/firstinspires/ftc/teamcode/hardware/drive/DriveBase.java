@@ -7,13 +7,16 @@ import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.acmerobotics.roadrunner.trajectory.Trajectory;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
+import org.firstinspires.ftc.teamcode.hardware.controllers.PID;
+
 @Config
 public class DriveBase extends ConfiguredMecanumDrive {
     public static float TRANSLATIONAL_VELOCITY_MULTIPLIER = 40f;
     public static float HEADING_VELOCITY_MULTIPLIER = 3f;
     public static int inputExponent = 2;
     private double powerFactor = 1;
-
+    public static double kP = 3, kI = 0.001, kD = 0.1, kF = 0, maxKI =0;
+    public static PID rotationalPID = new PID(kP, kI, kD, kI, maxKI, 0.5);
     private boolean lowPowerMode = false;
     public static double lowPowerMax = 0.5;
     public static double minPowerThreshold = 0.1;
@@ -210,7 +213,17 @@ public class DriveBase extends ConfiguredMecanumDrive {
     public void stop(){
         setMotorPowers(0,0,0,0);
     }
+    public void squareUp(){
 
+        while (Math.abs(this.getPoseSimple().heading()) > 0.5){
+            rotationalPID.setConstants(kP, kI, kD, kF, maxKI);
+            double power =  rotationalPID.calc(this.getPoseSimple().heading());
+            setMotorPowers(power, power, -power, -power);
+
+        }
+        setMotorPowers(0, 0, 0, 0);
+
+    }
     public void setPowerFactor(double powerFactor){
         this.powerFactor = powerFactor;
     }
