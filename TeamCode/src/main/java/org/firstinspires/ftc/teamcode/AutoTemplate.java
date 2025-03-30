@@ -94,6 +94,7 @@ public class AutoTemplate extends LinearOpMode {
         prettyTelem.addLine("System Status")
                 .addData("Localization: ", () -> drive.getPoseSimple())
                 .addData("Caching Mode", () -> lynxModules.get(0).getBulkCachingMode())
+                .addData("Manually Caching", () -> manuallyCaching)
         ;
 
         prettyTelem.addLine("Arm Status")
