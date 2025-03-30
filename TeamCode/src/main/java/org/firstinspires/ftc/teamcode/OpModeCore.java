@@ -378,8 +378,19 @@ public class OpModeCore extends LinearOpMode {
 
         gamepadTimer.reset();
 
+        switch(movementMode){
+            case DIRECTIVE:
+                driveBase.moveUsingRR(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x);
+                break;
+            case ACCELERATION:
+                driveBase.moveWithAcceleration(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x);
+                break;
+            case PURE_POWER:
+                driveBase.moveUsingPower(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x);
+                break;
+        }
         //driveBase.moveUsingPower(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x);
-        driveBase.moveWithAcceleration(gamepad2.left_stick_x, gamepad2.left_stick_y, gamepad2.right_stick_x);
+        //driveBase.moveWithAcceleration(gamepad2.left_stick_x, gamepad2.left_stick_y, gamepad2.right_stick_x);
         //driveBase.moveUsingRR(gamepad2.left_stick_x, gamepad2.left_stick_y, gamepad2.right_stick_x);
         //save the last gamepad state to compare again later
         previousGamepad1.copy(gamepad1);
@@ -545,11 +556,29 @@ public class OpModeCore extends LinearOpMode {
 
         gamepadTimer.reset();
 
-        //driveBase.moveUsingPower(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x);
-        driveBase.moveWithAcceleration(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x);
+
+
+        switch(movementMode){
+            case DIRECTIVE:
+                driveBase.moveUsingRR(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x);
+                break;
+            case ACCELERATION:
+                driveBase.moveWithAcceleration(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x);
+                break;
+            case PURE_POWER:
+                driveBase.moveUsingPower(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x);
+                break;
+        }
+
         //save the last gamepad state to compare again later
         previousGamepad1.copy(gamepad1);
         previousGamepad2.copy(gamepad2);
+    }
+
+    public static MovementMode movementMode = MovementMode.ACCELERATION;
+
+    public enum MovementMode {
+        ACCELERATION, PURE_POWER, DIRECTIVE
     }
 
     public void refreshLocations(){
