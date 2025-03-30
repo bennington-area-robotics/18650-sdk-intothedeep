@@ -22,10 +22,17 @@ public class Collector {
     public static float DEFAULT_POSITION = 1.0f, ROTATED_POSITION = 0.0f;//wristServo
     public static float HALFWAY_POSITION = 0.5f;
     public static float LENGTH = 5f;
-    public static double upWristKP = 0.008, upWristKI = 0, upWristKD = 0, upWristKF = -0.02, upWristMaxI,  upWristKCOS = -0.15;
+    //old pid values for else return 0
+    /*public static double upWristKP = 0.008, upWristKI = 0, upWristKD = 0, upWristKF = -0.02, upWristMaxI,  upWristKCOS = -0.15;
     public static double wristOffset = 0;
 
     public static double downWristKP = 0.0005, downWristKI = 0, downWristKD = 0.003, downWristKF, downWristMaxI, downWristKCOS= 0;
+    private boolean withGravity = false;*/
+
+    public static double upWristKP = 0.008, upWristKI = 0, upWristKD = 0, upWristKF = 0, upWristMaxI,  upWristKCOS = -0.13;
+    public static double wristOffset = 0;
+
+    public static double downWristKP = 0.0003, downWristKI = 0, downWristKD = 0.001, downWristKF, downWristMaxI, downWristKCOS= 0;
     private boolean withGravity = false;
 
     double KF = upWristKF;

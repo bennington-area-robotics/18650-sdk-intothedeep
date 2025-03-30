@@ -92,6 +92,7 @@ public class AutoTemplate extends LinearOpMode {
         ;
         prettyTelem.addLine("System Status")
                 .addData("Localization: ", () -> drive.getPoseSimple())
+                .addData("Caching Mode", () -> lynxModules.get(0).getBulkCachingMode())
         ;
 
         prettyTelem.addLine("Arm Status")
@@ -125,9 +126,9 @@ public class AutoTemplate extends LinearOpMode {
                 .addData("Default?", () -> collector.isWristDefault());
     }
     public void updateMotorServoCache(){
-        for(LynxModule module : lynxModules){
+        /*for(LynxModule module : lynxModules){
             module.clearBulkCache();
-        }
+        }*/
     }
 
     public void initialize(){
@@ -136,7 +137,7 @@ public class AutoTemplate extends LinearOpMode {
         lynxModules = hardwareMap.getAll(LynxModule.class);
 
         for(LynxModule module : lynxModules){
-            module.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
+            module.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
         }
         drive = new DriveBase(hardwareMap);
         drive.setPoseEstimate(blueStartPose);

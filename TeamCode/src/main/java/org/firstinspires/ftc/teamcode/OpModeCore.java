@@ -31,13 +31,16 @@ public class OpModeCore extends LinearOpMode {
 
     public static int posVariable = 40;
     public static int collectionPosVariable = -20;
-    public static double armVariable = 45;
+    public static double armVariable = 50;
+    public static double extensionPosVariable = 8;
     //<editor-fold desc="Config">
     public static float LOW_POWER_MODIFIER = 0.75f;
     public static float HIGH_POWER_MODIFIER = 0.75f;
     public static float MAX_INCHES_PER_SECOND = 9f;
     public static float MIN_WRIST_VELOCITY = 8;
     //</editor-fold>
+
+
 
     public static boolean startAfterAscent = true;
     public static double squareUpAngle = 90;
@@ -61,6 +64,7 @@ public class OpModeCore extends LinearOpMode {
     private boolean isHighPower = true;
     private boolean manualArm = false;
     public static boolean dualControllers = false;
+    public static boolean testingPID = false;
 
     private String testValue = "UNSET";
     //</editor-fold>
@@ -232,7 +236,11 @@ public class OpModeCore extends LinearOpMode {
     public void tick(){
         updateMotorServoCache();
         driveBase.updatePoseEstimate();
-        if(dualControllers){
+
+        if(testingPID){
+            pidTestGamepad();
+        }
+        else if(dualControllers){
             checkBothGamepads();
         } else {
             checkGamepad();
@@ -308,7 +316,7 @@ public class OpModeCore extends LinearOpMode {
 
         if (gamepad1.dpad_left && !previousGamepad1.dpad_left){
             arm.setTargetAngle(armVariable);
-            arm.setTargetExtension(16.2);
+            arm.setTargetExtension(extensionPosVariable);
             collector.setWristMode(Collector.WristMode.MOVE_TO_TARGET);
             collector.wristTo(posVariable);
             //collector.setWristMode(Collector.WristMode.STAY_PERPENDICULAR);
@@ -368,6 +376,50 @@ public class OpModeCore extends LinearOpMode {
 
     }
 
+    public void pidTestGamepad(){
+        Gamepad gamepad1 = new Gamepad();
+        gamepad1.copy(this.gamepad1);
+
+        if (gamepad1.dpad_left && !previousGamepad1.dpad_left){
+            arm.setTargetAngle(armVariable);
+            //collector.setWristMode(Collector.WristMode.STAY_PERPENDICULAR);
+        }
+
+        if(gamepad1.dpad_right && !previousGamepad1.dpad_right) {
+            arm.setTargetAngle(30);
+        }
+
+        if(gamepad1.right_bumper && !previousGamepad1.right_bumper){
+            collector.setWristMode(Collector.WristMode.MOVE_TO_TARGET);
+            collector.wristTo(collectionPosVariable);
+        }
+        if (gamepad1.left_bumper && !previousGamepad1.left_bumper){
+            arm.setTargetExtension(extensionPosVariable);
+        }
+        if(gamepad1.dpad_down && !previousGamepad1.dpad_down){
+            if(manualArm){
+                arm.setTargetAngle(Math.max(arm.getTargetAngle() - 15, 0));
+            }else{
+                collector.wristUp();
+                arm.collectionPosition();
+            }
+        }else if(gamepad1.dpad_up && !previousGamepad1.dpad_up){
+            if(manualArm){
+                arm.setTargetAngle(Math.min(arm.getTargetAngle() + 15, 100));
+            }else {
+                if (!arm.setTargetAngle(100))
+                    this.gamepad1.rumbleBlips(100);
+            }
+        }
+        if(gamepad1.b && !previousGamepad1.b){
+            collector.setWristMode(Collector.WristMode.MOVE_TO_TARGET);
+            if(!collector.toggleWrist())
+                collector.wristUp();
+        }
+        gamepadTimer.reset();
+        previousGamepad1.copy(gamepad1);
+    }
+
 
     //this might be moved to a seperate class
     public void checkGamepad() {
@@ -417,7 +469,7 @@ public class OpModeCore extends LinearOpMode {
 
         if (gamepad1.dpad_left && !previousGamepad1.dpad_left){
             arm.setTargetAngle(armVariable);
-            arm.setTargetExtension(16.2);
+            arm.setTargetExtension(extensionPosVariable);
             collector.setWristMode(Collector.WristMode.MOVE_TO_TARGET);
             collector.wristTo(posVariable);
             //collector.setWristMode(Collector.WristMode.STAY_PERPENDICULAR);
@@ -467,7 +519,7 @@ public class OpModeCore extends LinearOpMode {
             arm.setTargetAngle(100);
             arm.setTargetExtension(arm.MAX_ARM_EXTENSION);
             collector.setWristMode(Collector.WristMode.MOVE_TO_TARGET);
-            collector.wristTo(posVariable);
+            collector.wristTo(-40);
         }
 
         if(Math.abs(-gamepad1.left_trigger + gamepad1.right_trigger) > 0.1){

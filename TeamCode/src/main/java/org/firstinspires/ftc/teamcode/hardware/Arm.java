@@ -34,14 +34,14 @@ public class Arm {
     public static double DELIVERY_ANGLE = 95.0;
 
     public static double COLLECTION_EXTENSION = 0.0;
-    public static double COLLECTION_ANGLE = 0.0;
+    public static double COLLECTION_ANGLE = -1.0;
     public static double SPECIMEN_ANGLE = 55;
 
-    public static double downwardKP = 0.02, downwardKI = 0, downwardKD = 0.1, downwardKF = 0, downwardMaxI = 0;
-    public static double upwardKP = 0.065, upwardKI = 0.001, upwardKD = 0.1, upwardKF = 0.23, upwardMaxI = 0;
-    public static double extensionKP = 0.2, extensionKI, extensionKD, extensionKF = 0.15, extensionMaxI;
-    public static double retractionKP = 0.1, retractionKI, retractionKD, retractionKF = -0.5, retractionMaxI;
-    public static double rotationKF = 0.25, rotationKCOS = 1;
+    public static double downwardKP = 0.015, downwardKI = 0, downwardKD = 0.1, downwardKF = 0, downwardMaxI = 0;
+    public static double upwardKP = 0.04, upwardKI = 0.001, upwardKD = 0.02, upwardKF = 0.23, upwardMaxI = 0;
+    public static double extensionKP = 0.25, extensionKI, extensionKD = 0.2, extensionKF = 0, extensionMaxI;
+    public static double retractionKP = 3, retractionKI, retractionKD, retractionKF = 0, retractionMaxI;
+    public static double rotationKF = 0.16, rotationKCOS = 1;
     public static double downwardKFMultiplier = 0;
     public static double minThreshold = 0.15;
     public static double verticalKD = 0.1, verticalKP = 0.045;
@@ -225,7 +225,7 @@ public class Arm {
      * @param degrees the target angle in degrees.
      * @return whether the operation was successful (whether it passed the checks).
      */
-    public boolean setTargetAngle(@FloatRange(from=0, to=100) double degrees){
+    public boolean setTargetAngle(@FloatRange(from=-2, to=100) double degrees){
         setAngleMode(AngleMode.MOVE_TO_TARGET);
         if(runningMacro != null){
             return false;
@@ -396,7 +396,7 @@ public class Arm {
     public void collectionPosition(){
         if(getExtensionEncoderPosition() - COLLECTION_EXTENSION < 1.5){
             setTargetExtension(COLLECTION_EXTENSION);
-            setTargetAngle(0);
+            setTargetAngle(-2);
         }else {
             double inchesPerDegree = (getAngle() - COLLECTION_ANGLE) / (getExtensionEncoderPosition() - COLLECTION_EXTENSION);
 
@@ -530,7 +530,7 @@ public class Arm {
 
     public boolean isValidAngle(double degrees){
         //do not set the target to a degree outside the desired range of motion
-        if(degrees < 0 || degrees > 100)
+        if(degrees < -2.5 || degrees > 100)
             return false;
 
         //do not set the target to a degree that will cause the arm to move outside the extension bounds.

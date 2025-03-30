@@ -92,7 +92,7 @@ public class PID {
             lastResult = output;
 
         }else {
-            lastResult = 0;
+            lastResult = kF;
         }
         return lastResult;
     }
