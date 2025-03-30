@@ -25,6 +25,7 @@ import java.util.List;
 @Config
 public class AutoTemplate extends LinearOpMode {
 
+    public static boolean manuallyCaching = false;
 
     private List<LynxModule> lynxModules;
     //TODO FOR EBEN - clean up this code! remove the unnecessary code if its commented, implement the methods I added here
@@ -126,6 +127,9 @@ public class AutoTemplate extends LinearOpMode {
                 .addData("Default?", () -> collector.isWristDefault());
     }
     public void updateMotorServoCache(){
+        if (!manuallyCaching){
+            return;
+        }
         for(LynxModule module : lynxModules){
             module.clearBulkCache();
         }
@@ -187,23 +191,27 @@ public class AutoTemplate extends LinearOpMode {
     }
 
     public void initializeStartingPosition(){
+        setManualCaching();
         collector.wristToHalfway();
         arm.moveToTargetAngleBlocking(armInitAngle, this::tickInit);
         collector.moveWristToBlocking(collectorInitPos, this::tickInit, true);
         collector.closeGrip();
         arm.setAnglePower(0);
+        setAutoCaching();
     }
 
     protected void setAutoCaching() {
         for (LynxModule module : lynxModules) {
             module.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
         }
+        manuallyCaching = false;
     }
 
     protected void setManualCaching() {
         for (LynxModule module : lynxModules) {
             module.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
         }
+        manuallyCaching = true;
     }
 
     public void resetPosition(){
