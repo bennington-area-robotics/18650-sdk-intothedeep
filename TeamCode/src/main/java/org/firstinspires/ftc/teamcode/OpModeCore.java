@@ -29,6 +29,17 @@ import java.util.Locale;
 @TeleOp(name="1 - Main TeleOp")
 public class OpModeCore extends LinearOpMode {
 
+
+
+    //collection macro positions
+    public static double collectionAnglePos = 30, collectionExtensionPos = 9.5, collectionWristPos = -20;
+
+    //delivery macro position
+    public static double deliveryAnglePos = 50, deliveryExtensionPos = 8, deliveryWristPos = 40;
+
+    //hanging position
+    public static double hangingCollectorPos = -40;
+
     public static int posVariable = 40;
     public static int collectionPosVariable = -20;
     public static double armVariable = 50;
@@ -315,18 +326,18 @@ public class OpModeCore extends LinearOpMode {
         }
 
         if (gamepad1.dpad_left && !previousGamepad1.dpad_left){
-            arm.setTargetAngle(armVariable);
-            arm.setTargetExtension(extensionPosVariable);
+            arm.setTargetAngle(deliveryAnglePos);
+            arm.setTargetExtension(deliveryExtensionPos);
             collector.setWristMode(Collector.WristMode.MOVE_TO_TARGET);
-            collector.wristTo(posVariable);
+            collector.wristTo(deliveryWristPos);
             //collector.setWristMode(Collector.WristMode.STAY_PERPENDICULAR);
         }
 
         if(gamepad1.dpad_right && !previousGamepad1.dpad_right) {
-            arm.setTargetAngle(30);
-            arm.setTargetExtension(9.5);
+            arm.setTargetAngle(collectionAnglePos);
+            arm.setTargetExtension(collectionExtensionPos);
             collector.setWristMode(Collector.WristMode.MOVE_TO_TARGET);
-            collector.wristTo(collectionPosVariable);
+            collector.wristTo(collectionWristPos);
         }
         if(gamepad1.right_bumper && !previousGamepad1.right_bumper){
             driveBase.setPoseEstimate(new Pose2d( -36, 50, Math.toRadians(90)));
@@ -468,18 +479,18 @@ public class OpModeCore extends LinearOpMode {
         }
 
         if (gamepad1.dpad_left && !previousGamepad1.dpad_left){
-            arm.setTargetAngle(armVariable);
-            arm.setTargetExtension(extensionPosVariable);
+            arm.setTargetAngle(deliveryAnglePos);
+            arm.setTargetExtension(deliveryExtensionPos);
             collector.setWristMode(Collector.WristMode.MOVE_TO_TARGET);
-            collector.wristTo(posVariable);
+            collector.wristTo(deliveryWristPos);
             //collector.setWristMode(Collector.WristMode.STAY_PERPENDICULAR);
         }
 
         if(gamepad1.dpad_right && !previousGamepad1.dpad_right) {
-            arm.setTargetAngle(30);
-            arm.setTargetExtension(9.5);
+            arm.setTargetAngle(collectionAnglePos);
+            arm.setTargetExtension(collectionExtensionPos);
             collector.setWristMode(Collector.WristMode.MOVE_TO_TARGET);
-            collector.wristTo(collectionPosVariable);
+            collector.wristTo(collectionWristPos);
         }
         if(gamepad1.right_bumper && !previousGamepad1.right_bumper){
             /*driveBase.setPoseEstimate(new Pose2d( -36, 50, Math.toRadians(-90)));
@@ -519,7 +530,7 @@ public class OpModeCore extends LinearOpMode {
             arm.setTargetAngle(100);
             arm.setTargetExtension(arm.MAX_ARM_EXTENSION);
             collector.setWristMode(Collector.WristMode.MOVE_TO_TARGET);
-            collector.wristTo(-40);
+            collector.wristTo(hangingCollectorPos);
         }
 
         if(Math.abs(-gamepad1.left_trigger + gamepad1.right_trigger) > 0.1){
