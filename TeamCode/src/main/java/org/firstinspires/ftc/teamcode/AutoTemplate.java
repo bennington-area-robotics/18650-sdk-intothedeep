@@ -1,16 +1,13 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.acmerobotics.roadrunner.geometry.Pose2d;
-import com.acmerobotics.roadrunner.geometry.Vector2d;
-import com.acmerobotics.roadrunner.trajectory.Trajectory;
 import com.acmerobotics.roadrunner.trajectory.constraints.TrajectoryAccelerationConstraint;
 import com.acmerobotics.roadrunner.trajectory.constraints.TrajectoryVelocityConstraint;
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.apriltag.AprilTagReader;
 import org.firstinspires.ftc.teamcode.apriltag.Camera;
 import org.firstinspires.ftc.teamcode.hardware.Arm;
@@ -20,21 +17,25 @@ import org.firstinspires.ftc.teamcode.hardware.drive.DriveBase;
 import org.firstinspires.ftc.teamcode.hardware.drive.DriveConstants;
 import org.firstinspires.ftc.teamcode.hardware.drive.Pose;
 
+import java.util.List;
+
 /*
  * This is an example of a more complex path to really test the tuning.
  */
 @Config
 public class AutoTemplate extends LinearOpMode {
 
-    //TODO FOR EBEN - clean up this code! remove the unnecessary code if its commented, implement the methods I added here
 
-    public static TrajectoryVelocityConstraint velocityConstraint = ConfiguredMecanumDrive.getVelocityConstraint(
-            30,
-            2,
+    private List<LynxModule> lynxModules;
+    //TODO FOR EBEN - clean up this code! remove the unnecessary code if its commented, implement the methods I added here
+    public static double maxVel = 30, maxAcc = 20, maxAngVel = 2;
+    protected TrajectoryVelocityConstraint velocityConstraint = ConfiguredMecanumDrive.getVelocityConstraint(
+            maxVel,
+            maxAngVel,
             DriveConstants.TRACK_WIDTH);
 
-    public static TrajectoryAccelerationConstraint accelerationConstraint = ConfiguredMecanumDrive.getAccelerationConstraint(
-            20);
+    protected TrajectoryAccelerationConstraint accelerationConstraint = ConfiguredMecanumDrive.getAccelerationConstraint(
+            maxAcc);
 
     protected ElapsedTime tickTimer;
     protected Arm arm;
@@ -45,6 +46,9 @@ public class AutoTemplate extends LinearOpMode {
     protected DriveBase drive;
     private static Pose2d blueStartPose;
     private static Pose2d redStartPose;
+
+    public static double collectorInitPos = 240;
+    public static double armInitAngle = 39;
 
     //private final Pose2d lastEndPose = startPose;
 
@@ -57,8 +61,12 @@ public class AutoTemplate extends LinearOpMode {
         run();
     }
 
-    public void setStartPose(double x, double y, double heading){
+    public void setBlueStartPose(double x, double y, double heading){
         blueStartPose = new Pose(x, y, heading).toRR();
+
+
+    }
+    public void setRedStartPose(double x, double y, double heading){
         redStartPose = new Pose(x, y, heading).toRR();
 
     }
@@ -77,18 +85,24 @@ public class AutoTemplate extends LinearOpMode {
      */
     private void configureTelemetry(){
         prettyTelem = new PrettyTelemetry(telemetry);
-
+        prettyTelem.addLine ("Errors")
+                .addData("Extension", () -> arm.getTargetExtension()-arm.getExtension())
+                .addData("Arm Angle", () -> arm.getTargetAngle() - arm.getAngle())
+                .addData("Wrist Angle", () -> collector.getWristTarget() - collector.getWristAngle())
+        ;
         prettyTelem.addLine("System Status")
                 .addData("Localization: ", () -> drive.getPoseSimple())
-        ;
         ;
 
         prettyTelem.addLine("Arm Status")
                 .addData("Current Angle", () -> arm.getAngle())
                 .addData("Target Angle", () -> arm.getTargetAngle())
                 .addData("Current Extension", () -> arm.getExtension())
+                .addData("Current Extension w/ Encoder", () -> arm.getExtensionEncoderPosition())
                 .addData("Target Extension", () -> arm.getTargetExtension())
                 .addData("Last Angle Power", () -> arm.getLastAnglePower())
+                .addData("kF", () -> arm.upwardKF)
+                .addData("Error", () -> arm.getTargetAngle() - arm.getAngle())
                 .addData("Last Extension Power", () -> arm.getLastExtensionPower())
                 .addData("Tilt Limit Sensor Pressed?", () -> arm.tiltLimitSensor.isPressed())
                 .addData("Extension Limit Sensor Pressed?", () -> arm.extensionLimitSensor.isPressed());
@@ -100,15 +114,30 @@ public class AutoTemplate extends LinearOpMode {
 
         prettyTelem.addLine("Wrist")
                 .addData("Position", () -> collector.getWristAngle())
+                .addData("Angle from ground", () -> collector.getWristAngle() + arm.getAngle())
+                .addData("Target", collector::getWristTarget)
+                .addData("Velocity", () -> collector.getWristVelocity())
+                .addData("Power", () -> collector.getWristPower())
+                .addData("Moving with gravity", () -> collector.isWithGravity())
                 .addData("Up?", () -> collector.isWristUp())
-                .addData("Down?", () -> collector.isWristDown());
-
-
-        prettyTelem.addData("April Tag", () -> aprilTagReader.getFirstPose().toString());
+                .addData("Down?", () -> collector.isWristDown())
+                .addData("Rotated?", () -> collector.isWristRotated())
+                .addData("Default?", () -> collector.isWristDefault());
+    }
+    public void updateMotorServoCache(){
+        for(LynxModule module : lynxModules){
+            module.clearBulkCache();
+        }
     }
 
-
     public void initialize(){
+
+
+        lynxModules = hardwareMap.getAll(LynxModule.class);
+
+        for(LynxModule module : lynxModules){
+            module.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
+        }
         drive = new DriveBase(hardwareMap);
         drive.setPoseEstimate(blueStartPose);
 
@@ -142,20 +171,46 @@ public class AutoTemplate extends LinearOpMode {
     }
 
     public void initializeStartingPosition(){
-        arm.moveToTargetAngleBlocking(36, this::tick);
-        collector.moveWristToBlocking(240, this::tick, true);
+        collector.wristToHalfway();
+        arm.moveToTargetAngleBlocking(armInitAngle, this::tickInit);
+        collector.moveWristToBlocking(collectorInitPos, this::tickInit, true);
         collector.closeGrip();
         arm.setAnglePower(0);
     }
 
+    public void resetPosition(){
+        arm.collectionPosition();
+        collector.wristUp();
+    }
 
-    public void tick(){
+
+    public void tickInit(){
 
         arm.tick();
         collector.tick();
-        //prettyTelem.update();
+        updateMotorServoCache();
         tickTimer.reset();
     }
+    public void tickAll(){
+        arm.tick();
+        collector.tick();
+        prettyTelem.update();
+        tickTimer.reset();
+        updateMotorServoCache();
+    }
+    public void tickArm(){
+        arm.tick();
+        prettyTelem.update();
+        tickTimer.reset();
+
+    }
+    public void tickCollector(){
+        collector.tick();
+        prettyTelem.update();
+        tickTimer.reset();
+    }
+
+
 
 
     /**
@@ -166,7 +221,7 @@ public class AutoTemplate extends LinearOpMode {
         //TODO FOR EBEN - finish implementing this
 
         if (isStopRequested()) return;
-        collector.moveWristToBlocking(0, this::tick, false);
+        collector.moveWristToBlocking(0, this::tickAll, false);
 
 
 

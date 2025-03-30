@@ -1,28 +1,9 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.acmerobotics.dashboard.config.Config;
-import com.acmerobotics.roadrunner.geometry.Pose2d;
-import com.acmerobotics.roadrunner.geometry.Vector2d;
 import com.acmerobotics.roadrunner.trajectory.Trajectory;
-import com.acmerobotics.roadrunner.trajectory.constraints.TrajectoryAccelerationConstraint;
-import com.acmerobotics.roadrunner.trajectory.constraints.TrajectoryVelocityConstraint;
-import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
-
-import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.teamcode.apriltag.AprilTagReader;
-import org.firstinspires.ftc.teamcode.apriltag.Camera;
-import org.firstinspires.ftc.teamcode.hardware.Arm;
-import org.firstinspires.ftc.teamcode.hardware.Collector;
-import org.firstinspires.ftc.teamcode.hardware.drive.ConfiguredMecanumDrive;
-import org.firstinspires.ftc.teamcode.hardware.drive.DriveBase;
-import org.firstinspires.ftc.teamcode.hardware.drive.DriveConstants;
-import org.firstinspires.ftc.teamcode.hardware.drive.Pose;
-
-import java.util.List;
 
 /*
  * This is an example of a more complex path to really test the tuning.
@@ -41,33 +22,15 @@ public class AutonomousSpecimenDelivery extends AutoTemplate {
     public static double redStartY = -63;
     public static double redStartAng = -90;
 
+    private static ElapsedTime runtime = new ElapsedTime();
+
     public static double specX = 0, specY = 40, specTan = 90, specHeading = 90;
-    public static TrajectoryVelocityConstraint velocityConstraint = ConfiguredMecanumDrive.getVelocityConstraint(
-            30,
-            2,
-            DriveConstants.TRACK_WIDTH);
-
-    public static TrajectoryAccelerationConstraint accelerationConstraint = ConfiguredMecanumDrive.getAccelerationConstraint(
-            20);
-
-    private static AutonomousCore instance;
-
-    public static double extensionVar = 16.22;
-
-    private final Pose2d blueStartPose = new Pose(blueStartX, blueStartY, blueStartAng).toRR();
-    private final Pose2d redStartPose = new Pose(redStartX, redStartY, redStartAng).toRR();
-
-    public static AutonomousCore getInstance() {
-        return instance;
-    }
-
-    public static Telemetry getTelemetry() {
-        return instance.telemetry;
-    }
+    public static double collectorPos = 40, armAnglePos = 45, armExtensionPos = 18.5;
+    public static double forwardAmount = 25;
 
     @Override
     public void runOpMode() throws InterruptedException {
-        setStartPose(blueStartX, blueStartY, blueStartAng);
+        setBlueStartPose(blueStartX, blueStartY, blueStartAng);
         super.initialize();
 
         waitForStart();
@@ -75,61 +38,33 @@ public class AutonomousSpecimenDelivery extends AutoTemplate {
         run();
     }
 
-    public void blueObservationSamplePushPath(){
-
-
-        Trajectory moveRobot = drive.trajectoryBuilder(getBlueStartPose(), true)
-                .splineTo(
-                        new Vector2d(-37, 45),
-                        Math.toRadians(-90),
-                        velocityConstraint,
-                        accelerationConstraint)
-                .splineTo(
-                        new Vector2d(-37,20),
-                        Math.toRadians(-90),
-                        velocityConstraint,
-                        accelerationConstraint)
-                .splineToConstantHeading(
-                        new Vector2d(-45,12),
-                        Math.toRadians(90),
-                        velocityConstraint,
-                        accelerationConstraint)
-                .splineTo(
-                        new Vector2d(-45, 55),
-                        Math.toRadians(90),
-                        velocityConstraint,
-                        accelerationConstraint)
-                .build();
-
-        Trajectory moveRobot2 = drive.trajectoryBuilder(moveRobot.end(), true)
-
-                .splineTo(new Vector2d(-45, 20), Math.toRadians(-90), velocityConstraint, accelerationConstraint)
-                .splineToConstantHeading(new Vector2d(-53, 12), Math.toRadians(90), velocityConstraint, accelerationConstraint)
-
-                .splineTo(new Vector2d(-53, 55), Math.toRadians(90), velocityConstraint, accelerationConstraint)
-                .build();
-
-        Trajectory moveRobot3 = drive.trajectoryBuilder(moveRobot2.end(), true)
-                .splineTo(new Vector2d(-53, 20), Math.toRadians(-90),velocityConstraint, accelerationConstraint)
-                .splineToConstantHeading(new Vector2d(-61, 12), Math.toRadians(90), velocityConstraint, accelerationConstraint)
-                .splineTo(new Vector2d(-62, 60), Math.toRadians(90), velocityConstraint, accelerationConstraint)
-                .build();
-        drive.followTrajectory(moveRobot);
-        drive.followTrajectory(moveRobot2);
-        drive.followTrajectory(moveRobot3);
-    }
     public void placeSpecimen(){
         Trajectory moveToRung = drive.trajectoryBuilder(getBlueStartPose(), true)
-                .splineToConstantHeading(new Vector2d(specX, specY), Math.toRadians(specHeading))
+                .back(forwardAmount,velocityConstraint,accelerationConstraint)
+                //.splineToConstantHeading(new Vector2d(specX, specY), Math.toRadians(specHeading), velocityConstraint, accelerationConstraint)
                 .build();
-        arm.setTargetAngle(43.5);
+        arm.moveToTargetAngleBlocking(armAnglePos, this::tickArm);
+        collector.moveWristToBlocking(collectorPos, this::tickAll, true);
         drive.followTrajectoryAsync(moveToRung);
-        collector.wristTo(40);
-        while(drive.isBusy()){
+        collector.wristToDefaultPosition();
+        arm.setTargetExtension(armExtensionPos);
+        while(drive.isBusy() && opModeIsActive()){
+            collector.closeGrip();
             drive.update();
-            tick();
+            tickAll();
+        }
+        collector.openGrip();
+        double currentTime = runtime.seconds();
+        while(runtime.seconds() < currentTime + 1){
+            tickAll();
         }
 
+    }
+    public void backUp(){
+        Trajectory backUp = drive.trajectoryBuilder(drive.getPoseEstimate())
+                .forward(10)
+                .build();
+        drive.followTrajectory(backUp);
     }
 
     @Override
@@ -137,9 +72,19 @@ public class AutonomousSpecimenDelivery extends AutoTemplate {
 
 
         if (isStopRequested()) return;
+        runtime.reset();
+        collector.closeGrip();
 
         placeSpecimen();
-        collector.moveWristToBlocking(0, this::tick, false);
+        backUp();
+        resetPosition();
+        while(arm.getAngle() > 0){
+            tickAll();
+        }
+        arm.setTargetExtension(0);
+        collector.wristTo(0);
+        while(runtime.seconds() < 30 && opModeIsActive()){
+            tickAll();
+        }
     }
-
 }

@@ -193,6 +193,7 @@ public class OpModeCore extends LinearOpMode {
                 .addData("Target", collector::getWristTarget)
                 .addData("Velocity", () -> collector.getWristVelocity())
                 .addData("Power", () -> collector.getWristPower())
+                .addData("Moving with gravity", () -> collector.isWithGravity())
                 .addData("Up?", () -> collector.isWristUp())
                 .addData("Down?", () -> collector.isWristDown())
                 .addData("Rotated?", () -> collector.isWristRotated())

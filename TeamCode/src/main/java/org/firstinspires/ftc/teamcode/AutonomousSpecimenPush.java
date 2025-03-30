@@ -1,0 +1,99 @@
+package org.firstinspires.ftc.teamcode;
+
+import com.acmerobotics.dashboard.config.Config;
+import com.acmerobotics.roadrunner.geometry.Vector2d;
+import com.acmerobotics.roadrunner.trajectory.Trajectory;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.util.ElapsedTime;
+
+/*
+ * This is an example of a more complex path to really test the tuning.
+ */
+@Config
+@Autonomous(group = "drive", name="AutonomousSpecimenPushPath")
+public class AutonomousSpecimenPush extends AutoTemplate {
+
+    //TODO FOR EBEN - clean up this code! remove the unnecessary code if its commented, implement the methods I added here
+
+    public static double blueStartX = 0;
+    public static double blueStartY = 63;
+    public static double blueStartAng = 90;
+
+    public static double redStartX = 0;
+    public static double redStartY = -63;
+    public static double redStartAng = -90;
+
+    private static ElapsedTime runtime = new ElapsedTime();
+
+    public static double specX = 0, specY = 40, specTan = 90, specHeading = 90;
+    public static double collectorPos = 40, armAnglePos = 45, armExtensionPos = 16.3;
+
+    @Override
+    public void runOpMode() throws InterruptedException {
+        setBlueStartPose(blueStartX, blueStartY, blueStartAng);
+        super.initialize();
+
+        waitForStart();
+
+        run();
+    }
+
+    public void blueObservationSamplePushPath(){
+
+
+        Trajectory moveRobot = drive.trajectoryBuilder(getBlueStartPose(), true)
+                .splineTo(
+                        new Vector2d(-37, 45),
+                        Math.toRadians(-90),
+                        velocityConstraint,
+                        accelerationConstraint)
+                .splineTo(
+                        new Vector2d(-37,20),
+                        Math.toRadians(-90),
+                        velocityConstraint,
+                        accelerationConstraint)
+                .splineToConstantHeading(
+                        new Vector2d(-45,12),
+                        Math.toRadians(90),
+                        velocityConstraint,
+                        accelerationConstraint)
+                .splineTo(
+                        new Vector2d(-45, 55),
+                        Math.toRadians(90),
+                        velocityConstraint,
+                        accelerationConstraint)
+                .build();
+
+        Trajectory moveRobot2 = drive.trajectoryBuilder(moveRobot.end(), true)
+
+                .splineTo(new Vector2d(-45, 20), Math.toRadians(-90), velocityConstraint, accelerationConstraint)
+                .splineToConstantHeading(new Vector2d(-53, 12), Math.toRadians(90), velocityConstraint, accelerationConstraint)
+
+                .splineTo(new Vector2d(-53, 55), Math.toRadians(90), velocityConstraint, accelerationConstraint)
+                .build();
+
+        Trajectory moveRobot3 = drive.trajectoryBuilder(moveRobot2.end(), true)
+                .splineTo(new Vector2d(-53, 20), Math.toRadians(-90),velocityConstraint, accelerationConstraint)
+                .splineToConstantHeading(new Vector2d(-61, 12), Math.toRadians(90), velocityConstraint, accelerationConstraint)
+                .splineTo(new Vector2d(-62, 60), Math.toRadians(90), velocityConstraint, accelerationConstraint)
+                .build();
+        drive.followTrajectory(moveRobot);
+        drive.followTrajectory(moveRobot2);
+        drive.followTrajectory(moveRobot3);
+    }
+
+    @Override
+    public void run(){
+
+
+        if (isStopRequested()) return;
+        runtime.reset();
+        collector.closeGrip();
+        collector.wristToDefaultPosition();
+        blueObservationSamplePushPath();
+        resetPosition();
+        while(runtime.seconds() < 30 && opModeIsActive()){
+            tickAll();
+        }
+    }
+}

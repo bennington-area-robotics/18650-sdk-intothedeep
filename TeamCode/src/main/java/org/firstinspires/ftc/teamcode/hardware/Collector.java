@@ -20,19 +20,20 @@ public class Collector {
     public static float OPEN_POSITION = 0.5f, CLOSED_POSITION = 0.7f; //grip
     public static int UP_POSITION = 90, DOWN_POSITION = 0; //wristMotor
     public static float DEFAULT_POSITION = 1.0f, ROTATED_POSITION = 0.0f;//wristServo
+    public static float HALFWAY_POSITION = 0.5f;
     public static float LENGTH = 5f;
-    public static double upWristKP = 0.0075, upWristKI = 0.0001, upWristKD = 0.005, upWristKF = -0.2, upWristMaxI,  upWristKCOS = 1;
+    public static double upWristKP = 0.008, upWristKI = 0, upWristKD = 0, upWristKF = -0.02, upWristMaxI,  upWristKCOS = -0.15;
     public static double wristOffset = 0;
 
-    public static double downWristKP = 0.001, downWristKI = 0.001, downWristKD = 0.01, downWristKF, downWristMaxI, downWristKCOS= 1;
-
+    public static double downWristKP = 0.0005, downWristKI = 0, downWristKD = 0.003, downWristKF, downWristMaxI, downWristKCOS= 0;
+    private boolean withGravity = false;
 
     double KF = upWristKF;
     private final Encoder wristEncoder;
 
     PID upwardPID = new PID(upWristKP, upWristKI, upWristKD, upWristKF, upWristMaxI, 1);
     PID downwardPID = new PID(downWristKP, downWristKI, downWristKD, downWristKF, downWristMaxI, 1);
-    public int wristTarget;
+    public double wristTarget;
 
     //public final ColorSensor colorSensor;
     final Servo gripServo;
@@ -77,7 +78,7 @@ public class Collector {
         setWristMode(WristMode.FLOAT);
     }
 
-    public double moveWristToBlocking(int angle, Runnable runnable, boolean timerOverride){
+    public double moveWristToBlocking(double angle, Runnable runnable, boolean timerOverride){
         ElapsedTime timer = new ElapsedTime();
         setWristMode(WristMode.MOVE_TO_TARGET);
         wristTo(angle);
@@ -141,8 +142,11 @@ public class Collector {
         }
     }
 
+    public boolean isWithGravity(){return withGravity;}
+
     public void wristToRotatedPosition(){wristServo.setPosition(ROTATED_POSITION);}
     public void wristToDefaultPosition(){wristServo.setPosition(DEFAULT_POSITION);}
+    public void wristToHalfway(){wristServo.setPosition(HALFWAY_POSITION);}
 
     public void setWristPosition(double position) {wristServo.setPosition(position);}
 
@@ -179,7 +183,7 @@ public class Collector {
 
     //wrist
 
-    public void wristTo(int position){
+    public void wristTo(double position){
         wristTarget = position;
     }
 
@@ -239,7 +243,7 @@ public class Collector {
         return wristEncoder.getCorrectedVelocity() / WRIST_TICKS_PER_DEGREE;
     }
 
-    public int getWristTarget() {
+    public double getWristTarget() {
         return wristTarget;
     }
 
@@ -301,10 +305,20 @@ public class Collector {
                 wristMotor.setPower(upwardPID.calc(getWristAngle() - (arm.getAngle() - 90)));
                 break;
             case MOVE_TO_TARGET:
-                if(getWristAngle() < wristTarget){
+                double gravityFactor = Math.sin(Math.toRadians(getWristAngle() + arm.getAngle()));
+
+                // Calculate the direction we want to move
+                double moveDirection = wristTarget - getWristAngle();
+
+                // Determine if we're moving against gravity or with gravity
+                if (gravityFactor * moveDirection > 0) {
+                    // Moving against gravity - use upward PID controller
                     wristMotor.setPower(upPower);
-                } else if (getWristAngle() > wristTarget){
+                    withGravity = false;
+                } else {
+                    // Moving with gravity - use downward PID controller
                     wristMotor.setPower(downPower);
+                    withGravity = true;
                 }
                 //wristMotor.setPower(upwardPID.calc(getWristAngle() - wristTarget));
 

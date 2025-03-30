@@ -21,6 +21,7 @@ public class Arm {
     //<editor-fold desc="Config">
     public static float ARM_TICKS_PER_DEGREE = 65f; //this is a good estimate as of 1/24/2025
 
+    public static boolean sacrificialRead = false;
     public static float ARM_TICKS_PER_INCH = 190f;
     public static double ENCODER_TICKS_PER_INCH = 38952.0/37.984;
     public static double MAX_ARM_EXTENSION = 38.5;
@@ -356,7 +357,7 @@ public class Arm {
         if (!setTargetExtension(inches))
             return timer.milliseconds();
 
-        while (Math.abs(getExtension() - getTargetExtension()) > 2){
+        while (Math.abs(getExtensionEncoderPosition() - getTargetExtension()) > 2){
             tick();
         }
 
@@ -381,7 +382,7 @@ public class Arm {
         if (!setTargetExtension(inches))
             return timer.milliseconds();
 
-        while (Math.abs(getExtension() - getTargetExtension()) > 2){
+        while (Math.abs(getExtensionEncoderPosition() - getTargetExtension()) > 2){
             tick();
             whileRunning.run();
         }
@@ -393,26 +394,26 @@ public class Arm {
      * Moves arm to collection pose.
      */
     public void collectionPosition(){
-        if(getExtension() - COLLECTION_EXTENSION < 1.5){
+        if(getExtensionEncoderPosition() - COLLECTION_EXTENSION < 1.5){
             setTargetExtension(COLLECTION_EXTENSION);
             setTargetAngle(0);
         }else {
-            double inchesPerDegree = (getAngle() - COLLECTION_ANGLE) / (getExtension() - COLLECTION_EXTENSION);
+            double inchesPerDegree = (getAngle() - COLLECTION_ANGLE) / (getExtensionEncoderPosition() - COLLECTION_EXTENSION);
 
             double startAngle = getAngle();
-            double startExtension = getExtension();
+            double startExtension = getExtensionEncoderPosition();
 
             setTargetExtension(COLLECTION_EXTENSION);
             runningMacro = (arm -> {
                 if (Math.abs(COLLECTION_ANGLE - arm.getAngle()) < 10) {
                     arm.setTargetAngleIgnoreMacro(COLLECTION_ANGLE);
-                    arm.setTargetExtensionIgnoreMacro(arm.getExtension());
+                    arm.setTargetExtensionIgnoreMacro(arm.getExtensionEncoderPosition());
                     arm.runningMacro = null;
-                } else if (getExtension() - COLLECTION_EXTENSION < 1.5) {
+                } else if (getExtensionEncoderPosition() - COLLECTION_EXTENSION < 1.5) {
                     arm.setTargetAngleIgnoreMacro(COLLECTION_ANGLE);
                     arm.setTargetExtensionIgnoreMacro(DELIVERY_EXTENSION);
                 } else {
-                    double targetAngle = inchesPerDegree * (arm.getExtension() - COLLECTION_EXTENSION) + COLLECTION_ANGLE;
+                    double targetAngle = inchesPerDegree * (arm.getExtensionEncoderPosition() - COLLECTION_EXTENSION) + COLLECTION_ANGLE;
                     arm.setTargetAngleIgnoreMacro(targetAngle);
                 }
             });
@@ -427,11 +428,18 @@ public class Arm {
      * or adjust the arm's position when not at target. This controls both extension and retraction.
      */
     public void tick(){
+
+        //sacrifical read to flush the cache
+        if(sacrificialRead) {
+            angleMotorRight.getCurrentPosition();
+        }
         if(tiltLimitSensor.isPressed())
             resetAngle();
 
-        if(extensionLimitSensor.isPressed())
+        if(extensionLimitSensor.isPressed()) {
             resetExtension();
+            resetExtensionEncoder();
+        }
 
         if(runningMacro != null && tickCount % 5 == 0){
             runningMacro.accept(this);
@@ -491,10 +499,10 @@ public class Arm {
             extensionPID.setConstants(extensionKP, extensionKI, extensionKD, extensionKF, extensionMaxI);
             retractionPID.setConstants(retractionKP, retractionKI, retractionKD, retractionKF, retractionMaxI);
 
-            if (targetExtension < getExtension())
-                lastExtensionPower = retractionPID.calc(targetExtension - getExtension());
-            else if (targetExtension > getExtension()) {
-                lastExtensionPower = extensionPID.calc(targetExtension - getExtension());
+            if (targetExtension < getExtensionEncoderPosition())
+                lastExtensionPower = retractionPID.calc(targetExtension - getExtensionEncoderPosition());
+            else if (targetExtension > getExtensionEncoderPosition()) {
+                lastExtensionPower = extensionPID.calc(targetExtension - getExtensionEncoderPosition());
             } else {
                 lastExtensionPower = 0;
             }
@@ -534,8 +542,10 @@ public class Arm {
     }
 
     public boolean isValidExtension(double inches){
-        if(inches > MAX_ARM_EXTENSION || inches < -0.5)
+        if(inches > MAX_ARM_EXTENSION) {
+            targetExtension = MAX_ARM_EXTENSION;
             return false;
+        }
 
         if(inches * Math.cos(Math.toRadians(targetAngle)) > MAX_HORIZONTAL_EXTENSION)
             return false;
