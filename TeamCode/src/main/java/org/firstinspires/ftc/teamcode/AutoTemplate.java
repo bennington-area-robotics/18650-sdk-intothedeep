@@ -141,6 +141,7 @@ public class AutoTemplate extends LinearOpMode {
         if (!lynxModules.isEmpty()) {
             originalMode = lynxModules.get(0).getBulkCachingMode();
         }
+        assert !lynxModules.isEmpty();
 
         // Set manual caching
         setManualCaching();
@@ -235,7 +236,7 @@ public class AutoTemplate extends LinearOpMode {
         updateMotorServoCache();
     }
     public void tickArm(){
-        arm.tick();
+        updateMotorServoCache();
         prettyTelem.update();
         tickTimer.reset();
 
