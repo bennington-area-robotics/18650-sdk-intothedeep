@@ -48,7 +48,9 @@ public class AutonomousCacheTesting extends AutoTemplate {
         runtime.reset();
         collector.closeGrip();
         collector.wristToDefaultPosition();
-        arm.setTargetAngle(armAnglePos);
+        performWithManualCaching(() -> {
+            arm.moveToTargetAngleBlocking(armAnglePos, this::tickArm);
+        });
         while(runtime.seconds() < 30 && opModeIsActive()){
             tickAll();
         }

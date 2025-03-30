@@ -126,19 +126,34 @@ public class AutoTemplate extends LinearOpMode {
                 .addData("Default?", () -> collector.isWristDefault());
     }
     public void updateMotorServoCache(){
-        /*for(LynxModule module : lynxModules){
+        for(LynxModule module : lynxModules){
             module.clearBulkCache();
-        }*/
+        }
     }
 
+    protected void performWithManualCaching(Runnable operation) {
+        // Save current caching mode
+        LynxModule.BulkCachingMode originalMode = null;
+        if (!lynxModules.isEmpty()) {
+            originalMode = lynxModules.get(0).getBulkCachingMode();
+        }
+
+        // Set manual caching
+        setManualCaching();
+
+        // Perform the operation
+        operation.run();
+
+        // Restore original mode if it was auto
+        if (originalMode == LynxModule.BulkCachingMode.AUTO) {
+            setAutoCaching();
+        }
+    }
     public void initialize(){
 
 
         lynxModules = hardwareMap.getAll(LynxModule.class);
 
-        for(LynxModule module : lynxModules){
-            module.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
-        }
         drive = new DriveBase(hardwareMap);
         drive.setPoseEstimate(blueStartPose);
 
@@ -177,6 +192,18 @@ public class AutoTemplate extends LinearOpMode {
         collector.moveWristToBlocking(collectorInitPos, this::tickInit, true);
         collector.closeGrip();
         arm.setAnglePower(0);
+    }
+
+    protected void setAutoCaching() {
+        for (LynxModule module : lynxModules) {
+            module.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
+        }
+    }
+
+    protected void setManualCaching() {
+        for (LynxModule module : lynxModules) {
+            module.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
+        }
     }
 
     public void resetPosition(){
