@@ -38,7 +38,7 @@ public class Arm {
     public static double SPECIMEN_ANGLE = 55;
 
     public static double downwardKP = 0.015, downwardKI = 0, downwardKD = 0.1, downwardKF = 0, downwardMaxI = 0;
-    public static double upwardKP = 0.04, upwardKI = 0.001, upwardKD = 0.02, upwardKF = 0.23, upwardMaxI = 0;
+    public static double upwardKP = 0.055, upwardKI = 0.001, upwardKD = 0.02, upwardKF = 0.23, upwardMaxI = 0;
     public static double extensionKP = 0.25, extensionKI, extensionKD = 0.2, extensionKF = 0, extensionMaxI;
     public static double retractionKP = 3, retractionKI, retractionKD, retractionKF = 0, retractionMaxI;
     public static double rotationKF = 0.16, rotationKCOS = 1;

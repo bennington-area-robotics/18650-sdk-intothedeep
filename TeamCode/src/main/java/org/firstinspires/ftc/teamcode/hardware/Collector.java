@@ -29,7 +29,7 @@ public class Collector {
     public static double downWristKP = 0.0005, downWristKI = 0, downWristKD = 0.003, downWristKF, downWristMaxI, downWristKCOS= 0;
     private boolean withGravity = false;*/
 
-    public static double upWristKP = 0.008, upWristKI = 0, upWristKD = 0, upWristKF = 0, upWristMaxI,  upWristKCOS = -0.13;
+    public static double upWristKP = 0.009, upWristKI = 0, upWristKD = 0, upWristKF = 0, upWristMaxI,  upWristKCOS = -0.17;
     public static double wristOffset = 0;
 
     public static double downWristKP = 0.0003, downWristKI = 0, downWristKD = 0.001, downWristKF, downWristMaxI, downWristKCOS= 0;
@@ -154,6 +154,7 @@ public class Collector {
     public void wristToRotatedPosition(){wristServo.setPosition(ROTATED_POSITION);}
     public void wristToDefaultPosition(){wristServo.setPosition(DEFAULT_POSITION);}
     public void wristToHalfway(){wristServo.setPosition(HALFWAY_POSITION);}
+    public void rotateWristTo(double position){wristServo.setPosition(position);}
 
     public void setWristPosition(double position) {wristServo.setPosition(position);}
 

@@ -37,7 +37,7 @@ public class AutoTemplate extends LinearOpMode {
 
     protected TrajectoryAccelerationConstraint accelerationConstraint = ConfiguredMecanumDrive.getAccelerationConstraint(
             maxAcc);
-
+    private static ElapsedTime waitTimer = new ElapsedTime();
     protected ElapsedTime tickTimer;
     protected Arm arm;
     protected Collector collector;
@@ -48,7 +48,7 @@ public class AutoTemplate extends LinearOpMode {
     private static Pose2d blueStartPose;
     private static Pose2d redStartPose;
 
-    public static double collectorInitPos = 240;
+    public static double collectorInitPos = 220;
     public static double armInitAngle = 39;
 
     //private final Pose2d lastEndPose = startPose;
@@ -62,6 +62,13 @@ public class AutoTemplate extends LinearOpMode {
         run();
     }
 
+    public void wait(double seconds){
+        waitTimer.reset();
+        setManualCaching();
+        while(waitTimer.seconds() <= seconds) {
+            tickAll();
+        }
+    }
     public void setBlueStartPose(double x, double y, double heading){
         blueStartPose = new Pose(x, y, heading).toRR();
 
@@ -179,15 +186,9 @@ public class AutoTemplate extends LinearOpMode {
                 "gripServo",
                 "wristServo");
         tickTimer = new ElapsedTime();
-        aprilTagReader = new AprilTagReader(
-                new Camera(
-                        hardwareMap,
-                        "Webcam Right",
-                        new Pose(0, 0, 0)
-                )
-        );
-        initializeStartingPosition();
         configureTelemetry();
+        initializeStartingPosition();
+
 
         //TODO FOR EBEN - finish implementing this
     }
