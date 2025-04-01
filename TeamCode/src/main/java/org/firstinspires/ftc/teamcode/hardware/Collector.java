@@ -171,7 +171,7 @@ public class Collector {
 
     public boolean toggleWristServo(){
 
-        if (isWristDefault() && isWristUp()) {
+        if (isWristDefault()) {
             wristToRotatedPosition();
             while(!isWristRotated()){
                 OpModeCore.getInstance().tick();
