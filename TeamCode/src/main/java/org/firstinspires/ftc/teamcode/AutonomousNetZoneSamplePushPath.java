@@ -6,6 +6,7 @@ import com.acmerobotics.roadrunner.trajectory.Trajectory;
 import com.acmerobotics.roadrunner.trajectory.constraints.TrajectoryAccelerationConstraint;
 import com.acmerobotics.roadrunner.trajectory.constraints.TrajectoryVelocityConstraint;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -24,6 +25,7 @@ import org.firstinspires.ftc.teamcode.hardware.drive.Pose;
 /*
  * This is an example of a more complex path to really test the tuning.
  */
+@Disabled
 @Config
 @Autonomous(group = "drive", name = "AutonomousNetZoneSamplePushPath")
 public class AutonomousNetZoneSamplePushPath extends LinearOpMode {
@@ -144,10 +146,10 @@ public class AutonomousNetZoneSamplePushPath extends LinearOpMode {
         collector = new Collector(
                 arm,
                 hardwareMap,
-                "colorSensor",
                 "wristMotor",
                 "gripServo",
-                "wristServo");
+                "wristServo",
+                "wristLimitSensor");
         tickTimer = new ElapsedTime();
         aprilTagReader = new AprilTagReader(
                 new Camera(

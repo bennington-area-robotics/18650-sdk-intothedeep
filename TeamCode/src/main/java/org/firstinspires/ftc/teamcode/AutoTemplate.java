@@ -132,7 +132,8 @@ public class AutoTemplate extends LinearOpMode {
                 .addData("Up?", () -> collector.isWristUp())
                 .addData("Down?", () -> collector.isWristDown())
                 .addData("Rotated?", () -> collector.isWristRotated())
-                .addData("Default?", () -> collector.isWristDefault());
+                .addData("Default?", () -> collector.isWristDefault())
+                .addData("Limit Sensor Pressed", () -> collector.wristTouchSensor.isPressed());
     }
     public void updateMotorServoCache(){
         if (!manuallyCaching){
@@ -181,11 +182,12 @@ public class AutoTemplate extends LinearOpMode {
         collector = new Collector(
                 arm,
                 hardwareMap,
-                "colorSensor",
                 "wristMotor",
                 "gripServo",
-                "wristServo");
+                "wristServo",
+                "wristLimitSensor");
         tickTimer = new ElapsedTime();
+        Arm.upwardKP = 0.055;
         configureTelemetry();
         initializeStartingPosition();
 

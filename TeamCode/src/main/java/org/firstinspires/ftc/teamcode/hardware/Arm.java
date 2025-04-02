@@ -24,7 +24,8 @@ public class Arm {
     public static boolean sacrificialRead = false;
     public static float ARM_TICKS_PER_INCH = 190f;
     public static double ENCODER_TICKS_PER_INCH = 38952.0/37.984;
-    public static double MAX_ARM_EXTENSION = 38.5;
+    public static double MAX_ARM_EXTENSION = 41;
+
 
     public static double MAX_HORIZONTAL_EXTENSION = 38.0;
 
@@ -372,6 +373,9 @@ public class Arm {
         while (Math.abs(getAngle() - getTargetAngle()) > 2){
             tick();
             whileRunning.run();
+            if(timer.seconds() > 1){
+                return timer.milliseconds();
+            }
         }
 
         return timer.milliseconds();
@@ -393,7 +397,7 @@ public class Arm {
     /**
      * Moves arm to collection pose.
      */
-    public void collectionPosition(){
+    public void collectionPosition2(){
         if(getExtensionEncoderPosition() - COLLECTION_EXTENSION < 1.5){
             setTargetExtension(COLLECTION_EXTENSION);
             setTargetAngle(-2);
@@ -420,7 +424,54 @@ public class Arm {
         }
     }
 
-    int tickCount = 0;
+    public void collectionPosition(){
+        // If we're already close to fully retracted, just focus on rotating down
+        if(getExtensionEncoderPosition() < 1.5){
+            setTargetExtension(COLLECTION_EXTENSION);
+            setTargetAngle(COLLECTION_ANGLE);
+        } else {
+            // Get current position
+            double currentAngle = getAngle();
+            double currentExtension = getExtensionEncoderPosition();
+
+            // Calculate the slope for a linear path to (0,0)
+            // This ratio tells us how much to rotate for each unit of retraction
+            double angleToExtensionRatio = currentAngle / currentExtension;
+
+            // Start the retraction
+            setTargetExtension(0);
+
+            runningMacro = (arm -> {
+                double currentExt = arm.getExtensionEncoderPosition();
+
+                if (Math.abs(arm.getAngle()) < 5 && currentExt < 1.5) {
+                    // We're very close to fully retracted and down, finalize position
+                    arm.setTargetAngleIgnoreMacro(0);
+                    arm.setTargetExtensionIgnoreMacro(0);
+                    arm.runningMacro = null;
+                } else if (currentExt < 1.5) {
+                    // We're retracted but not rotated down yet
+                    arm.setTargetAngleIgnoreMacro(0);
+                    arm.setTargetExtensionIgnoreMacro(0);
+                } else {
+                    // Calculate the target angle based on current extension
+                    // This creates a coordinated path where we move down as we retract
+                    double targetAngle = angleToExtensionRatio * currentExt;
+
+                    // Make sure we're moving toward 0 and not away
+                    if ((currentAngle > 0 && targetAngle > currentAngle) ||
+                            (currentAngle < 0 && targetAngle < currentAngle)) {
+                        // If the calculated target would move us away from 0, adjust the ratio
+                        targetAngle = currentAngle * (currentExt / currentExtension);
+                    }
+
+                    arm.setTargetAngleIgnoreMacro(targetAngle);
+                }
+            });
+        }
+    }
+
+    private int tickCount = 0;
 
     /**
      * Runs a controller cycle for the arm.

@@ -29,6 +29,9 @@ import java.util.Locale;
 @TeleOp(name="1 - Main TeleOp")
 public class OpModeCore extends LinearOpMode {
 
+    public static double sampleDeliveryArmAngle = 90;
+    public static double collectionArmAngle = 35, collectionArmExtension = 4, collectionCollectorAngle = -20;
+    public static double deliveryArmAngle = 50, deliveryArmExtension = 12, deliveryCollectorAngle = 40;
     public static int posVariable = 40;
     public static int collectionPosVariable = -20;
     public static double armVariable = 50;
@@ -120,7 +123,8 @@ public class OpModeCore extends LinearOpMode {
                 hardwareMap,
                 "wristMotor",
                 "gripServo",
-                "wristServo"
+                "wristServo",
+                "wristLimitSensor"
         );
 
         autopilot = new Autopilot(driveBase, arm, collector);
@@ -191,7 +195,8 @@ public class OpModeCore extends LinearOpMode {
                 .addData("Up?", () -> collector.isWristUp())
                 .addData("Down?", () -> collector.isWristDown())
                 .addData("Rotated?", () -> collector.isWristRotated())
-                .addData("Default?", () -> collector.isWristDefault());
+                .addData("Default?", () -> collector.isWristDefault())
+                .addData("Limit Sensor Pressed", () -> collector.wristTouchSensor.isPressed());
 
         /*prettyTelem.addLine("Color Sensor")
                 .addData("HSV", this::getHSV)
@@ -285,27 +290,40 @@ public class OpModeCore extends LinearOpMode {
         }
 
         if (gamepad1.dpad_left && !previousGamepad1.dpad_left){
-            arm.setTargetAngle(armVariable);
-            arm.setTargetExtension(extensionPosVariable);
+            arm.setTargetAngle(deliveryArmAngle);
+            arm.setTargetExtension(deliveryArmExtension);
             collector.setWristMode(Collector.WristMode.MOVE_TO_TARGET);
-            collector.wristTo(posVariable);
+            collector.wristTo(deliveryCollectorAngle);
             //collector.setWristMode(Collector.WristMode.STAY_PERPENDICULAR);
         }
 
         if(gamepad1.dpad_right && !previousGamepad1.dpad_right) {
-            arm.setTargetAngle(30);
-            arm.setTargetExtension(9.5);
+            arm.setTargetAngle(collectionArmAngle);
+            arm.setTargetExtension(collectionArmExtension);
             collector.setWristMode(Collector.WristMode.MOVE_TO_TARGET);
-            collector.wristTo(collectionPosVariable);
+            collector.wristTo(collectionCollectorAngle);
         }
         if(gamepad1.right_bumper && !previousGamepad1.right_bumper){
+            driveBase.setMotorPowers(0,0,0,0);
+            collector.resetEncoderPosition();
+        }
+
+        if(gamepad2.right_bumper && !previousGamepad2.right_bumper){
             driveBase.setPoseEstimate(new Pose2d( -36, 50, Math.toRadians(90)));
             Trajectory moveToRung = driveBase.trajectoryBuilder(driveBase.getPoseEstimate(), true)
                     .splineToLinearHeading(new Pose2d(-12, 40, Math.toRadians(-90)), Math.toRadians(-90))
                     .build();
             driveBase.followTrajectoryAsync(moveToRung);
-
-
+            while(driveBase.isBusy() && opModeIsActive()){
+                if(!gamepad2.atRest()){
+                    setManualCaching();
+                    return;
+                }
+                setAutoCaching();
+                driveBase.update();
+                setManualCaching();
+                tick();
+            }
         }
 
         if(gamepad1.dpad_down && !previousGamepad1.dpad_down){
@@ -340,12 +358,12 @@ public class OpModeCore extends LinearOpMode {
             collector.setWristMode(Collector.WristMode.MOVE_TO_TARGET);
             collector.wristTo(-40);
         }
-        if(gamepad1.right_bumper && gamepad1.left_bumper && !previousGamepad1.right_bumper){
+        if(gamepad2.left_bumper && !previousGamepad2.left_bumper){
             manualArmPowerMode = !manualArmPowerMode;
         }
         if(manualArmPowerMode){
             arm.setAngleMode(Arm.AngleMode.SET_POWER);
-            arm.setAnglePower(-gamepad1.right_stick_y);
+            arm.setAnglePower(-Math.abs(gamepad2.right_stick_y));
         }
         if(!manualArmPowerMode){
             arm.setAngleMode(Arm.AngleMode.MOVE_TO_TARGET);
@@ -354,8 +372,8 @@ public class OpModeCore extends LinearOpMode {
         gamepadTimer.reset();
 
         //driveBase.moveUsingPower(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x);
-        driveBase.moveWithAcceleration(gamepad2.left_stick_x, gamepad2.left_stick_y, gamepad2.right_stick_x);
-        //driveBase.moveUsingRR(gamepad2.left_stick_x, gamepad2.left_stick_y, gamepad2.right_stick_x);
+        //driveBase.moveWithAcceleration(gamepad2.left_stick_x, gamepad2.left_stick_y, gamepad2.right_stick_x);
+        driveBase.moveUsingRR(gamepad2.left_stick_x, gamepad2.left_stick_y, gamepad2.right_stick_x);
         //save the last gamepad state to compare again later
         previousGamepad1.copy(gamepad1);
         previousGamepad2.copy(gamepad2);
@@ -415,9 +433,6 @@ public class OpModeCore extends LinearOpMode {
         Gamepad gamepad2 = new Gamepad();
         gamepad2.copy(this.gamepad2);
 
-        if(gamepad1.left_bumper && !previousGamepad1.left_bumper){
-            manualArm = !manualArm;
-        }
 
 
 
@@ -454,35 +469,42 @@ public class OpModeCore extends LinearOpMode {
         }
 
         if (gamepad1.dpad_left && !previousGamepad1.dpad_left){
-            arm.setTargetAngle(armVariable);
-            arm.setTargetExtension(extensionPosVariable);
+            arm.setTargetAngle(deliveryArmAngle);
+            arm.setTargetExtension(deliveryArmExtension);
             collector.setWristMode(Collector.WristMode.MOVE_TO_TARGET);
-            collector.wristTo(posVariable);
+            collector.wristTo(deliveryCollectorAngle);
             //collector.setWristMode(Collector.WristMode.STAY_PERPENDICULAR);
         }
 
         if(gamepad1.dpad_right && !previousGamepad1.dpad_right) {
-            arm.setTargetAngle(30);
-            arm.setTargetExtension(9.5);
+            arm.setTargetAngle(collectionArmAngle);
+            arm.setTargetExtension(collectionArmExtension);
             collector.setWristMode(Collector.WristMode.MOVE_TO_TARGET);
-            collector.wristTo(collectionPosVariable);
+            collector.wristTo(collectionCollectorAngle);
         }
+
         if(gamepad1.right_bumper && !previousGamepad1.right_bumper){
-            /*driveBase.setPoseEstimate(new Pose2d( -36, 50, Math.toRadians(-90)));
+            driveBase.setMotorPowers(0,0,0,0);
+            collector.resetEncoderPosition();
+        }
+        if(gamepad1.right_stick_button && !previousGamepad1.right_stick_button){
+            StandardTrackingWheelLocalizer.forwardEncoders();
+            driveBase.setPoseEstimate(new Pose2d( -36, 50, Math.toRadians(-90)));
             Trajectory moveToRung = driveBase.trajectoryBuilder(driveBase.getPoseEstimate())
-                    .splineToLinearHeading(new Pose2d(-12, 40, Math.toRadians(-90)), Math.toRadians(-90))
+                    .splineToLinearHeading(new Pose2d(-12, 40, Math.toRadians(90)), Math.toRadians(-90))
                     .build();
-            driveBase.followTrajectory(moveToRung);
-            while(driveBase.isBusy()){
-                driveBase.updatePoseEstimate();
+            driveBase.followTrajectoryAsync(moveToRung);
+            while(driveBase.isBusy() && opModeIsActive()){
+                if(!gamepad1.atRest()){
+                    setManualCaching();
+                    return;
+                }
+                setAutoCaching();
                 driveBase.update();
-                prettyTelem.update();
-            }*/
-            //driveBase.squareUp();
-            collector.setWristMode(Collector.WristMode.MOVE_TO_TARGET);
-            collector.wristTo(collectionPosVariable);
-
-
+                setManualCaching();
+                tick();
+            }
+            StandardTrackingWheelLocalizer.reverseEncoders();
         }
 
         if(gamepad1.dpad_down && !previousGamepad1.dpad_down){
@@ -496,7 +518,7 @@ public class OpModeCore extends LinearOpMode {
             if(manualArm){
                 arm.setTargetAngle(Math.min(arm.getTargetAngle() + 15, 100));
             }else {
-                if (!arm.setTargetAngle(100))
+                if (!arm.setTargetAngle(sampleDeliveryArmAngle))
                     this.gamepad1.rumbleBlips(100);
             }
         }
@@ -506,14 +528,13 @@ public class OpModeCore extends LinearOpMode {
             collector.setWristMode(Collector.WristMode.MOVE_TO_TARGET);
             collector.wristTo(-40);
         }
-        if(gamepad1.right_bumper && gamepad1.left_bumper && !previousGamepad1.right_bumper){
-            arm.setTargetExtension(26.25);
-            arm.setTargetAngle(0);
+        if(gamepad1.left_bumper && !previousGamepad1.left_bumper){
+            manualArmPowerMode = !manualArmPowerMode;
         }
 
         if(manualArmPowerMode){
             arm.setAngleMode(Arm.AngleMode.SET_POWER);
-            arm.setAnglePower(-gamepad1.right_stick_y);
+            arm.setAnglePower(-Math.abs(gamepad1.right_stick_y));
         }
 
         if(Math.abs(-gamepad1.left_trigger + gamepad1.right_trigger) > 0.1){
@@ -534,6 +555,18 @@ public class OpModeCore extends LinearOpMode {
         previousGamepad1.copy(gamepad1);
         previousGamepad2.copy(gamepad2);
     }
+    protected void setAutoCaching() {
+        for (LynxModule module : lynxModules) {
+            module.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
+        }
+    }
+
+    protected void setManualCaching() {
+        for (LynxModule module : lynxModules) {
+            module.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
+        }
+    }
+
 
     public void refreshLocations(){
         collector.setWristMode(Collector.WristMode.SET_POWER);

@@ -135,10 +135,10 @@ public class AutonomousCore extends LinearOpMode {
         collector = new Collector(
                 arm,
                 hardwareMap,
-                "colorSensor",
                 "wristMotor",
                 "gripServo",
-                "wristServo");
+                "wristServo",
+                "wristLimitSensor");
         tickTimer = new ElapsedTime();
         aprilTagReader = new AprilTagReader(
                 new Camera(
