@@ -31,7 +31,7 @@ public class OpModeCore extends LinearOpMode {
 
     public static double sampleDeliveryArmAngle = 90;
     public static double collectionArmAngle = 35, collectionArmExtension = 0, collectionCollectorAngle = -25;
-    public static double deliveryArmAngle = 50, deliveryArmExtension = 6, deliveryCollectorAngle = 40;
+    public static double deliveryArmAngle = 55, deliveryArmExtension = 6.5, deliveryCollectorAngle = 40;
     public static int posVariable = 40;
     public static int collectionPosVariable = -20;
     public static double armVariable = 50;
