@@ -66,6 +66,12 @@ public class OpModeCore extends LinearOpMode {
     public static boolean dualControllers = false;
     public static boolean testingPID = false;
 
+    public static DriveMode driveMode = DriveMode.DIRECTIVE;
+
+    public enum DriveMode {
+        DIRECTIVE, PURE_POWER, ACCELERATION
+    }
+
     private String testValue = "UNSET";
     //</editor-fold>
 
@@ -163,7 +169,6 @@ public class OpModeCore extends LinearOpMode {
                 .addData("Tick Time", () -> Math.round(tickTimer.milliseconds()))
                 .addData("Stage", () -> autopilot.findCurrentStage())
                 .addData("Localization: ", () -> driveBase.getPoseSimple())
-                .addData("Test Value", () -> testValue)
                 .addData("Combined Angle", () -> arm.getAngle() + collector.getWristAngle())
         ;
         prettyTelem.addLine("Game State")
@@ -367,9 +372,17 @@ public class OpModeCore extends LinearOpMode {
 
         gamepadTimer.reset();
 
-        //driveBase.moveUsingPower(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x);
-        driveBase.moveWithAcceleration(gamepad2.left_stick_x, gamepad2.left_stick_y, gamepad2.right_stick_x);
-        //driveBase.moveUsingRR(gamepad2.left_stick_x, gamepad2.left_stick_y, gamepad2.right_stick_x);
+        switch (driveMode){
+            case DIRECTIVE:
+                driveBase.moveUsingRR(gamepad2.left_stick_x, gamepad2.left_stick_y, gamepad2.right_stick_x);
+                break;
+            case PURE_POWER:
+                driveBase.moveUsingPower(gamepad2.left_stick_x, gamepad2.left_stick_y, gamepad2.right_stick_x);
+                break;
+            case ACCELERATION:
+                driveBase.moveWithAcceleration(gamepad2.left_stick_x, gamepad2.left_stick_y, gamepad2.right_stick_x);
+        }
+
         //save the last gamepad state to compare again later
         previousGamepad1.copy(gamepad1);
         previousGamepad2.copy(gamepad2);

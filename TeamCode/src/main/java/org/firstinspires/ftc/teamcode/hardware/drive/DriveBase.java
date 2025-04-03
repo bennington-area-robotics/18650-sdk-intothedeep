@@ -11,8 +11,11 @@ import org.firstinspires.ftc.teamcode.hardware.controllers.PID;
 
 @Config
 public class DriveBase extends ConfiguredMecanumDrive {
-    public static float TRANSLATIONAL_VELOCITY_MULTIPLIER = 40f;
-    public static float HEADING_VELOCITY_MULTIPLIER = 3f;
+    public static float HIGH_TRANSLATIONAL_VELOCITY_MULTIPLIER = 40f;
+    public static float HIGH_HEADING_VELOCITY_MULTIPLIER = 2f;
+    public static float LOW_TRANSLATIONAL_VELOCITY_MULTIPLIER = 40f;
+    public static float LOW_HEADING_VELOCITY_MULTIPLIER = 2f;
+
     public static int inputExponent = 2;
     private double powerFactor = 1;
     public static double kP = 3, kI = 0.001, kD = 0.1, kF = 0, maxKI =0;
@@ -41,6 +44,16 @@ public class DriveBase extends ConfiguredMecanumDrive {
      * @param turn the power to turn with. Positive -> turn right, Negative -> turn left
      */
     public void moveUsingRR(double x, double y, double turn){
+        float TRANSLATIONAL_VELOCITY_MULTIPLIER, HEADING_VELOCITY_MULTIPLIER;
+
+        if(lowPowerMode){
+            TRANSLATIONAL_VELOCITY_MULTIPLIER = LOW_TRANSLATIONAL_VELOCITY_MULTIPLIER;
+            HEADING_VELOCITY_MULTIPLIER = LOW_HEADING_VELOCITY_MULTIPLIER;
+        }else{
+            TRANSLATIONAL_VELOCITY_MULTIPLIER = HIGH_TRANSLATIONAL_VELOCITY_MULTIPLIER;
+            HEADING_VELOCITY_MULTIPLIER = HIGH_HEADING_VELOCITY_MULTIPLIER;
+        }
+
         setDriveSignal(new DriveSignal(
                 new Pose2d(
                 TRANSLATIONAL_VELOCITY_MULTIPLIER * y,
