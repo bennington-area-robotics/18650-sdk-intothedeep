@@ -62,12 +62,13 @@ public class AutoTemplate extends LinearOpMode {
         run();
     }
 
-    public void wait(double seconds){
+    public void waitTick(double seconds){
         waitTimer.reset();
         setManualCaching();
         while(waitTimer.seconds() <= seconds) {
             tickAll();
         }
+        setAutoCaching();
     }
     public void setBlueStartPose(double x, double y, double heading){
         blueStartPose = new Pose(x, y, heading).toRR();

@@ -88,8 +88,8 @@ public class Collector {
 
         wristMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         wristMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        setWristMode(WristMode.MOVE_TO_TARGET);
-        //setWristMode(WristMode.FLOAT);
+        //setWristMode(WristMode.MOVE_TO_TARGET);
+        setWristMode(WristMode.FLOAT);
     }
 
     public double moveWristToBlocking(double angle, Runnable runnable, boolean timerOverride){
@@ -326,9 +326,9 @@ public class Collector {
         downPower = downwardPID.calc(getWristAngle() - wristTarget);
 
         switch (wristMode) {
-            /*case FLOAT:
+            case FLOAT:
                 wristMotor.setPower(0);
-                break;*/
+                break;
             case SET_POWER:
                 wristMotor.setPower(wristPower);
                 break;
