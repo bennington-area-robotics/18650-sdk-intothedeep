@@ -24,7 +24,8 @@ public class Arm {
     public static boolean sacrificialRead = false;
     public static float ARM_TICKS_PER_INCH = 190f;
     public static double ENCODER_TICKS_PER_INCH = 38952.0/37.984;
-    public static double MAX_ARM_EXTENSION = 38.5;
+    public static double MAX_ARM_EXTENSION = 41;
+
 
     public static double MAX_HORIZONTAL_EXTENSION = 38.0;
 
@@ -37,8 +38,8 @@ public class Arm {
     public static double COLLECTION_ANGLE = -1.0;
     public static double SPECIMEN_ANGLE = 55;
 
-    public static double downwardKP = 0.015, downwardKI = 0, downwardKD = 0.1, downwardKF = 0, downwardMaxI = 0;
-    public static double upwardKP = 0.055, upwardKI = 0.001, upwardKD = 0.02, upwardKF = 0.23, upwardMaxI = 0;
+    public static double downwardKP = 0.005, downwardKI = 0, downwardKD = 0.01, downwardKF = 0, downwardMaxI = 0;
+    public static double upwardKP = 0.045, upwardKI = 0.001, upwardKD = 0.02, upwardKF = 0.23, upwardMaxI = 0;
     public static double extensionKP = 0.25, extensionKI, extensionKD = 0.2, extensionKF = 0, extensionMaxI;
     public static double retractionKP = 3, retractionKI, retractionKD, retractionKF = 0, retractionMaxI;
     public static double rotationKF = 0.16, rotationKCOS = 1;
@@ -372,6 +373,9 @@ public class Arm {
         while (Math.abs(getAngle() - getTargetAngle()) > 2){
             tick();
             whileRunning.run();
+            if(timer.seconds() > 1){
+                return timer.milliseconds();
+            }
         }
 
         return timer.milliseconds();
@@ -393,7 +397,7 @@ public class Arm {
     /**
      * Moves arm to collection pose.
      */
-    public void collectionPosition(){
+    public void collectionPosition2(){
         if(getExtensionEncoderPosition() - COLLECTION_EXTENSION < 1.5){
             setTargetExtension(COLLECTION_EXTENSION);
             setTargetAngle(-2);
@@ -420,7 +424,54 @@ public class Arm {
         }
     }
 
-    int tickCount = 0;
+    public void collectionPosition(){
+        // If we're already close to fully retracted, just focus on rotating down
+        if(getExtensionEncoderPosition() < 1.5){
+            setTargetExtension(COLLECTION_EXTENSION);
+            setTargetAngle(COLLECTION_ANGLE);
+        } else {
+            // Get current position
+            double currentAngle = getAngle();
+            double currentExtension = getExtensionEncoderPosition();
+
+            // Calculate the slope for a linear path to (0,0)
+            // This ratio tells us how much to rotate for each unit of retraction
+            double angleToExtensionRatio = currentAngle / currentExtension;
+
+            // Start the retraction
+            setTargetExtension(0);
+
+            runningMacro = (arm -> {
+                double currentExt = arm.getExtensionEncoderPosition();
+
+                if (Math.abs(arm.getAngle()) < 5 && currentExt < 1.5) {
+                    // We're very close to fully retracted and down, finalize position
+                    arm.setTargetAngleIgnoreMacro(0);
+                    arm.setTargetExtensionIgnoreMacro(0);
+                    arm.runningMacro = null;
+                } else if (currentExt < 1.5) {
+                    // We're retracted but not rotated down yet
+                    arm.setTargetAngleIgnoreMacro(0);
+                    arm.setTargetExtensionIgnoreMacro(0);
+                } else {
+                    // Calculate the target angle based on current extension
+                    // This creates a coordinated path where we move down as we retract
+                    double targetAngle = angleToExtensionRatio * currentExt;
+
+                    // Make sure we're moving toward 0 and not away
+                    if ((currentAngle > 0 && targetAngle > currentAngle) ||
+                            (currentAngle < 0 && targetAngle < currentAngle)) {
+                        // If the calculated target would move us away from 0, adjust the ratio
+                        targetAngle = currentAngle * (currentExt / currentExtension);
+                    }
+
+                    arm.setTargetAngleIgnoreMacro(targetAngle);
+                }
+            });
+        }
+    }
+
+    private int tickCount = 0;
 
     /**
      * Runs a controller cycle for the arm.
@@ -462,7 +513,7 @@ public class Arm {
             }
             else {downwardKF = rotationKF * -1 * Math.cos(Math.toRadians(getAngle()));}*/
             if (targetAngle >= 80) {
-                upwardPID.setConstants(verticalKP, upwardKI, verticalKD, 0, upwardMaxI);
+                upwardPID.setConstants(verticalKP, upwardKI, verticalKD, upwardKF, upwardMaxI);
             } else {
                 upwardPID.setConstants(upwardKP, upwardKI, upwardKD, upwardKF, upwardMaxI);
             }

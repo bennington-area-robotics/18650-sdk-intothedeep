@@ -28,20 +28,27 @@ public class AutonomousSpecimenDelivery extends AutoTemplate {
 
     public static double specX = 0, specY = 40, specTan = 90, specHeading = 90;
     public static double collectionX = -24, collectionY = 55, collectionTan = 180, collectionHeading = 0;
-    public static double collectionArmAngle = 35, collectionArmExtension = 4, collectionCollectorAngle = -20;
+    public static double collectionArmAngle = 35, collectionArmExtension = 8, collectionCollectorAngle = -15;
     public static float collectionCollectorRotation = 0.4f;
-    public static double deliveryCollectorPos = 40, deliveryArmAngle = 45, deliveryArmExtension = 23;
-    public static double forwardAmount = 23;
-    public static double strafeAmount = 9.5;
-    public static double offSet = 4;
-    public static double secondCollectionY = 40;
+    public static double deliveryCollectorPos = 65, deliveryArmAngle = 50, deliveryArmExtension =9;
+    public static double forwardAmount = 32;
+    public static double strafeAmount = 10.5;
+    public static double offSet = 1.2;
+    public static double secondCollectionY = 34.5;
+    public static double secondSpecimenExtension = 9;
 
     @Override
     public void runOpMode() throws InterruptedException {
         setBlueStartPose(blueStartX, blueStartY, blueStartAng);
         super.initialize();
-
+        setManualCaching();
+        while(!isStarted() && !isStopRequested()){
+            collector.wristToHalfway();
+            collector.closeGrip();
+            tickAll();
+        }
         waitForStart();
+
 
         run();
     }
@@ -74,21 +81,36 @@ public class AutonomousSpecimenDelivery extends AutoTemplate {
     public void collectSecondSpecimen(){
         Trajectory moveToCollectionPosition = drive.trajectoryBuilder(drive.getPoseEstimate(), true)
             .splineToSplineHeading(new Pose2d(collectionX, collectionY, Math.toRadians(collectionHeading)), Math.toRadians(collectionTan))
-            .splineToConstantHeading(new Vector2d(collectionX, collectionY + strafeAmount), Math.toRadians(collectionHeading))
+            //.splineToConstantHeading(new Vector2d(collectionX, collectionY + strafeAmount), Math.toRadians(collectionHeading))
             .build();
 
-        performWithManualCaching(() -> arm.moveToTargetAngleBlocking(collectionArmAngle, this::tickAll));
-        performWithManualCaching(() -> arm.moveToTargetExtensionBlocking(10, this::tickAll));
+        Trajectory strafeToPosition = drive.trajectoryBuilder(moveToCollectionPosition.end())
+            .strafeLeft(strafeAmount)
+            .build();
+
+        //performWithManualCaching(() -> arm.moveToTargetExtensionBlocking(12, this::tickAll));
+        //performWithManualCaching(() -> arm.moveToTargetAngleBlocking(collectionArmAngle, this::tickAll));
+
         drive.followTrajectoryAsync(moveToCollectionPosition);
         collector.rotateWristTo(collectionCollectorRotation);
-        //arm.setTargetAngle(collectionArmAngle);
+        arm.setTargetAngle(collectionArmAngle);
         arm.setTargetExtension(collectionArmExtension);
         collector.wristTo(collectionCollectorAngle);
 
         while(drive.isBusy() && opModeIsActive()) {
-
             collector.openGrip();
             collector.rotateWristTo(collectionCollectorRotation);
+            setAutoCaching();
+            drive.update();
+            setManualCaching();
+            tickAll();
+        }
+        collector.wristTo(collectionCollectorAngle);
+        arm.setTargetExtension(collectionArmExtension);
+        drive.followTrajectoryAsync(strafeToPosition);
+        while(drive.isBusy() && opModeIsActive()) {
+            collector.rotateWristTo(collectionCollectorRotation);
+            collector.openGrip();
             setAutoCaching();
             drive.update();
             setManualCaching();
@@ -107,7 +129,7 @@ public class AutonomousSpecimenDelivery extends AutoTemplate {
         performWithManualCaching(() -> arm.moveToTargetAngleBlocking(deliveryArmAngle, this::tickAll));
         collector.wristToDefaultPosition();
         drive.followTrajectoryAsync(moveToRung);
-        arm.setTargetExtension(deliveryArmExtension-offSet);
+        arm.setTargetExtension(secondSpecimenExtension);
         collector.wristTo(deliveryCollectorPos);
 
         while(drive.isBusy() && opModeIsActive()) {
@@ -123,12 +145,50 @@ public class AutonomousSpecimenDelivery extends AutoTemplate {
 
     }
 
-    public void backUp(){
+    public void backUp(double distance){
         Trajectory backUp = drive.trajectoryBuilder(drive.getPoseEstimate())
-                .forward(3)
+                .forward(distance)
                 .build();
         setAutoCaching();
         drive.followTrajectory(backUp);
+    }
+    public void pushSample(){
+        Trajectory pushSample = drive.trajectoryBuilder(drive.getPoseEstimate(), true)
+                //.forward(10)
+                .splineTo(
+                        new Vector2d(-37, 45),
+                        Math.toRadians(-90),
+                        velocityConstraint,
+                        accelerationConstraint)
+                .splineTo(
+                        new Vector2d(-37,20),
+                        Math.toRadians(-90),
+                        velocityConstraint,
+                        accelerationConstraint)
+                .splineToConstantHeading(
+                        new Vector2d(-45,12),
+                        Math.toRadians(90),
+                        velocityConstraint,
+                        accelerationConstraint)
+                .splineTo(
+                        new Vector2d(-45, 60),
+                        Math.toRadians(90),
+                        velocityConstraint,
+                        accelerationConstraint)
+                .build();
+
+        arm.setTargetExtension(0);
+        arm.setTargetAngle(0);
+        collector.wristTo(215);
+        drive.followTrajectoryAsync(pushSample);
+        while(drive.isBusy() && opModeIsActive()) {
+
+            collector.wristToDefaultPosition();
+            setAutoCaching();
+            drive.update();
+            setManualCaching();
+            tickAll();
+        }
     }
 
     @Override
@@ -140,22 +200,22 @@ public class AutonomousSpecimenDelivery extends AutoTemplate {
         collector.closeGrip();
 
         placePreloadedSpecimen();
-        backUp();
+        backUp(15);
         collectSecondSpecimen();
-        wait(0.5);
+        waitTick(0.5);
         deliverSecondSpecimen();
-        backUp();
-        performWithManualCaching(() -> arm.moveToTargetExtensionBlocking(0, this::tickAll));
+        backUp(15);
+        pushSample();
 
         setManualCaching();
+        performWithManualCaching(()-> collector.moveWristToBlocking(220, this::tickAll, true));
         arm.setTargetAngle(0);
-        collector.wristUp();
         //resetPosition();
         while(arm.getAngle() > 0){
             tickAll();
         }
         arm.setTargetExtension(0);
-        collector.wristTo(0);
+        //collector.wristTo(0);
         while(runtime.seconds() < 30 && opModeIsActive()){
             tickAll();
         }

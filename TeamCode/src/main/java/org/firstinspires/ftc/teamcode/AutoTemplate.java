@@ -62,12 +62,13 @@ public class AutoTemplate extends LinearOpMode {
         run();
     }
 
-    public void wait(double seconds){
+    public void waitTick(double seconds){
         waitTimer.reset();
         setManualCaching();
         while(waitTimer.seconds() <= seconds) {
             tickAll();
         }
+        setAutoCaching();
     }
     public void setBlueStartPose(double x, double y, double heading){
         blueStartPose = new Pose(x, y, heading).toRR();
@@ -132,7 +133,8 @@ public class AutoTemplate extends LinearOpMode {
                 .addData("Up?", () -> collector.isWristUp())
                 .addData("Down?", () -> collector.isWristDown())
                 .addData("Rotated?", () -> collector.isWristRotated())
-                .addData("Default?", () -> collector.isWristDefault());
+                .addData("Default?", () -> collector.isWristDefault())
+                .addData("Limit Sensor Pressed", () -> collector.wristTouchSensor.isPressed());
     }
     public void updateMotorServoCache(){
         if (!manuallyCaching){
@@ -181,11 +183,12 @@ public class AutoTemplate extends LinearOpMode {
         collector = new Collector(
                 arm,
                 hardwareMap,
-                "colorSensor",
                 "wristMotor",
                 "gripServo",
-                "wristServo");
+                "wristServo",
+                "wristLimitSensor");
         tickTimer = new ElapsedTime();
+        Arm.upwardKP = 0.055;
         configureTelemetry();
         initializeStartingPosition();
 
@@ -195,6 +198,7 @@ public class AutoTemplate extends LinearOpMode {
 
     public void initializeStartingPosition(){
         setManualCaching();
+        collector.resetPositionAs(215);
         collector.wristToHalfway();
         arm.moveToTargetAngleBlocking(armInitAngle, this::tickInit);
         collector.moveWristToBlocking(collectorInitPos, this::tickInit, true);

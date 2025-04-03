@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.TouchSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.OpModeCore;
@@ -22,6 +23,7 @@ public class Collector {
     public static float DEFAULT_POSITION = 1.0f, ROTATED_POSITION = 0.0f;//wristServo
     public static float HALFWAY_POSITION = 0.5f;
     public static float LENGTH = 5f;
+    public static double resetPosition = 225;
     //old pid values for else return 0
     /*public static double upWristKP = 0.008, upWristKI = 0, upWristKD = 0, upWristKF = -0.02, upWristMaxI,  upWristKCOS = -0.15;
     public static double wristOffset = 0;
@@ -29,10 +31,10 @@ public class Collector {
     public static double downWristKP = 0.0005, downWristKI = 0, downWristKD = 0.003, downWristKF, downWristMaxI, downWristKCOS= 0;
     private boolean withGravity = false;*/
 
-    public static double upWristKP = 0.009, upWristKI = 0, upWristKD = 0, upWristKF = 0, upWristMaxI,  upWristKCOS = -0.17;
+    public static double upWristKP = 0.009, upWristKI = 0.001, upWristKD = 0.001, upWristKF = 0, upWristMaxI,  upWristKCOS = -0.14;
     public static double wristOffset = 0;
 
-    public static double downWristKP = 0.0003, downWristKI = 0, downWristKD = 0.001, downWristKF, downWristMaxI, downWristKCOS= 0;
+    public static double downWristKP = 0.001, downWristKI = 0, downWristKD = 0.001, downWristKF, downWristMaxI, downWristKCOS= 0;
     private boolean withGravity = false;
 
     double KF = upWristKF;
@@ -46,10 +48,12 @@ public class Collector {
     final Servo gripServo;
     final Servo wristServo;
     private final DcMotor wristMotor;
+    public final TouchSensor wristTouchSensor;
+
     private WristMode wristMode;
     private final Arm arm;
-    private double wristPower = 0.0;
-    public static int submersibleCollectionPosition = 60;
+    public static double wristPower = 0.4;
+    public static int submersibleCollectionPosition = 70;
 
     public static double upPower, downPower = 0;
 
@@ -57,7 +61,8 @@ public class Collector {
         MOVE_TO_TARGET, STAY_PARALLEL, STAY_PERPENDICULAR, FLOAT, SET_POWER
     }
 
-    public Collector(Arm arm, HardwareMap hardwareMap, String colorSensorName, String wristMotorName, String gripServoName, String wristServoName){
+    public Collector(Arm arm, HardwareMap hardwareMap, String wristMotorName, String gripServoName, String wristServoName, TouchSensor wristTouchSensor){
+        this.wristTouchSensor = wristTouchSensor;
         //this.colorSensor = new ColorSensor(hardwareMap, colorSensorName);
         this.gripServo = hardwareMap.get(Servo.class, gripServoName);
         this.wristMotor = hardwareMap.get(DcMotor.class, wristMotorName);
@@ -68,20 +73,22 @@ public class Collector {
         resetPositionAs(0);
         wristMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         wristMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        setWristMode(WristMode.FLOAT);
+        //setWristMode(WristMode.FLOAT);
     }
 
-    public Collector(Arm arm, HardwareMap hardwareMap, String wristMotorName, String gripServoName, String wristServoName){
+    public Collector(Arm arm, HardwareMap hardwareMap, String wristMotorName, String gripServoName, String wristServoName, String wristLimitSensorName){
 
         this.gripServo = hardwareMap.get(Servo.class, gripServoName);
         this.wristMotor = hardwareMap.get(DcMotor.class, wristMotorName);
         this.arm = arm;
         this.wristEncoder = new Encoder(hardwareMap.get(DcMotorEx.class, wristMotorName));
         this.wristServo = hardwareMap.get(Servo.class, wristServoName);
+        this.wristTouchSensor = hardwareMap.get(TouchSensor.class, wristLimitSensorName);
 
-        resetPositionAs(0);
+
         wristMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         wristMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        //setWristMode(WristMode.MOVE_TO_TARGET);
         setWristMode(WristMode.FLOAT);
     }
 
@@ -95,7 +102,7 @@ public class Collector {
             if (timer.seconds() > 0.5 && !timerOverride){
                 return timer.milliseconds();
             }
-            if(timer.seconds() > 2 && timerOverride){
+            if(timer.seconds() > 1 && timerOverride){
                 return timer.milliseconds();
             }
         }
@@ -171,7 +178,7 @@ public class Collector {
 
     public boolean toggleWristServo(){
 
-        if (isWristDefault() && isWristUp()) {
+        if (isWristDefault()) {
             wristToRotatedPosition();
             while(!isWristRotated()){
                 OpModeCore.getInstance().tick();
@@ -284,7 +291,26 @@ public class Collector {
         wristOffset = angle;
     }
 
+    public void resetEncoderPosition(){
+        ElapsedTime waitTimer = new ElapsedTime();
+        setWristMode(WristMode.SET_POWER);
+        setWristPower(wristPower);
+        waitTimer.reset();
+        while(!wristTouchSensor.isPressed() && waitTimer.seconds() < 2){
+            tick();
+        }
+        waitTimer.reset();
+        while(waitTimer.seconds() < 0.3){
+            tick();
+        }
+        setWristMode(WristMode.MOVE_TO_TARGET);
+        wristTo(90);
+    }
+
     public void tick(){
+        if(wristTouchSensor.isPressed()){
+            resetPositionAs(resetPosition);
+        }
 
         double passedUpKF = upWristKF + ( Math.sin(Math.toRadians(getWristAngle() + arm.getAngle())) * upWristKCOS);
         double passedDownKF = downWristKF + (Math.sin(Math.toRadians(getWristAngle() + arm.getAngle())) * downWristKCOS);
