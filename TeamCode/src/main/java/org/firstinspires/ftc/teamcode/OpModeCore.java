@@ -30,8 +30,8 @@ import java.util.Locale;
 public class OpModeCore extends LinearOpMode {
 
     public static double sampleDeliveryArmAngle = 90;
-    public static double collectionArmAngle = 35, collectionArmExtension = 4, collectionCollectorAngle = -20;
-    public static double deliveryArmAngle = 50, deliveryArmExtension = 12, deliveryCollectorAngle = 40;
+    public static double collectionArmAngle = 30, collectionArmExtension = 9.3, collectionCollectorAngle = -25;
+    public static double deliveryArmAngle = 50, deliveryArmExtension = 9, deliveryCollectorAngle = 40;
     public static int posVariable = 40;
     public static int collectionPosVariable = -20;
     public static double armVariable = 50;
@@ -304,26 +304,19 @@ public class OpModeCore extends LinearOpMode {
             collector.wristTo(collectionCollectorAngle);
         }
         if(gamepad1.right_bumper && !previousGamepad1.right_bumper){
-            driveBase.setMotorPowers(0,0,0,0);
-            collector.resetEncoderPosition();
-        }
-
-        if(gamepad2.right_bumper && !previousGamepad2.right_bumper){
-            driveBase.setPoseEstimate(new Pose2d( -36, 50, Math.toRadians(90)));
-            Trajectory moveToRung = driveBase.trajectoryBuilder(driveBase.getPoseEstimate(), true)
-                    .splineToLinearHeading(new Pose2d(-12, 40, Math.toRadians(-90)), Math.toRadians(-90))
-                    .build();
-            driveBase.followTrajectoryAsync(moveToRung);
-            while(driveBase.isBusy() && opModeIsActive()){
-                if(!gamepad2.atRest()){
-                    setManualCaching();
-                    return;
-                }
-                setAutoCaching();
-                driveBase.update();
-                setManualCaching();
+            ElapsedTime waitTimer = new ElapsedTime();
+            collector.setWristMode(Collector.WristMode.SET_POWER);
+            collector.setWristPower(0.4);
+            waitTimer.reset();
+            while(!collector.wristTouchSensor.isPressed() && waitTimer.seconds() < 2){
                 tick();
             }
+            waitTimer.reset();
+            while(waitTimer.seconds() < 0.3){
+                tick();
+            }
+            collector.setWristMode(Collector.WristMode.MOVE_TO_TARGET);
+            collector.wristTo(90);
         }
 
         if(gamepad1.dpad_down && !previousGamepad1.dpad_down){
@@ -484,27 +477,19 @@ public class OpModeCore extends LinearOpMode {
         }
 
         if(gamepad1.right_bumper && !previousGamepad1.right_bumper){
-            driveBase.setMotorPowers(0,0,0,0);
-            collector.resetEncoderPosition();
-        }
-        if(gamepad1.right_stick_button && !previousGamepad1.right_stick_button){
-            StandardTrackingWheelLocalizer.forwardEncoders();
-            driveBase.setPoseEstimate(new Pose2d( -36, 50, Math.toRadians(-90)));
-            Trajectory moveToRung = driveBase.trajectoryBuilder(driveBase.getPoseEstimate())
-                    .splineToLinearHeading(new Pose2d(-12, 40, Math.toRadians(90)), Math.toRadians(-90))
-                    .build();
-            driveBase.followTrajectoryAsync(moveToRung);
-            while(driveBase.isBusy() && opModeIsActive()){
-                if(!gamepad1.atRest()){
-                    setManualCaching();
-                    return;
-                }
-                setAutoCaching();
-                driveBase.update();
-                setManualCaching();
+            ElapsedTime waitTimer = new ElapsedTime();
+            collector.setWristMode(Collector.WristMode.SET_POWER);
+            collector.setWristPower(0.4);
+            waitTimer.reset();
+            while(!collector.wristTouchSensor.isPressed() && waitTimer.seconds() < 2){
                 tick();
             }
-            StandardTrackingWheelLocalizer.reverseEncoders();
+            waitTimer.reset();
+            while(waitTimer.seconds() < 0.3){
+                tick();
+            }
+            collector.setWristMode(Collector.WristMode.MOVE_TO_TARGET);
+            collector.wristTo(90);
         }
 
         if(gamepad1.dpad_down && !previousGamepad1.dpad_down){

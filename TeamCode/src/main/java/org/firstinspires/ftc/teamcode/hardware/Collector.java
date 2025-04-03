@@ -53,7 +53,7 @@ public class Collector {
     private WristMode wristMode;
     private final Arm arm;
     public static double wristPower = 0.4;
-    public static int submersibleCollectionPosition = 60;
+    public static int submersibleCollectionPosition = 70;
 
     public static double upPower, downPower = 0;
 
@@ -85,7 +85,7 @@ public class Collector {
         this.wristServo = hardwareMap.get(Servo.class, wristServoName);
         this.wristTouchSensor = hardwareMap.get(TouchSensor.class, wristLimitSensorName);
 
-        resetPositionAs(0);
+
         wristMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         wristMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         setWristMode(WristMode.MOVE_TO_TARGET);
@@ -295,7 +295,8 @@ public class Collector {
         ElapsedTime waitTimer = new ElapsedTime();
         setWristMode(WristMode.SET_POWER);
         setWristPower(wristPower);
-        while(!wristTouchSensor.isPressed()){
+        waitTimer.reset();
+        while(!wristTouchSensor.isPressed() && waitTimer.seconds() < 2){
             tick();
         }
         waitTimer.reset();

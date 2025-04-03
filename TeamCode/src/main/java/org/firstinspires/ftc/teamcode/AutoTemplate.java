@@ -197,6 +197,7 @@ public class AutoTemplate extends LinearOpMode {
 
     public void initializeStartingPosition(){
         setManualCaching();
+        collector.resetPositionAs(215);
         collector.wristToHalfway();
         arm.moveToTargetAngleBlocking(armInitAngle, this::tickInit);
         collector.moveWristToBlocking(collectorInitPos, this::tickInit, true);

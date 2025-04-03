@@ -28,13 +28,13 @@ public class AutonomousSpecimenDelivery extends AutoTemplate {
 
     public static double specX = 0, specY = 40, specTan = 90, specHeading = 90;
     public static double collectionX = -24, collectionY = 55, collectionTan = 180, collectionHeading = 0;
-    public static double collectionArmAngle = 35, collectionArmExtension = 6, collectionCollectorAngle = -20;
+    public static double collectionArmAngle = 35, collectionArmExtension = 7.5, collectionCollectorAngle = -15;
     public static float collectionCollectorRotation = 0.4f;
-    public static double deliveryCollectorPos = 45, deliveryArmAngle = 50, deliveryArmExtension = 18;
-    public static double forwardAmount = 29;
+    public static double deliveryCollectorPos = 60, deliveryArmAngle = 50, deliveryArmExtension = 9.3;
+    public static double forwardAmount = 30.2;
     public static double strafeAmount = 10.5;
-    public static double offSet = 3;
-    public static double secondCollectionY = 36;
+    public static double offSet = 1.2;
+    public static double secondCollectionY = 33.5;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -197,14 +197,14 @@ public class AutonomousSpecimenDelivery extends AutoTemplate {
         pushSample();
 
         setManualCaching();
-        performWithManualCaching(()-> collector.moveWristToBlocking(90, this::tickAll, true));
+        performWithManualCaching(()-> collector.moveWristToBlocking(220, this::tickAll, true));
         arm.setTargetAngle(0);
         //resetPosition();
         while(arm.getAngle() > 0){
             tickAll();
         }
         arm.setTargetExtension(0);
-        collector.wristTo(0);
+        //collector.wristTo(0);
         while(runtime.seconds() < 30 && opModeIsActive()){
             tickAll();
         }
