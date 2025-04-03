@@ -205,8 +205,8 @@ public class AutonomousSampleDelivery extends AutoTemplate {
         collector.closeGrip();
 
         placePreloadedSample();
-        collectSecondSample();
-        deliverSecondSample();
+        //collectSecondSample();
+        //deliverSecondSample();
         pushSample();
         moveToAscent();
 
