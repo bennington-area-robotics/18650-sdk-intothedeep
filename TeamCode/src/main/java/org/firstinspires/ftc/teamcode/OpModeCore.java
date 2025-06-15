@@ -30,8 +30,8 @@ import java.util.Locale;
 public class OpModeCore extends LinearOpMode {
 
     public static double sampleDeliveryArmAngle = 90;
-    public static double collectionArmAngle = 35, collectionArmExtension = 0, collectionCollectorAngle = -25;
-    public static double deliveryArmAngle = 55, deliveryArmExtension = 6.5, deliveryCollectorAngle = 40;
+    public static double collectionArmAngle = 35.5, collectionArmExtension = 6.5, collectionCollectorAngle = -15;
+    public static double deliveryArmAngle = 50, deliveryArmExtension = 8.5, deliveryCollectorAngle = 50;
     public static int posVariable = 40;
     public static int collectionPosVariable = -20;
     public static double armVariable = 50;
@@ -66,7 +66,7 @@ public class OpModeCore extends LinearOpMode {
     private boolean collectorArmed = false;
     private boolean isHighPower = true;
     private boolean manualArm = false;
-    public static boolean dualControllers = true;
+    public static boolean dualControllers = false ;
     public static boolean testingPID = false;
 
     public static DriveMode driveMode = DriveMode.DIRECTIVE;

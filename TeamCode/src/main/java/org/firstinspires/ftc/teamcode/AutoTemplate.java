@@ -188,6 +188,7 @@ public class AutoTemplate extends LinearOpMode {
                 "wristServo",
                 "wristLimitSensor");
         tickTimer = new ElapsedTime();
+        Collector.upWristKCOS = -0.14;
         Arm.upwardKP = 0.055;
         configureTelemetry();
         initializeStartingPosition();

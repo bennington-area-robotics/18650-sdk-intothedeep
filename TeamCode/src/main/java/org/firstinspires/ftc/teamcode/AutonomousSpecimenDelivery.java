@@ -28,14 +28,14 @@ public class AutonomousSpecimenDelivery extends AutoTemplate {
 
     public static double specX = 0, specY = 40, specTan = 90, specHeading = 90;
     public static double collectionX = -24, collectionY = 55, collectionTan = 180, collectionHeading = 0;
-    public static double collectionArmAngle = 35, collectionArmExtension = 8, collectionCollectorAngle = -15;
+    public static double collectionArmAngle = 35, collectionArmExtension = 8.2, collectionCollectorAngle = -25;
     public static float collectionCollectorRotation = 0.4f;
-    public static double deliveryCollectorPos = 65, deliveryArmAngle = 50, deliveryArmExtension =9;
+    public static double deliveryCollectorPos = 45, deliveryArmAngle = 55, deliveryArmExtension =8;
     public static double forwardAmount = 32;
     public static double strafeAmount = 10.5;
     public static double offSet = 1.2;
-    public static double secondCollectionY = 34.5;
-    public static double secondSpecimenExtension = 9;
+    public static double secondCollectionY = 33;
+    public static double secondSpecimenExtension = 7.8;
 
     @Override
     public void runOpMode() throws InterruptedException {

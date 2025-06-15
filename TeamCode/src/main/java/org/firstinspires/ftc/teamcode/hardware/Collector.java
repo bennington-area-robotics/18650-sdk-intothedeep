@@ -31,7 +31,7 @@ public class Collector {
     public static double downWristKP = 0.0005, downWristKI = 0, downWristKD = 0.003, downWristKF, downWristMaxI, downWristKCOS= 0;
     private boolean withGravity = false;*/
 
-    public static double upWristKP = 0.009, upWristKI = 0.001, upWristKD = 0.001, upWristKF = 0, upWristMaxI,  upWristKCOS = -0.14;
+    public static double upWristKP = 0.009, upWristKI = 0.001, upWristKD = 0.001, upWristKF = 0, upWristMaxI,  upWristKCOS = -0.12;
     public static double wristOffset = 0;
 
     public static double downWristKP = 0.001, downWristKI = 0, downWristKD = 0.001, downWristKF, downWristMaxI, downWristKCOS= 0;

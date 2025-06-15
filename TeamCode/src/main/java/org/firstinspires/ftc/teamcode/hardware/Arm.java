@@ -27,7 +27,7 @@ public class Arm {
     public static double MAX_ARM_EXTENSION = 41;
 
 
-    public static double MAX_HORIZONTAL_EXTENSION = 38.0;
+    public static double MAX_HORIZONTAL_EXTENSION = 25.0;
 
 
     public static double angleTolerance = 0.4;

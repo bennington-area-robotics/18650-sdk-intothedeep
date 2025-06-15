@@ -29,7 +29,7 @@ public class AutonomousSampleDelivery extends AutoTemplate {
 
     private static ElapsedTime runtime = new ElapsedTime();
 
-    public static double basketX = 52, basketY = 49, basketHeading = 45;
+    public static double basketX = 53, basketY = 50, basketHeading = 45;
     public static double ascentX = 5;
     public static double secondSampleX = 55, secondSampleY = 40;
 

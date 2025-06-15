@@ -11,7 +11,7 @@ import org.firstinspires.ftc.teamcode.hardware.controllers.PID;
 
 @Config
 public class DriveBase extends ConfiguredMecanumDrive {
-    public static float HIGH_TRANSLATIONAL_VELOCITY_MULTIPLIER = 35f;
+    public static float HIGH_TRANSLATIONAL_VELOCITY_MULTIPLIER = 30f;
     public static float HIGH_HEADING_VELOCITY_MULTIPLIER = 2f;
     public static float LOW_TRANSLATIONAL_VELOCITY_MULTIPLIER = 20f;
     public static float LOW_HEADING_VELOCITY_MULTIPLIER = 2f;
